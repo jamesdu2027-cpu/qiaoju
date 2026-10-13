@@ -5,7 +5,7 @@ const SUPABASE_KEY = 'sb_publishable_1NGnx5BbQkV3dCmQZLcPJg_eI4zSNyF';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // 功能開關：在 Supabase 的 settings 表格改 enabled 即可，不用改程式。讀不到時用下面的預設值
 let SW = { signup: true, login: true, posting: true, chat: false, video: false };
-async function loadSwitches() 
+async function loadSwitches()  {
   const { data } = await db.from('settings').select('key,enabled');
   (data || []).forEach(r => { SW[r.key] = r.enabled; });
 }
