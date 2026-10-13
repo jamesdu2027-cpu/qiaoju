@@ -129,3 +129,55 @@ async function startVideo() {
     document.body.appendChild(d);
   } catch (e) {}
 })();
+(() => {
+  const EN = {
+    '僑聚網':'QiaoJu','博客':'Blog','論壇':'Forum','聊天':'Chat',
+    '登入 / 註冊':'Log in / Sign up','登入／註冊':'Log in / Sign up','登入':'Log in','註冊':'Sign up','登出':'Log out',
+    '全部':'All','新聞':'News','文化':'Culture','社會':'Society','生活':'Life','花園':'Garden','種植':'Planting','栽培':'Growing',
+    '釣魚':'Fishing','美食':'Food','寵物':'Pets','旅遊':'Travel','旅居':'Living Abroad','親子':'Parenting','健康':'Health',
+    '教育':'Education','房產':'Real Estate','職場':'Careers','汽車':'Cars','攝影':'Photography','影視':'Film & TV','體育':'Sports','小說':'Fiction',
+    '寫博客':'Write a blog','發表回覆':'Post reply','發表':'Publish','發送':'Send','取消':'Cancel','關閉':'Close',
+    '大家在此聊天':'Chat with everyone','開視頻房間':'Start video room','輸入訊息':'Type a message',
+    '信箱':'Email','密碼':'Password','暱稱':'Nickname','標題':'Title','內容':'Content','分類':'Category','回覆':'Replies','返回':'Back'
+  };
+  let lang = 'zh';
+  try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
+  const orig = new WeakMap();
+  const tr = s => {
+    const t = s.trim(); if (!t) return s;
+    if (EN[t]) return s.replace(t, EN[t]);
+    let m = t.match(/^(.+?) · (.+?) · (\d+) 次瀏覽$/);
+    if (m) return s.replace(t, (EN[m[1]] || m[1]) + ' · ' + m[2] + ' · ' + m[3] + ' views');
+    m = t.match(/^今日訪問 (\d+)\s*[|｜]\s*累計訪問 (\d+)\s*[|｜]\s*文章 (\d+)$/);
+    if (m) return s.replace(t, 'Today ' + m[1] + ' | Total ' + m[2] + ' | Posts ' + m[3]);
+    if (t.indexOf('版權投訴與廣告合作') === 0) return s.replace('版權投訴與廣告合作：', 'Copyright complaints & advertising: ').replace('版權投訴與廣告合作:', 'Copyright complaints & advertising: ');
+    return s;
+  };
+  function walk() {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) {
+      const p = n.parentNode && n.parentNode.nodeName;
+      if (p === 'SCRIPT' || p === 'STYLE' || p === 'TEXTAREA') continue;
+      if (lang === 'en') {
+        if (!orig.has(n)) { const r = tr(n.nodeValue); if (r !== n.nodeValue) { orig.set(n, n.nodeValue); n.nodeValue = r; } }
+      } else if (orig.has(n)) { n.nodeValue = orig.get(n); orig.delete(n); }
+    }
+    document.querySelectorAll('[placeholder]').forEach(el => {
+      if (lang === 'en') {
+        if (!el.dataset.zh && EN[el.placeholder]) { el.dataset.zh = el.placeholder; el.placeholder = EN[el.placeholder]; }
+      } else if (el.dataset.zh) { el.placeholder = el.dataset.zh; delete el.dataset.zh; }
+    });
+  }
+  const obs = new MutationObserver(() => { obs.disconnect(); walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true }); });
+  const btn = document.createElement('button');
+  btn.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;padding:6px 12px;border:0;border-radius:16px;background:#2f6f73;color:#fff;font-size:13px;cursor:pointer;opacity:.9';
+  const label = () => { btn.textContent = lang === 'en' ? '中 / EN' : '中 / EN'; btn.title = lang === 'en' ? '切換為中文' : 'Switch to English'; };
+  btn.onclick = () => {
+    lang = lang === 'en' ? 'zh' : 'en';
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+    obs.disconnect(); walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true }); label();
+  };
+  document.body.appendChild(btn); label();
+  walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true });
+})();
