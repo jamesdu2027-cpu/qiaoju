@@ -176,7 +176,7 @@ async function startVideo() {
   btn.onclick = () => {
     lang = lang === 'en' ? 'zh' : 'en';
     try { localStorage.setItem('lang', lang); } catch (e) {}
-    obs.disconnect(); walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true }); label();
+    location.reload ();
   };
   document.body.appendChild(btn); label();
   walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true });
