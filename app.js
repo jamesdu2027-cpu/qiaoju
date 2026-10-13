@@ -5,7 +5,7 @@ const SUPABASE_KEY = 'sb_publishable_1NGnx5BbQkV3dCmQZLcPJg_eI4zSNyF';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // 功能開關：在 Supabase 的 settings 表格改 enabled 即可，不用改程式。讀不到時用下面的預設值
 let SW = { signup: true, login: true, posting: true, chat: false, video: false };
-async function loadSwitches() {
+async function loadSwitches() 
   const { data } = await db.from('settings').select('key,enabled');
   (data || []).forEach(r => { SW[r.key] = r.enabled; });
 }
@@ -118,3 +118,14 @@ async function startVideo() {
   if (error) return fail(error);
   window.open(url, '_blank', 'noopener');
 }
+(async () => {
+  try {
+    await new Promise(r => setTimeout(r, 1500));
+    const { data } = await db.rpc('site_stats');
+    if (!data) return;
+    const d = document.createElement('div');
+    d.style.cssText = 'text-align:center;color:#888;font-size:13px;padding:12px';
+    d.textContent = '今日訪問 ' + data.today + ' ｜ 累計訪問 ' + data.total + ' ｜ 文章 ' + data.posts;
+    document.body.appendChild(d);
+  } catch (e) {}
+})();
