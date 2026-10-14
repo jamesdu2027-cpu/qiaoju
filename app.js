@@ -184,7 +184,7 @@ async function startVideo() {
 (() => {
   let stayOn = false;
   const _go = go, _render = render;
-  go = k => { stayOn = false; _go(k); };
+  go = k => { stayOn = false; _go(k); }; const _lv = listView, _cv = chatView, _dt = detail; listView = (...a) => stayOn ? undefined : _lv(...a); chatView = (...a) => stayOn ? undefined : _cv(...a); detail = (...a) => stayOn ? undefined : _dt(...a);
   render = () => {
     _render();
     const nav = $('#nav');
