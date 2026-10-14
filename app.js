@@ -336,3 +336,51 @@ async function startVideo() {
     };
   }
 })();
+// ===== 文章翻譯（新增）：按鈕 → 已存譯文 → Cloudflare AI → 額度滿改用 Google 翻譯 =====
+(() => {
+  const _dt = detail;
+  const L = () => { try { return localStorage.getItem('lang') === 'en' ? 'en' : 'zh'; } catch (e) { return 'zh'; } };
+  const T = {
+    zh: { go: '翻譯', orig: '顯示原文', busy: '翻譯中…', full: '今日 AI 翻譯額度已滿，已改用瀏覽器翻譯' },
+    en: { go: 'Translate', orig: 'Show original', busy: 'Translating…', full: "Today's AI translation quota is used up. Switched to browser translation." }
+  };
+  detail = async (...a) => {
+    await _dt(...a);
+    const h = document.querySelector('#app h2'), b = document.querySelector('#app p.body');
+    const back = document.querySelector('#app .card button.btn');
+    if (!h || !b || !back || document.getElementById('trbtn')) return;
+    const to = L(), t = T[to];
+    const btn = document.createElement('button');
+    btn.className = 'btn'; btn.id = 'trbtn'; btn.style.marginLeft = '8px'; btn.textContent = t.go;
+    back.after(btn);
+    const o = { title: h.textContent, body: b.textContent };
+    let shown = false;
+    const show = (ti, bo, on) => { h.textContent = ti; b.textContent = bo; shown = on; btn.textContent = on ? t.orig : t.go; };
+    btn.onclick = async () => {
+      if (shown) return show(o.title, o.body, false);
+      btn.textContent = t.busy;
+      const id = openId;
+      let r = null;
+      try { r = (await db.from('translations').select('title,body').eq('post_id', id).eq('lang', to).maybeSingle()).data; } catch (e) {}
+      if (!r) {
+        try {
+          const res = await fetch('/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: o.title, body: o.body, to }) });
+          if (!res.ok) throw new Error('quota');
+          r = await res.json();
+          if (!r.title && !r.body) throw new Error('empty');
+          if (user) db.from('translations').insert({ post_id: id, lang: to, title: r.title, body: r.body }).then(() => {});
+        } catch (e) { btn.textContent = t.go; alert(t.full); return gtranslate(to); }
+      }
+      show(r.title, r.body, true);
+    };
+  };
+  function gtranslate(to) {
+    const code = to === 'en' ? 'en' : 'zh-TW';
+    const pick = () => { const s = document.querySelector('.goog-te-combo'); if (s) { s.value = code; s.dispatchEvent(new Event('change')); } };
+    if (window.google && google.translate && google.translate.TranslateElement) return pick();
+    let g = document.getElementById('gt');
+    if (!g) { g = document.createElement('div'); g.id = 'gt'; g.style.cssText = 'position:absolute;left:-9999px'; document.body.appendChild(g); }
+    window.gtInit = () => { new google.translate.TranslateElement({ pageLanguage: 'zh-TW', includedLanguages: 'en,zh-TW', autoDisplay: false }, 'gt'); setTimeout(pick, 800); };
+    const s = document.createElement('script'); s.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; document.head.appendChild(s);
+  }
+})();
