@@ -181,3 +181,71 @@ async function startVideo() {
   document.body.appendChild(btn); label();
   walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true });
 })();
+(() => {
+  let stayOn = false;
+  const _go = go, _render = render;
+  go = k => { stayOn = false; _go(k); };
+  render = () => {
+    _render();
+    const nav = $('#nav');
+    if (nav) {
+      nav.querySelectorAll('button').forEach(x => { if (stayOn) x.classList.remove('on'); });
+      const b = document.createElement('button');
+      b.textContent = '住宿';
+      b.className = stayOn ? 'on' : '';
+      b.onclick = () => { stayOn = true; openId = null; render(); };
+      nav.appendChild(b);
+    }
+    if (stayOn) stayView();
+  };
+
+  async function stayView(q = {}) {
+    $('#app').innerHTML = '<div class="card"><h2>住宿搜索</h2>'
+      + '<input id="sc" placeholder="城市（例如：Tbilisi、曼谷、悉尼）" value="' + esc(q.city || '') + '"> '
+      + '<button class="btn" id="sgo">搜索</button> <button class="btn" id="snew">發布房源</button>'
+      + '<p><small>聯絡方式由房東自己填寫，請直接聯繫房東，線下付款。</small></p></div><div id="slist"></div>';
+    $('#sgo').onclick = () => stayView({ city: $('#sc').value.trim() });
+    $('#snew').onclick = stayForm;
+    let r = db.from('stays').select('*').order('created_at', { ascending: false }).limit(50);
+    if (q.city) r = r.ilike('city', '%' + q.city + '%');
+    const { data, error } = await r;
+    if (error) { $('#slist').innerHTML = '<div class="card"><small>載入失敗，請稍後再試</small></div>'; return; }
+    $('#slist').innerHTML = (data || []).map(s =>
+      '<div class="card"><h3>' + esc(s.title) + '</h3>'
+      + '<div><small>' + esc(s.city) + ' · ' + esc(s.price || '') + ' · ' + esc(s.owner_name || '') + '</small></div>'
+      + '<p>' + esc(s.description || '') + '</p>'
+      + '<p>聯絡方式：<b>' + esc(s.contact) + '</b></p>'
+      + (user && s.owner_id === user.id ? '<button class="btn" data-del="' + s.id + '">刪除我的房源</button>' : '')
+      + '</div>').join('') || '<div class="card"><small>暫時沒有房源</small></div>';
+    document.querySelectorAll('[data-del]').forEach(b => {
+      b.onclick = async () => {
+        if (!confirm('確定刪除這個房源？')) return;
+        const { error } = await db.from('stays').delete().eq('id', b.dataset.del);
+        if (error) return fail(error);
+        stayView(q);
+      };
+    });
+  }
+
+  function stayForm() {
+    if (!user) return authBox();
+    if (!SW.posting) return alert('這個功能暫未開放，敬請期待');
+    $('#slist').innerHTML = '<div class="card"><h3>發布房源</h3>'
+      + '<input id="f_city" placeholder="城市"><br>'
+      + '<input id="f_title" placeholder="標題（例如：市中心兩居室）"><br>'
+      + '<input id="f_price" placeholder="價格（例如：每晚 40 美元）"><br>'
+      + '<textarea id="f_desc" rows="4" placeholder="介紹（位置、設施、規則）"></textarea><br>'
+      + '<input id="f_contact" placeholder="聯絡方式（微信/WhatsApp/電話/郵箱）"><br>'
+      + '<button class="btn" id="f_ok">發布</button></div>';
+    $('#f_ok').onclick = async () => {
+      const v = id => $(id).value.trim();
+      if (!v('#f_city') || !v('#f_title') || !v('#f_contact')) return alert('請填寫城市、標題和聯絡方式');
+      const { error } = await db.from('stays').insert({
+        owner_id: user.id, owner_name: nick(), city: v('#f_city'), title: v('#f_title'),
+        price: v('#f_price'), description: v('#f_desc'), contact: v('#f_contact')
+      });
+      if (error) return fail(error);
+      stayView();
+    };
+  }
+})();
