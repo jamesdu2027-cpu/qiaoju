@@ -384,3 +384,59 @@ async function startVideo() {
     const s = document.createElement('script'); s.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; document.head.appendChild(s);
   }
 })();
+// ===== 生活欄：健康小常識搜索（新增）=====
+(() => {
+  const SHOW = ['生活']; // 想讓「健康」分類也有搜索框，改成 ['生活','健康']
+  const TIPS = [
+    { t: '感冒', k: ['感冒','流鼻涕','鼻塞','打噴嚏','著涼'],
+      do: ['多休息，多喝溫水', '鼻塞可用生理鹽水沖洗鼻腔', '喉嚨痛可用淡鹽水漱口', '室內保持空氣流通，不要太乾燥', '感冒多由病毒引起，抗生素沒有用，一般 7 到 10 天會慢慢好轉'],
+      go: ['高燒（39°C 以上）或發燒超過 3 天', '呼吸困難、胸痛', '症狀超過 10 天沒好轉，或好轉後又加重', '嬰幼兒、孕婦、老人和有慢性病的人，建議早點看醫生'] },
+    { t: '頭痛', k: ['頭痛','頭疼','頭暈','偏頭痛'],
+      do: ['在安靜、光線暗的地方休息', '補充水分，規律睡眠，少看螢幕', '緊張性頭痛可以熱敷或輕輕按摩頸肩', '要吃止痛藥請按說明書，不要超量，也不要長期頻繁吃'],
+      go: ['突然出現劇烈頭痛，是從沒有過的那種痛', '頭痛同時發燒、脖子僵硬', '意識模糊、說話不清、手腳無力、視力突然改變', '頭部受傷之後的頭痛', '頭痛越來越頻繁或越來越重'] },
+    { t: '發燒', k: ['發燒','發熱','高燒','體溫'],
+      do: ['多喝水，多休息', '穿輕薄衣物，不要捂汗', '可用溫水擦拭身體（不要用酒精或冰水）', '量體溫並記錄時間'],
+      go: ['3 個月以下嬰兒體溫 38°C 以上', '體溫超過 39.5°C，或超過 3 天不退', '抽搐、皮疹、呼吸困難', '精神很差、一直想睡、很難叫醒'] },
+    { t: '咳嗽、喉嚨痛', k: ['咳嗽','喉嚨痛','嗓子痛','喉嚨','咳痰'],
+      do: ['多喝溫水，避免煙霧和灰塵', '喉嚨痛可用淡鹽水漱口', '1 歲以上可喝一點蜂蜜水緩解咳嗽（1 歲以下不能喝蜂蜜）', '室內保持適當濕度'],
+      go: ['咳嗽超過 3 週', '咳血、呼吸急促或喘鳴', '喉嚨痛到吞嚥或呼吸困難', '高燒不退'] },
+    { t: '腹瀉、嘔吐', k: ['腹瀉','拉肚子','嘔吐','噁心','胃痛'],
+      do: ['少量多次補充水分，最好喝口服補液鹽', '先吃清淡、容易消化的食物', '注意洗手，避免傳染給家人'],
+      go: ['大便有血或黑色大便', '高燒', '脫水：口很乾、尿很少、頭暈、哭時沒眼淚', '超過 2 到 3 天沒好轉', '嬰幼兒、老人、孕婦，建議早點就醫'] }
+  ];
+  const li = a => '<ul style="margin:4px 0 10px;padding-left:20px">' + a.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+  const _lv = listView;
+  listView = async (...a) => {
+    await _lv(...a);
+    const cats = document.querySelector('#app .cats');
+    if (!SHOW.includes(cat) || !cats || document.getElementById('hs')) return;
+    const box = document.createElement('div');
+    box.className = 'card'; box.id = 'hs';
+    box.innerHTML = '<h3 style="margin-top:0">健康小常識搜索</h3>'
+      + '<input id="hq" placeholder="輸入症狀，例如：頭疼、感冒、發燒"> <button class="btn" id="hgo">搜索</button>'
+      + '<div id="hres"></div>'
+      + '<p class="meta">以上為一般生活常識，不能代替醫生診斷。症狀嚴重或持續請就醫；出現胸痛、呼吸困難、意識不清，請立即撥打當地急救電話。</p>';
+    cats.after(box);
+    const run = async () => {
+      const q = document.getElementById('hq').value.trim(), out = document.getElementById('hres');
+      if (!q) { out.innerHTML = ''; return; }
+      const hit = TIPS.filter(x => x.t.includes(q) || x.k.some(w => q.includes(w) || (q.length > 1 && w.includes(q))));
+      let html = hit.map(x => '<div class="card" style="margin:10px 0 0"><h3 style="margin-top:0">' + x.t + '</h3><b>可以這樣做</b>' + li(x.do) + '<b>出現這些情況請就醫</b>' + li(x.go) + '</div>').join('');
+      if (!hit.length) html = '<p class="meta">暫時沒有這個症狀的小常識，下面看看社區裡有沒有相關文章。</p>';
+      const like = '%' + q.replace(/[%_,()]/g, '') + '%';
+      let posts = [];
+      try {
+        const [r1, r2] = await Promise.all([
+          db.from('posts').select('id,title,category,author_name').ilike('title', like).limit(10),
+          db.from('posts').select('id,title,category,author_name').ilike('body', like).limit(10)
+        ]);
+        const seen = {};
+        posts = [...(r1.data || []), ...(r2.data || [])].filter(p => !seen[p.id] && (seen[p.id] = 1));
+      } catch (e) {}
+      html += '<h3>社區相關文章</h3>' + (posts.map(p => '<div class="row" onclick="openId=' + p.id + ';render()"><b>' + esc(p.title) + '</b><span>' + esc(p.category) + ' · ' + esc(p.author_name) + '</span></div>').join('') || '<p class="meta">沒有找到相關文章</p>');
+      out.innerHTML = html;
+    };
+    document.getElementById('hgo').onclick = run;
+    document.getElementById('hq').onkeydown = e => { if (e.key === 'Enter') run(); };
+  };
+})();
