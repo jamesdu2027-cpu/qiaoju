@@ -10,7 +10,9 @@ async function loadSwitches()  {
   (data || []).forEach(r => { SW[r.key] = r.enabled; });
 }
 const CATS = ['新聞','文化','社會','生活','花園','種植','栽培','釣魚','美食','寵物','旅遊','旅居','親子','健康','教育','房產','職場','汽車','攝影','影視','體育','小說'];
+const ST = { draft: '草稿', private: '僅自己可見', public: '公開' };
 let user = null, tab = 'blog', cat = '全部', openId = null, chan = null;
+let mineOn = false, mineTab = 'draft', editId = null, statsEl = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nick = () => user?.user_metadata?.nickname || user?.email.split('@')[0];
@@ -21,11 +23,11 @@ const fail = e => alert(/switch_off/.test(e.message) ? '這個功能暫未開放
   try { if (!sessionStorage.getItem('hit')) { sessionStorage.setItem('hit', '1'); db.rpc('hit_site'); } } catch (e) {}
   user = (await db.auth.getSession()).data.session?.user || null;
   if (!SW.login && user) { await db.auth.signOut(); user = null; }
-  db.auth.onAuthStateChange((_, s) => { user = s?.user || null; render(); });
+  db.auth.onAuthStateChange((_, s) => { user = s?.user || null; render(); showStats(); });
   render();
 })();
 
-function go(k) { tab = k; openId = null; render(); }
+function go(k) { tab = k; openId = null; mineOn = false; editId = null; render(); }
 function authBox() {
   if (!SW.login) return alert('網站暫未開放登入，敬請期待');
   $('#am').textContent = '';
@@ -49,41 +51,82 @@ function render() {
   if (tab === 'chat') chatView(); else if (openId) detail(); else listView();
 }
 
+// 文章表單（新文章和編輯共用）
+function formHTML(p = {}) {
+  return `<select id="pc">${CATS.map(c => `<option${c === p.category ? ' selected' : ''}>${c}</option>`).join('')}</select>
+  <input id="pt" placeholder="標題" value="${esc(p.title || '')}"><textarea id="pb" rows="10" placeholder="貼上或撰寫文章內容">${esc(p.body || '')}</textarea>
+  <label><input type="checkbox" id="own" style="width:auto;margin-right:8px">我確認內容為原創，或已獲授權；如有侵權，責任由我自己承擔</label>
+  <p><select id="pv"><option value="public">公開（全站可見）</option><option value="private">僅自己可見</option></select>
+  <button class="btn" onclick="savePost('draft')">存草稿</button> <button class="btn" onclick="savePost()">發表</button></p>`;
+}
+
 async function listView() {
-  let q = db.from('posts').select('id,title,category,author_name,views').eq('kind', tab).order('created_at', { ascending: false }).limit(50);
+  if (mineOn) return mineView();
+  editId = null;
+  let q = db.from('posts').select('id,title,category,author_name').eq('kind', tab).eq('status', 'public').order('created_at', { ascending: false }).limit(50);
   if (cat !== '全部') q = q.eq('category', cat);
   const data = (await q).data || [];
   $('#app').innerHTML = `<div class="cats">${['全部', ...CATS].map(c => `<button class="${c === cat ? 'on' : ''}" onclick="cat='${c}';render()">${c}</button>`).join('')}</div>
-  <div class="card"><button class="btn" onclick="$('#np').hidden=!$('#np').hidden">${tab === 'blog' ? '寫博客' : '發文章'}</button>
-  <div id="np" hidden style="margin-top:10px"><select id="pc">${CATS.map(c => `<option>${c}</option>`).join('')}</select>
-  <input id="pt" placeholder="標題"><textarea id="pb" rows="10" placeholder="貼上或撰寫文章內容"></textarea>
-  <label><input type="checkbox" id="own" style="width:auto;margin-right:8px">我確認內容為原創，或已獲授權；如有侵權，責任由我自己承擔</label>
-  <p><button class="btn" onclick="newPost()">發表</button></p></div></div>
-  <div class="card">${data.map(p => `<div class="row" onclick="openId=${p.id};render()"><b>${esc(p.title)}</b><span>${esc(p.category)} · ${esc(p.author_name)} · ${p.views || 0} 次瀏覽</span></div>`).join('') || '<p class="meta">還沒有內容，發第一篇吧</p>'}</div>`;
+  <div class="card"><button class="btn" onclick="$('#np').hidden=!$('#np').hidden">${tab === 'blog' ? '寫博客' : '發文章'}</button> <button class="btn" onclick="openMine()">我的文章</button>
+  <div id="np" hidden style="margin-top:10px">${formHTML()}</div></div>
+  <div class="card">${data.map(p => `<div class="row" onclick="openId=${p.id};render()"><b>${esc(p.title)}</b><span>${esc(p.category)} · ${esc(p.author_name)}</span></div>`).join('') || '<p class="meta">還沒有內容，發第一篇吧</p>'}</div>`;
 }
 
-async function newPost() {
+function openMine() { if (!user) return authBox(); mineOn = true; editId = null; render(); }
+
+async function savePost(mode) {
   if (!SW.posting) return alert('發文功能暫未開放，敬請期待');
   if (!user) return authBox();
   const title = $('#pt').value.trim(), body = $('#pb').value.trim();
-  if (!title || !body) return alert('請填寫標題和內容');
-  if (!$('#own').checked) return alert('請先確認內容為原創或已獲授權');
-  const { error } = await db.from('posts').insert({ kind: tab, category: $('#pc').value, title, body, author_id: user.id, author_name: nick() });
-  if (error) fail(error); else render();
+  const status = mode === 'draft' ? 'draft' : $('#pv').value;
+  if (!title) return alert('請填寫標題');
+  if (status !== 'draft' && !body) return alert('請填寫內容');
+  if (status !== 'draft' && !$('#own').checked) return alert('請先確認內容為原創或已獲授權');
+  const f = { category: $('#pc').value, title, body, status };
+  const { error } = editId
+    ? await db.from('posts').update(f).eq('id', editId)
+    : await db.from('posts').insert({ ...f, kind: tab, author_id: user.id, author_name: nick() });
+  if (error) return fail(error);
+  editId = null; mineOn = true; mineTab = status; render();
 }
 
+async function mineView() {
+  if (!user) { mineOn = false; return listView(); }
+  const { data } = await db.from('posts').select('id,kind,title,category,status').eq('author_id', user.id).order('created_at', { ascending: false });
+  const vm = {};
+  ((await db.rpc('my_post_views')).data || []).forEach(r => { vm[r.id] = r.views; });
+  const all = data || [], rows = all.filter(p => p.status === mineTab);
+  $('#app').innerHTML = `<div class="card"><button class="btn" onclick="mineOn=false;editId=null;render()">返回列表</button>
+  <h2>我的文章</h2><div class="cats">${Object.keys(ST).map(k => `<button class="${k === mineTab ? 'on' : ''}" onclick="mineTab='${k}';editId=null;render()">${ST[k]} (${all.filter(p => p.status === k).length})</button>`).join('')}</div></div>
+  <div id="ef"></div>
+  <div class="card">${rows.map(p => `<div class="row"><b style="cursor:pointer" onclick="openId=${p.id};mineOn=false;render()">${esc(p.title)}</b><span>${p.kind === 'blog' ? '博客' : '論壇'} · ${esc(p.category)}${p.status === 'public' ? ' · ' + (vm[p.id] || 0) + ' 次瀏覽' : ''}</span> <button class="btn" onclick="editPost(${p.id})">編輯</button></div>`).join('') || '<p class="meta">這裡還沒有文章</p>'}</div>`;
+}
+
+async function editPost(id) {
+  const { data: p } = await db.from('posts').select('id,category,title,body,status').eq('id', id).single();
+  if (!p) return;
+  editId = id;
+  $('#ef').innerHTML = `<div class="card"><h3>編輯文章</h3>${formHTML(p)}<p><button class="btn" onclick="editId=null;$('#ef').innerHTML=''">取消</button></p></div>`;
+  $('#pv').value = p.status === 'private' ? 'private' : 'public';
+  $('#own').checked = p.status !== 'draft';
+  $('#ef').scrollIntoView({ behavior: 'smooth' });
+}
+async function startEdit(id, st) { openId = null; mineOn = true; mineTab = st; editId = null; await mineView(); editPost(id); }
+
 async function detail() {
-  const { data: p } = await db.from('posts').select('*').eq('id', openId).single();
+  const { data: p } = await db.from('posts').select('id,kind,category,title,body,author_id,author_name,status,created_at,updated_at').eq('id', openId).single();
   const rs = (await db.from('replies').select('*').eq('post_id', openId).order('created_at')).data || [];
   if (!p) { openId = null; return render(); }
-  try { // 同一個瀏覽器、同一次瀏覽只算一次
+  const mine = !!user && p.author_id === user.id;
+  try { // 同一個瀏覽器、同一次瀏覽只算一次；作者自己看不計
     const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
-    if (!seen.includes(p.id)) { seen.push(p.id); sessionStorage.setItem('seen', JSON.stringify(seen)); db.rpc('view_post', { pid: p.id }); p.views = (p.views || 0) + 1; }
+    if (!mine && p.status === 'public' && !seen.includes(p.id)) { seen.push(p.id); sessionStorage.setItem('seen', JSON.stringify(seen)); db.rpc('bump_view', { pid: p.id }); }
   } catch (e) {}
-  $('#app').innerHTML = `<div class="card"><button class="btn" onclick="openId=null;render()">返回列表</button>
-  <h2>${esc(p.title)}</h2><div class="meta">${esc(p.category)} · ${esc(p.author_name)} · ${p.views || 0} 次瀏覽</div><p class="body">${esc(p.body)}</p>
+  const extra = (p.updated_at ? ' · 已編輯 ' + new Date(p.updated_at).toLocaleDateString() : '') + (p.status !== 'public' ? ' · ' + ST[p.status] : '');
+  $('#app').innerHTML = `<div class="card"><button class="btn" onclick="openId=null;render()">返回列表</button>${mine ? ` <button class="btn" onclick="startEdit(${p.id},'${p.status}')">編輯</button>` : ''}
+  <h2>${esc(p.title)}</h2><div class="meta">${esc(p.category)} · ${esc(p.author_name)}${extra}</div><p class="body">${esc(p.body)}</p>
   <h3>${rs.length} 則回覆</h3>${rs.map(r => `<p><b>${esc(r.author_name)}</b><br><span class="body">${esc(r.body)}</span></p>`).join('')}
-  <textarea id="rb" rows="3" placeholder="寫下你的回覆"></textarea><button class="btn" onclick="reply()">發表回覆</button></div>`;
+  ${p.status === 'public' ? '<textarea id="rb" rows="3" placeholder="寫下你的回覆"></textarea><button class="btn" onclick="reply()">發表回覆</button>' : ''}</div>`;
 }
 async function reply() {
   if (!user) return authBox();
@@ -118,17 +161,21 @@ async function startVideo() {
   if (error) return fail(error);
   window.open(url, '_blank', 'noopener');
 }
-(async () => {
+// 全站統計：只有站長帳號看得到（資料庫端也會擋）
+async function showStats() {
+  if (statsEl) { statsEl.remove(); statsEl = null; }
+  if (!user) return;
   try {
-    await new Promise(r => setTimeout(r, 1500));
-    const { data } = await db.rpc('site_stats');
+    const { data: ok } = await db.rpc('is_admin');
+    if (!ok) return;
+    const { data } = await db.rpc('admin_stats');
     if (!data) return;
-    const d = document.createElement('div');
-    d.style.cssText = 'text-align:center;color:#888;font-size:13px;padding:12px';
-    d.textContent = '今日訪問 ' + data.today + ' ｜ 累計訪問 ' + data.total + ' ｜ 文章 ' + data.posts;
-    document.body.appendChild(d);
+    statsEl = document.createElement('div');
+    statsEl.style.cssText = 'text-align:center;color:#888;font-size:13px;padding:12px';
+    statsEl.textContent = '今日訪問 ' + data.today + ' ｜ 累計訪問 ' + data.total + ' ｜ 文章 ' + data.posts;
+    document.body.appendChild(statsEl);
   } catch (e) {}
-})();
+}
 (() => {
   const EN = {
     '僑聚網':'QiaoJu','博客':'Blog','論壇':'Forum','聊天':'Chat',
@@ -138,7 +185,8 @@ async function startVideo() {
     '教育':'Education','房產':'Real Estate','職場':'Careers','汽車':'Cars','攝影':'Photography','影視':'Film & TV','體育':'Sports','小說':'Fiction',
     '寫博客':'Write a blog','發表回覆':'Post reply','發表':'Publish','發送':'Send','取消':'Cancel','關閉':'Close',
     '大家在此聊天':'Chat with everyone','開視頻房間':'Start video room','輸入訊息':'Type a message',
-    '信箱':'Email','密碼':'Password','暱稱':'Nickname','標題':'Title','內容':'Content','分類':'Category','回覆':'Replies','返回':'Back'
+    '信箱':'Email','密碼':'Password','暱稱':'Nickname','標題':'Title','內容':'Content','分類':'Category','回覆':'Replies','返回':'Back',
+    '返回列表':'Back to list','存草稿':'Save draft','我的文章':'My posts','編輯':'Edit','草稿':'Draft','公開':'Public','僅自己可見':'Only me','公開（全站可見）':'Public (everyone)'
   };
   let lang = 'zh';
   try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
@@ -148,6 +196,8 @@ async function startVideo() {
     if (EN[t]) return s.replace(t, EN[t]);
     let m = t.match(/^(.+?) · (.+?) · (\d+) 次瀏覽$/);
     if (m) return s.replace(t, (EN[m[1]] || m[1]) + ' · ' + m[2] + ' · ' + m[3] + ' views');
+    m = t.match(/^(.+?) · (.+)$/);
+    if (m && EN[m[1]]) return s.replace(t, EN[m[1]] + ' · ' + m[2]);
     m = t.match(/^今日訪問 (\d+)\s*[|｜]\s*累計訪問 (\d+)\s*[|｜]\s*文章 (\d+)$/);
     if (m) return s.replace(t, 'Today ' + m[1] + ' | Total ' + m[2] + ' | Posts ' + m[3]);
     if (t.indexOf('版權投訴與廣告合作') === 0) return s.replace('版權投訴與廣告合作：', 'Copyright complaints & advertising: ').replace('版權投訴與廣告合作:', 'Copyright complaints & advertising: ');
@@ -180,74 +230,6 @@ async function startVideo() {
   };
   document.body.appendChild(btn); label();
   walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true });
-})();
-(() => { return;
-  let stayOn = false;
-  const _go = go, _render = render;
-  go = k => { stayOn = false; _go(k); }; const _lv = listView, _cv = chatView, _dt = detail; listView = (...a) => stayOn ? undefined : _lv(...a); chatView = (...a) => stayOn ? undefined : _cv(...a); detail = (...a) => stayOn ? undefined : _dt(...a);
-  render = () => {
-    _render();
-    const nav = $('#nav');
-    if (nav) {
-      nav.querySelectorAll('button').forEach(x => { if (stayOn) x.classList.remove('on'); });
-      const b = document.createElement('button');
-      b.textContent = '住宿';
-      b.className = stayOn ? 'on' : '';
-      b.onclick = () => { stayOn = true; openId = null; render(); };
-      nav.appendChild(b);
-    }
-    if (stayOn) stayView();
-  };
-
-  async function stayView(q = {}) {
-    $('#app').innerHTML = '<div class="card"><h2>住宿搜索</h2>'
-      + '<input id="sc" placeholder="城市（例如：Tbilisi、曼谷、悉尼）" value="' + esc(q.city || '') + '"> '
-      + '<button class="btn" id="sgo">搜索</button> <button class="btn" id="snew">發布房源</button>'
-      + '<p><small>聯絡方式由房東自己填寫，請直接聯繫房東，線下付款。</small></p></div><div id="slist"></div>';
-    $('#sgo').onclick = () => stayView({ city: $('#sc').value.trim() });
-    $('#snew').onclick = stayForm;
-    let r = db.from('stays').select('*').order('created_at', { ascending: false }).limit(50);
-    if (q.city) r = r.ilike('city', '%' + q.city + '%');
-    const { data, error } = await r;
-    if (error) { $('#slist').innerHTML = '<div class="card"><small>載入失敗，請稍後再試</small></div>'; return; }
-    $('#slist').innerHTML = (data || []).map(s =>
-      '<div class="card"><h3>' + esc(s.title) + '</h3>'
-      + '<div><small>' + esc(s.city) + ' · ' + esc(s.price || '') + ' · ' + esc(s.owner_name || '') + '</small></div>'
-      + '<p>' + esc(s.description || '') + '</p>'
-      + '<p>聯絡方式：<b>' + esc(s.contact) + '</b></p>'
-      + (user && s.owner_id === user.id ? '<button class="btn" data-del="' + s.id + '">刪除我的房源</button>' : '')
-      + '</div>').join('') || '<div class="card"><small>暫時沒有房源</small></div>';
-    document.querySelectorAll('[data-del]').forEach(b => {
-      b.onclick = async () => {
-        if (!confirm('確定刪除這個房源？')) return;
-        const { error } = await db.from('stays').delete().eq('id', b.dataset.del);
-        if (error) return fail(error);
-        stayView(q);
-      };
-    });
-  }
-
-  function stayForm() {
-    if (!user) return authBox();
-    if (!SW.posting) return alert('這個功能暫未開放，敬請期待');
-    $('#slist').innerHTML = '<div class="card"><h3>發布房源</h3>'
-      + '<input id="f_city" placeholder="城市"><br>'
-      + '<input id="f_title" placeholder="標題（例如：市中心兩居室）"><br>'
-      + '<input id="f_price" placeholder="價格（例如：每晚 40 美元）"><br>'
-      + '<textarea id="f_desc" rows="4" placeholder="介紹（位置、設施、規則）"></textarea><br>'
-      + '<input id="f_contact" placeholder="聯絡方式（微信/WhatsApp/電話/郵箱）"><br>'
-      + '<button class="btn" id="f_ok">發布</button></div>';
-    $('#f_ok').onclick = async () => {
-      const v = id => $(id).value.trim();
-      if (!v('#f_city') || !v('#f_title') || !v('#f_contact')) return alert('請填寫城市、標題和聯絡方式');
-      const { error } = await db.from('stays').insert({
-        owner_id: user.id, owner_name: nick(), city: v('#f_city'), title: v('#f_title'),
-        price: v('#f_price'), description: v('#f_desc'), contact: v('#f_contact')
-      });
-      if (error) return fail(error);
-      stayView();
-    };
-  }
 })();
 (() => {
   let stayOn = false;
@@ -336,7 +318,7 @@ async function startVideo() {
     };
   }
 })();
-// ===== 文章翻譯（新增）：按鈕 → 已存譯文 → Cloudflare AI → 額度滿改用 Google 翻譯 =====
+// ===== 文章翻譯：按鈕 → 已存譯文 → Cloudflare AI → 額度滿改用 Google 翻譯 =====
 (() => {
   const _dt = detail;
   const L = () => { try { return localStorage.getItem('lang') === 'en' ? 'en' : 'zh'; } catch (e) { return 'zh'; } };
@@ -384,7 +366,7 @@ async function startVideo() {
     const s = document.createElement('script'); s.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; document.head.appendChild(s);
   }
 })();
-// ===== 生活欄：健康小常識搜索（新增）=====
+// ===== 生活欄：健康小常識搜索 =====
 (() => {
   const SHOW = ['生活']; // 想讓「健康」分類也有搜索框，改成 ['生活','健康']
   const TIPS = [
@@ -409,7 +391,7 @@ async function startVideo() {
   listView = async (...a) => {
     await _lv(...a);
     const cats = document.querySelector('#app .cats');
-    if (!SHOW.includes(cat) || !cats || document.getElementById('hs')) return;
+    if (mineOn || !SHOW.includes(cat) || !cats || document.getElementById('hs')) return;
     const box = document.createElement('div');
     box.className = 'card'; box.id = 'hs';
     box.innerHTML = '<h3 style="margin-top:0">健康小常識搜索</h3>'
@@ -427,8 +409,8 @@ async function startVideo() {
       let posts = [];
       try {
         const [r1, r2] = await Promise.all([
-          db.from('posts').select('id,title,category,author_name').ilike('title', like).limit(10),
-          db.from('posts').select('id,title,category,author_name').ilike('body', like).limit(10)
+          db.from('posts').select('id,title,category,author_name').eq('status', 'public').ilike('title', like).limit(10),
+          db.from('posts').select('id,title,category,author_name').eq('status', 'public').ilike('body', like).limit(10)
         ]);
         const seen = {};
         posts = [...(r1.data || []), ...(r2.data || [])].filter(p => !seen[p.id] && (seen[p.id] = 1));
