@@ -437,7 +437,10 @@ async function showStats() {
     + '<b id="dmtitle" style="flex:1">私信</b>'
     + '<button class="btn" id="dmblk" style="display:none"></button>'
     + '<button class="btn" id="dmx">關閉</button></div>'
-    + '<div id="dmbody" style="padding:12px;height:56vh;overflow-y:auto"></div>'
+    + '<div id="dmsearch" style="padding:10px 12px;border-bottom:1px solid var(--line)">'
+    + '<div class="send" style="margin:0"><input id="dmq" placeholder="輸入對方暱稱，找人發私信"><button class="btn" id="dmfind">搜尋</button></div>'
+    + '<div id="dmres"></div></div>'
+    + '<div id="dmbody" style="padding:12px;height:50vh;overflow-y:auto"></div>'
     + '<div id="dmft" class="send" style="display:none;padding:10px 12px;border-top:1px solid var(--line);margin:0">'
     + '<input id="dmin" maxlength="2000" placeholder="輸入私信（發出後不能編輯或刪除）"><button class="btn" id="dmsend">發送</button></div>';
   document.body.appendChild(dlg);
@@ -463,11 +466,12 @@ async function showStats() {
     if (!dlg.open) dlg.showModal();
     clearInterval(timer); timer = setInterval(refresh, 10000);
     refresh();
+    if (p) setTimeout(() => q('#dmin').focus(), 250);
   }
   const refresh = () => (peer ? thread() : list());
 
   async function list() {
-    disp(q('#dmback'), false); disp(q('#dmblk'), false); disp(q('#dmft'), false);
+    disp(q('#dmback'), false); disp(q('#dmblk'), false); disp(q('#dmft'), false); disp(q('#dmsearch'), true);
     q('#dmtitle').textContent = '私信';
     const { data, error } = await db.from('dm_messages')
       .select('id,sender_id,recipient_id,sender_name,recipient_name,body,created_at,read_at')
@@ -488,13 +492,13 @@ async function showStats() {
     q('#dmbody').innerHTML = rows.map((c, i) =>
       '<div class="row" data-i="' + i + '"><b>' + esc(c.name) + (c.unread ? ' <span style="color:#d33">(' + c.unread + ')</span>' : '') + '</b>'
       + '<span>' + esc(c.last.slice(0, 30)) + ' · ' + when(c.at) + '</span></div>').join('')
-      || '<p class="meta">還沒有私信。在文章頁點「私信作者」就可以開始。</p>';
+      || '<p class="meta">還沒有私信。在上面輸入對方暱稱搜尋，或在文章頁點「私信作者」就可以開始。</p>';
   }
 
   async function thread() {
     const p = peer, me = user.id;
     q('#dmtitle').textContent = p.name;
-    disp(q('#dmback'), true); disp(q('#dmft'), true, 'flex');
+    disp(q('#dmback'), true); disp(q('#dmft'), true, 'flex'); disp(q('#dmsearch'), false);
     const [r, b] = await Promise.all([
       db.from('dm_messages').select('id,sender_id,body,created_at,read_at')
         .or('and(sender_id.eq.' + me + ',recipient_id.eq.' + p.id + '),and(sender_id.eq.' + p.id + ',recipient_id.eq.' + me + ')')
@@ -543,6 +547,23 @@ async function showStats() {
     el.value = ''; sig = ''; thread();
   }
 
+  async function find() {
+    const v = q('#dmq').value.trim(), out = q('#dmres');
+    if (v.length < 2) { out.innerHTML = '<p class="meta">請至少輸入 2 個字</p>'; return; }
+    const { data, error } = await db.rpc('dm_find_user', { q: v });
+    if (error) { out.innerHTML = '<p class="meta">搜尋失敗：' + esc(error.message) + '</p>'; return; }
+    out.innerHTML = (data || []).map(u => '<div class="row" data-u="' + u.id + '" data-n="' + esc(u.name) + '"><b>' + esc(u.name) + '</b><span>發私信</span></div>').join('')
+      || '<p class="meta">找不到這個暱稱</p>';
+  }
+  q('#dmfind').onclick = find;
+  q('#dmq').onkeydown = e => { if (e.key === 'Enter') find(); };
+  q('#dmres').onclick = e => {
+    const r = e.target.closest('[data-u]');
+    if (!r) return;
+    peer = { id: r.dataset.u, name: r.dataset.n }; first = true; sig = '';
+    q('#dmres').innerHTML = ''; q('#dmq').value = '';
+    refresh();
+  };
   q('#dmsend').onclick = sendDM;
   q('#dmin').onkeydown = e => { if (e.key === 'Enter') sendDM(); };
   q('#dmx').onclick = () => dlg.close();
@@ -591,18 +612,54 @@ async function showStats() {
     }
   };
 
-  // 文章頁「私信作者」
+  // 每個作者名字旁邊的「私信」小按鈕：文章頁、每則回覆、文章列表
+  const mk = (id, name) => {
+    const b = document.createElement('button');
+    b.className = 'dmq'; b.textContent = '私信';
+    b.style.cssText = 'margin-left:6px;padding:0 8px;font-size:12px;line-height:20px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--brand);cursor:pointer';
+    b.onclick = e => { e.stopPropagation(); openDM({ id, name }); };
+    return b;
+  };
+  const me = () => (user ? user.id : null);
+
   const _dt = detail;
   detail = async (...a) => {
     await _dt(...a);
-    if (!SW.dm || !user || document.getElementById('dmpost')) return;
+    if (!SW.dm || document.getElementById('dmpost')) return;
     const id = openId, back = document.querySelector('#app .card button.btn');
     if (!id || !back) return;
-    const { data: p } = await db.from('posts').select('author_id,author_name').eq('id', id).single();
-    if (!p || p.author_id === user.id || id !== openId || !document.body.contains(back) || document.getElementById('dmpost')) return;
-    const b = document.createElement('button');
-    b.className = 'btn'; b.id = 'dmpost'; b.style.marginLeft = '8px'; b.textContent = '私信作者';
-    b.onclick = () => openDM({ id: p.author_id, name: p.author_name });
-    back.after(b);
+    const [pr, rr] = await Promise.all([
+      db.from('posts').select('author_id,author_name').eq('id', id).single(),
+      db.from('replies').select('author_id,author_name').eq('post_id', id).order('created_at')
+    ]);
+    if (id !== openId || !document.body.contains(back) || document.getElementById('dmpost')) return;
+    const p = pr.data;
+    if (p && p.author_id !== me()) {
+      const b = document.createElement('button');
+      b.className = 'btn'; b.id = 'dmpost'; b.style.marginLeft = '8px'; b.textContent = '私信作者';
+      b.onclick = () => openDM({ id: p.author_id, name: p.author_name });
+      back.after(b);
+      const meta = document.querySelector('#app .card .meta');
+      if (meta) meta.appendChild(mk(p.author_id, p.author_name));
+    }
+    const ps = [...document.querySelectorAll('#app .card p')].filter(x => x.children[0] && x.children[0].tagName === 'B' && x.children[1] && x.children[1].tagName === 'BR');
+    const rs = rr.data || [];
+    if (ps.length === rs.length) ps.forEach((x, k) => { if (rs[k].author_id !== me()) x.children[0].after(mk(rs[k].author_id, rs[k].author_name)); });
+  };
+
+  const _lv = listView;
+  listView = async (...a) => {
+    await _lv(...a);
+    if (!SW.dm || mineOn) return;
+    const rows = [...document.querySelectorAll('#app .row[onclick]')].filter(r => !r.closest('#hs') && /openId=\d+/.test(r.getAttribute('onclick')));
+    if (!rows.length) return;
+    const ids = rows.map(r => +r.getAttribute('onclick').match(/openId=(\d+)/)[1]);
+    const { data } = await db.from('posts').select('id,author_id,author_name').in('id', ids);
+    const by = {};
+    (data || []).forEach(x => { by[x.id] = x; });
+    rows.forEach((r, k) => {
+      const x = by[ids[k]], sp = r.querySelector('span');
+      if (x && sp && x.author_id !== me() && !r.querySelector('.dmq') && document.body.contains(r)) sp.appendChild(mk(x.author_id, x.author_name));
+    });
   };
 })();
