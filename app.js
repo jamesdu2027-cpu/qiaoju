@@ -1,4 +1,4 @@
-// 僑聚網：Supabase 專案 qiaoju 的連線資料（publishable key 是公開用的，可以放在這裡；絕對不要放 secret key）
+// 天南海北：Supabase 專案 tiannanhaibei的連線資料（publishable key 是公開用的，可以放在這裡；絕對不要放 secret key）
 const SUPABASE_URL = 'https://gkqmxdmywcfpttrbgfig.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1NGnx5BbQkV3dCmQZLcPJg_eI4zSNyF';
 
@@ -178,7 +178,7 @@ async function showStats() {
 }
 (() => {
   const EN = {
-    '僑聚網':'QiaoJu','博客':'Blog','論壇':'Forum','聊天':'Chat',
+    '天南海北':'tiannanhaibei','博客':'Blog','論壇':'Forum','聊天':'Chat',
     '登入 / 註冊':'Log in / Sign up','登入／註冊':'Log in / Sign up','登入':'Log in','註冊':'Sign up','登出':'Log out',
     '全部':'All','新聞':'News','文化':'Culture','社會':'Society','生活':'Life','花園':'Garden','種植':'Planting','栽培':'Growing',
     '釣魚':'Fishing','美食':'Food','寵物':'Pets','旅遊':'Travel','旅居':'Living Abroad','親子':'Parenting','健康':'Health',
