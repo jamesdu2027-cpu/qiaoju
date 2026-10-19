@@ -663,3 +663,18 @@ async function showStats() {
     });
   };
 })();
+// ===== 文章獨立網址：/p/文章編號 =====
+(() => {
+  const m = location.pathname.match(/^\/p\/(\d+)/);
+  if (m) { openId = +m[1]; tab = 'blog'; }
+  const _r = render;
+  render = () => {
+    _r();
+    const want = openId && !mineOn ? '/p/' + openId : '/';
+    if (location.pathname !== want) history.pushState(null, '', want);
+  };
+  addEventListener('popstate', () => {
+    const k = location.pathname.match(/^\/p\/(\d+)/);
+    openId = k ? +k[1] : null; mineOn = false; render();
+  });
+})();
