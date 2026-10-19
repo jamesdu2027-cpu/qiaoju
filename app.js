@@ -422,3 +422,187 @@ async function showStats() {
     document.getElementById('hq').onkeydown = e => { if (e.key === 'Enter') run(); };
   };
 })();
+
+// ===== 私信（站內一對一）：貼在 app.js 最後面 =====
+// 開關：Supabase settings 表 key = 'dm'，預設關閉
+(() => {
+  if (!('dm' in SW)) SW.dm = false;
+  let peer = null, timer = null, sig = '', first = true, unread = 0, rows = [], lastBadge = 0;
+
+  const dlg = document.createElement('dialog');
+  dlg.id = 'dmdlg';
+  dlg.style.cssText = 'max-width:560px;width:94%;padding:0;overflow:hidden';
+  dlg.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)">'
+    + '<button class="btn" id="dmback" style="display:none">返回</button>'
+    + '<b id="dmtitle" style="flex:1">私信</b>'
+    + '<button class="btn" id="dmblk" style="display:none"></button>'
+    + '<button class="btn" id="dmx">關閉</button></div>'
+    + '<div id="dmbody" style="padding:12px;height:56vh;overflow-y:auto"></div>'
+    + '<div id="dmft" class="send" style="display:none;padding:10px 12px;border-top:1px solid var(--line);margin:0">'
+    + '<input id="dmin" maxlength="2000" placeholder="輸入私信（發出後不能編輯或刪除）"><button class="btn" id="dmsend">發送</button></div>';
+  document.body.appendChild(dlg);
+  const q = s => dlg.querySelector(s);
+  const disp = (el, on, type) => { el.style.display = on ? (type || '') : 'none'; };
+  const when = t => new Date(t).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const MSG = {
+    dm_refused: '對方目前無法接收你的私信',
+    dm_unblock_first: '你已封鎖這位用戶，請先解除封鎖',
+    dm_too_fast: '發送太快了，請稍後再試',
+    dm_self: '不能給自己發私信',
+    dm_empty: '請輸入內容'
+  };
+  const dmFail = e => {
+    const k = Object.keys(MSG).find(x => (e.message || '').includes(x));
+    if (k) alert(MSG[k]); else fail(e);
+  };
+
+  function openDM(p) {
+    if (!user) return authBox();
+    if (!SW.dm) return alert('私信功能暫未開放，敬請期待');
+    peer = p || null; first = true; sig = '';
+    if (!dlg.open) dlg.showModal();
+    clearInterval(timer); timer = setInterval(refresh, 10000);
+    refresh();
+  }
+  const refresh = () => (peer ? thread() : list());
+
+  async function list() {
+    disp(q('#dmback'), false); disp(q('#dmblk'), false); disp(q('#dmft'), false);
+    q('#dmtitle').textContent = '私信';
+    const { data, error } = await db.from('dm_messages')
+      .select('id,sender_id,recipient_id,sender_name,recipient_name,body,created_at,read_at')
+      .or('sender_id.eq.' + user.id + ',recipient_id.eq.' + user.id)
+      .order('created_at', { ascending: false }).limit(300);
+    if (peer) return;
+    if (error) { q('#dmbody').innerHTML = '<p class="meta">載入失敗：' + esc(error.message) + '</p>'; return; }
+    const m = new Map();
+    (data || []).forEach(r => {
+      const mine = r.sender_id === user.id, id = mine ? r.recipient_id : r.sender_id;
+      if (!m.has(id)) m.set(id, { id, name: (mine ? r.recipient_name : r.sender_name) || '用戶', last: r.body, at: r.created_at, unread: 0 });
+      if (!mine && !r.read_at) m.get(id).unread++;
+    });
+    rows = [...m.values()];
+    const s = JSON.stringify(rows);
+    if (s === sig) return;
+    sig = s;
+    q('#dmbody').innerHTML = rows.map((c, i) =>
+      '<div class="row" data-i="' + i + '"><b>' + esc(c.name) + (c.unread ? ' <span style="color:#d33">(' + c.unread + ')</span>' : '') + '</b>'
+      + '<span>' + esc(c.last.slice(0, 30)) + ' · ' + when(c.at) + '</span></div>').join('')
+      || '<p class="meta">還沒有私信。在文章頁點「私信作者」就可以開始。</p>';
+  }
+
+  async function thread() {
+    const p = peer, me = user.id;
+    q('#dmtitle').textContent = p.name;
+    disp(q('#dmback'), true); disp(q('#dmft'), true, 'flex');
+    const [r, b] = await Promise.all([
+      db.from('dm_messages').select('id,sender_id,body,created_at,read_at')
+        .or('and(sender_id.eq.' + me + ',recipient_id.eq.' + p.id + '),and(sender_id.eq.' + p.id + ',recipient_id.eq.' + me + ')')
+        .order('created_at', { ascending: true }).limit(300),
+      db.from('dm_blocks').select('blocked_id').eq('blocker_id', me).eq('blocked_id', p.id)
+    ]);
+    if (p !== peer) return;
+    if (r.error) { q('#dmbody').innerHTML = '<p class="meta">載入失敗：' + esc(r.error.message) + '</p>'; return; }
+    const blocked = !!(b.data && b.data.length);
+    const bb = q('#dmblk');
+    disp(bb, true); bb.textContent = blocked ? '解除封鎖' : '封鎖'; bb.dataset.on = blocked ? '1' : '';
+    const data = r.data || [];
+    const s = data.map(x => x.id).join(',') + '|' + blocked;
+    if (s !== sig) {
+      sig = s;
+      const box = q('#dmbody'), near = first || box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+      box.innerHTML = data.map(x => {
+        const mine = x.sender_id === me;
+        return '<div style="display:flex;justify-content:' + (mine ? 'flex-end' : 'flex-start') + ';margin:6px 0">'
+          + '<div style="max-width:80%;background:' + (mine ? 'var(--soft)' : 'var(--bg)') + ';border:1px solid var(--line);border-radius:10px;padding:6px 10px">'
+          + '<div class="body">' + esc(x.body) + '</div>'
+          + '<div class="meta">' + when(x.created_at) + (mine ? '' : ' · <a href="#" data-rep="' + x.id + '" data-from="' + x.sender_id + '">舉報</a>') + '</div></div></div>';
+      }).join('') || '<p class="meta">打個招呼吧</p>';
+      if (near) box.scrollTop = box.scrollHeight;
+      first = false;
+    }
+    if (data.some(x => x.sender_id === p.id && !x.read_at)) {
+      await db.from('dm_messages').update({ read_at: new Date().toISOString() }).eq('recipient_id', me).eq('sender_id', p.id).is('read_at', null);
+      refreshBadge();
+    }
+  }
+
+  async function report(id, from) {
+    const reason = prompt('請簡述舉報原因（可留空）');
+    if (reason === null) return;
+    const { error } = await db.from('dm_reports').insert({ message_id: id, reporter_id: user.id, reported_id: from, reason: reason.trim().slice(0, 300) });
+    if (error) return alert(error.code === '23505' ? '你已經舉報過這則私信了' : error.message);
+    alert('已提交，站長會查看');
+  }
+
+  async function sendDM() {
+    const el = q('#dmin'), body = el.value.trim();
+    if (!body || !peer) return;
+    const { error } = await db.from('dm_messages').insert({ sender_id: user.id, recipient_id: peer.id, sender_name: nick(), recipient_name: peer.name, body });
+    if (error) return dmFail(error);
+    el.value = ''; sig = ''; thread();
+  }
+
+  q('#dmsend').onclick = sendDM;
+  q('#dmin').onkeydown = e => { if (e.key === 'Enter') sendDM(); };
+  q('#dmx').onclick = () => dlg.close();
+  q('#dmback').onclick = () => { peer = null; sig = ''; refresh(); };
+  q('#dmblk').onclick = async () => {
+    const on = q('#dmblk').dataset.on === '1';
+    if (!on && !confirm('封鎖後，對方無法再給你發私信。確定封鎖？')) return;
+    const t = db.from('dm_blocks');
+    const { error } = on
+      ? await t.delete().eq('blocker_id', user.id).eq('blocked_id', peer.id)
+      : await t.insert({ blocker_id: user.id, blocked_id: peer.id });
+    if (error) return alert(error.message);
+    sig = ''; thread();
+  };
+  q('#dmbody').onclick = e => {
+    const row = e.target.closest('[data-i]');
+    if (row) { const c = rows[+row.dataset.i]; peer = { id: c.id, name: c.name }; first = true; sig = ''; return refresh(); }
+    const rep = e.target.closest('[data-rep]');
+    if (rep) { e.preventDefault(); report(+rep.dataset.rep, rep.dataset.from); }
+  };
+  dlg.addEventListener('close', () => { clearInterval(timer); peer = null; refreshBadge(); });
+
+  // 未讀數
+  async function refreshBadge() {
+    lastBadge = Date.now();
+    if (!user || !SW.dm) { unread = 0; return; }
+    const { count } = await db.from('dm_messages').select('id', { count: 'exact', head: true }).eq('recipient_id', user.id).is('read_at', null);
+    unread = count || 0;
+    const b = document.getElementById('dmbtn');
+    if (b) b.textContent = '私信' + (unread ? ' (' + unread + ')' : '');
+  }
+  setInterval(refreshBadge, 30000);
+
+  // 頂部「私信」按鈕（登入且開關打開才出現）
+  const _render = render;
+  render = () => {
+    _render();
+    const w = $('#who');
+    if (w && user && SW.dm) {
+      const b = document.createElement('button');
+      b.id = 'dmbtn'; b.style.marginRight = '6px';
+      b.textContent = '私信' + (unread ? ' (' + unread + ')' : '');
+      b.onclick = () => openDM();
+      w.insertBefore(b, w.querySelector('button'));
+      if (Date.now() - lastBadge > 15000) refreshBadge();
+    }
+  };
+
+  // 文章頁「私信作者」
+  const _dt = detail;
+  detail = async (...a) => {
+    await _dt(...a);
+    if (!SW.dm || !user || document.getElementById('dmpost')) return;
+    const id = openId, back = document.querySelector('#app .card button.btn');
+    if (!id || !back) return;
+    const { data: p } = await db.from('posts').select('author_id,author_name').eq('id', id).single();
+    if (!p || p.author_id === user.id || id !== openId || !document.body.contains(back) || document.getElementById('dmpost')) return;
+    const b = document.createElement('button');
+    b.className = 'btn'; b.id = 'dmpost'; b.style.marginLeft = '8px'; b.textContent = '私信作者';
+    b.onclick = () => openDM({ id: p.author_id, name: p.author_name });
+    back.after(b);
+  };
+})();
