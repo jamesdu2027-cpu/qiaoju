@@ -678,3 +678,19 @@ async function showStats() {
     openId = k ? +k[1] : null; mineOn = false; render();
   });
 })();
+// ===== 文章內圖片：單獨一行的圖片網址自動顯示 =====
+(() => {
+  const _dt = detail;
+  const IMG = /^https:\/\/\S+\.(?:jpe?g|png|gif|webp)(?:\?\S*)?$/i;
+  detail = async (...a) => {
+    await _dt(...a);
+    const b = document.querySelector('#app p.body');
+    if (!b || b.dataset.img) return;
+    b.dataset.img = '1';
+    const lines = b.textContent.split('\n');
+    if (!lines.some(l => IMG.test(l.trim()))) return;
+    b.innerHTML = lines.map(l => IMG.test(l.trim())
+      ? '<img src="' + esc(l.trim()) + '" loading="lazy" referrerpolicy="no-referrer" style="max-width:100%;height:auto;display:block;margin:8px 0;border-radius:6px" alt="">'
+      : esc(l)).join('<br>');
+  };
+})();
