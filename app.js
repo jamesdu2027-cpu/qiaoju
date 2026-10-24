@@ -714,11 +714,13 @@ async function showStats() {
     if (!ta || document.getElementById('imgup')) return;
     const w = document.createElement('div');
     w.id = 'imgup';
-    w.innerHTML = '<label class="btn" style="display:inline-block;cursor:pointer;margin:6px 0">插入圖片<input type="file" accept="image/*" hidden></label> <span class="meta"></span>';
+    w.innerHTML = '<label class="btn" style="display:inline-block;cursor:pointer;margin:6px 0">插入圖片<input type="file" accept="image/*" hidden></label> <label class="btn" style="display:inline-block;cursor:pointer;margin:6px 0">拍照<input type="file" accept="image/*" capture="environment" hidden></label> <span class="meta"></span>';
+
     ta.after(w);
-    const inp = w.querySelector('input'), msg = w.querySelector('span');
-    inp.onchange = async () => {
-      const f = inp.files[0]; inp.value = '';
+    const msg = w.querySelector('span');
+const onPick = async inp => {
+  const f = inp.files[0]; inp.value = '';
+
       if (!f) return;
       if (!user) return authBox();
       msg.textContent = '上傳中…';
@@ -732,8 +734,9 @@ async function showStats() {
         const before = ta.value.slice(0, pos), after = ta.value.slice(pos);
         ta.value = before + (before && !before.endsWith('\n') ? '\n' : '') + url + '\n' + after;
         msg.textContent = '已插入';
-      } catch (e) { msg.textContent = '上傳失敗：' + (e.message || e); }
-    };
+    } catch (e) { msg.textContent = '上傳失敗：' + (e.message || e); }
+  };
+  w.querySelectorAll('input').forEach(i => { i.onchange = () => onPick(i); });
   };
   new MutationObserver(add).observe(document.body, { childList: true, subtree: true });
 })();
