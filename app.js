@@ -752,3 +752,80 @@ async function showStats() {
   };
   new MutationObserver(add).observe(document.body, { childList: true, subtree: true });
 })();
+// ===== 防丟稿：寫到一半自動暫存（拍照後頁面被手機重新載入，文字也能恢復）=====
+(() => {
+  const K = 'draft_v1';
+  const get = () => { try { return JSON.parse(localStorage.getItem(K) || 'null'); } catch (e) { return null; } };
+  const put = v => { try { if (v) localStorage.setItem(K, JSON.stringify(v)); else localStorage.removeItem(K); } catch (e) {} };
+  const save = () => {
+    if (editId) return;
+    const t = $('#pt'), b = $('#pb'), c = $('#pc');
+    if (!t || !b) return;
+    put(t.value || b.value ? { t: t.value, b: b.value, c: c ? c.value : '' } : null);
+  };
+  document.addEventListener('input', save);
+  document.addEventListener('change', save);
+  const restore = () => {
+    const t = $('#pt'), b = $('#pb');
+    if (!t || !b || b.dataset.rs || editId) return;
+    b.dataset.rs = '1';
+    const d = get();
+    if (!d || t.value || b.value) return;
+    t.value = d.t || ''; b.value = d.b || '';
+    const c = $('#pc'); if (c && d.c) c.value = d.c;
+    const np = $('#np'); if (np) np.hidden = false;
+  };
+  new MutationObserver(restore).observe(document.body, { childList: true, subtree: true });
+  restore();
+  const _sp = savePost;
+  savePost = async (...a) => { await _sp(...a); if (mineOn) put(null); };
+})();
+// ===== 頁面內相機：不離開網頁直接拍照（避免手機切到相機 App 時把網頁關掉）=====
+(() => {
+  const dlg = document.createElement('dialog');
+  dlg.style.cssText = 'max-width:560px;width:96%;padding:10px;text-align:center';
+  dlg.innerHTML = '<video id="camv" playsinline autoplay muted style="width:100%;max-height:60vh;background:#000;border-radius:8px"></video>'
+    + '<p style="margin:8px 0"><button class="btn" id="camshot">拍照</button> <button class="btn" id="camx">取消</button></p>';
+  document.body.appendChild(dlg);
+  const v = dlg.querySelector('#camv');
+  let stream = null;
+  const stop = () => { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; v.srcObject = null; };
+  const close = () => { stop(); if (dlg.open) dlg.close(); };
+  dlg.querySelector('#camx').onclick = close;
+  dlg.addEventListener('close', stop);
+  dlg.querySelector('#camshot').onclick = () => {
+    if (!v.videoWidth) return;
+    const c = document.createElement('canvas');
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v, 0, 0);
+    c.toBlob(b => {
+      close();
+      if (!b) return alert('拍照失敗，請再試一次');
+      const inp = document.querySelector('#imgup input:not([capture])');
+      if (!inp) return;
+      const dt = new DataTransfer();
+      dt.items.add(new File([b], 'camera.jpg', { type: 'image/jpeg' }));
+      inp.files = dt.files;
+      inp.dispatchEvent(new Event('change'));
+    }, 'image/jpeg', 0.9);
+  };
+  async function openCam() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return alert('這個瀏覽器不支援網頁內拍照，請先用手機相機拍好，再點「插入圖片」選取');
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      v.srcObject = stream;
+      dlg.showModal();
+      v.play().catch(() => {});
+    } catch (e) {
+      alert('無法開啟相機（請允許網站使用相機）。也可以先用手機相機拍好，再點「插入圖片」選取');
+    }
+  }
+  const attach = () => {
+    const inp = document.querySelector('#imgup input[capture]');
+    if (!inp || inp.dataset.cam) return;
+    inp.dataset.cam = '1';
+    inp.addEventListener('click', e => { e.preventDefault(); openCam(); });
+  };
+  new MutationObserver(attach).observe(document.body, { childList: true, subtree: true });
+  attach();
+})();
