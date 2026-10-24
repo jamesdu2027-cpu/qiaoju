@@ -694,3 +694,46 @@ async function showStats() {
       : esc(l)).join('<br>');
   };
 })();
+// ===== 文章插入圖片：拍照或相冊上傳 =====
+(() => {
+  const shrink = file => new Promise((res, rej) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u);
+      c.toBlob(b => b ? res(b) : rej(new Error('壓縮失敗')), 'image/jpeg', 0.8);
+    };
+    img.onerror = () => rej(new Error('無法讀取圖片'));
+    img.src = u;
+  });
+  const add = () => {
+    const ta = document.getElementById('pb');
+    if (!ta || document.getElementById('imgup')) return;
+    const w = document.createElement('div');
+    w.id = 'imgup';
+    w.innerHTML = '<label class="btn" style="display:inline-block;cursor:pointer;margin:6px 0">插入圖片<input type="file" accept="image/*" hidden></label> <span class="meta"></span>';
+    ta.after(w);
+    const inp = w.querySelector('input'), msg = w.querySelector('span');
+    inp.onchange = async () => {
+      const f = inp.files[0]; inp.value = '';
+      if (!f) return;
+      if (!user) return authBox();
+      msg.textContent = '上傳中…';
+      try {
+        const blob = await shrink(f);
+        const path = user.id + '/' + Date.now() + '.jpg';
+        const { error } = await db.storage.from('post-images').upload(path, blob, { contentType: 'image/jpeg' });
+        if (error) throw error;
+        const url = db.storage.from('post-images').getPublicUrl(path).data.publicUrl;
+        const pos = ta.selectionStart ?? ta.value.length;
+        const before = ta.value.slice(0, pos), after = ta.value.slice(pos);
+        ta.value = before + (before && !before.endsWith('\n') ? '\n' : '') + url + '\n' + after;
+        msg.textContent = '已插入';
+      } catch (e) { msg.textContent = '上傳失敗：' + (e.message || e); }
+    };
+  };
+  new MutationObserver(add).observe(document.body, { childList: true, subtree: true });
+})();
