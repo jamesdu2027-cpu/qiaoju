@@ -90,6 +90,18 @@ async function savePost(mode) {
   editId = null; mineOn = true; mineTab = status; render();
 }
 
+// 刪除自己的文章（fromMine = true 表示從「我的文章」列表刪）
+async function delPost(id, fromMine) {
+  if (!user) return authBox();
+  if (!confirm('確定刪除這篇文章？刪除後無法恢復，文章的回覆和譯文也會一起刪除。')) return;
+  const { data, error } = await db.from('posts').delete().eq('id', id).eq('author_id', user.id).select('id');
+  if (error) return fail(error);
+  if (!data || !data.length) return alert('刪除失敗：沒有權限或文章已不存在');
+  editId = null;
+  if (fromMine) { mineOn = true; } else { openId = null; mineOn = false; }
+  render();
+}
+
 async function mineView() {
   if (!user) { mineOn = false; return listView(); }
   const { data } = await db.from('posts').select('id,kind,title,category,status').eq('author_id', user.id).order('created_at', { ascending: false });
@@ -99,7 +111,7 @@ async function mineView() {
   $('#app').innerHTML = `<div class="card"><button class="btn" onclick="mineOn=false;editId=null;render()">返回列表</button>
   <h2>我的文章</h2><div class="cats">${Object.keys(ST).map(k => `<button class="${k === mineTab ? 'on' : ''}" onclick="mineTab='${k}';editId=null;render()">${ST[k]} (${all.filter(p => p.status === k).length})</button>`).join('')}</div></div>
   <div id="ef"></div>
-  <div class="card">${rows.map(p => `<div class="row"><b style="cursor:pointer" onclick="openId=${p.id};mineOn=false;render()">${esc(p.title)}</b><span>${p.kind === 'blog' ? '博客' : '論壇'} · ${esc(p.category)}${p.status === 'public' ? ' · ' + (vm[p.id] || 0) + ' 次瀏覽' : ''}</span> <button class="btn" onclick="editPost(${p.id})">編輯</button></div>`).join('') || '<p class="meta">這裡還沒有文章</p>'}</div>`;
+  <div class="card">${rows.map(p => `<div class="row"><b style="cursor:pointer" onclick="openId=${p.id};mineOn=false;render()">${esc(p.title)}</b><span>${p.kind === 'blog' ? '博客' : '論壇'} · ${esc(p.category)}${p.status === 'public' ? ' · ' + (vm[p.id] || 0) + ' 次瀏覽' : ''}</span> <button class="btn" onclick="editPost(${p.id})">編輯</button> <button class="btn" onclick="delPost(${p.id},true)">刪除</button></div>`).join('') || '<p class="meta">這裡還沒有文章</p>'}</div>`;
 }
 
 async function editPost(id) {
@@ -123,7 +135,7 @@ async function detail() {
     if (!mine && p.status === 'public' && !seen.includes(p.id)) { seen.push(p.id); sessionStorage.setItem('seen', JSON.stringify(seen)); db.rpc('bump_view', { pid: p.id }); }
   } catch (e) {}
   const extra = (p.updated_at ? ' · 已編輯 ' + new Date(p.updated_at).toLocaleDateString() : '') + (p.status !== 'public' ? ' · ' + ST[p.status] : '');
-  $('#app').innerHTML = `<div class="card"><button class="btn" onclick="openId=null;render()">返回列表</button>${mine ? ` <button class="btn" onclick="startEdit(${p.id},'${p.status}')">編輯</button>` : ''}
+  $('#app').innerHTML = `<div class="card"><button class="btn" onclick="openId=null;render()">返回列表</button>${mine ? ` <button class="btn" onclick="startEdit(${p.id},'${p.status}')">編輯</button> <button class="btn" onclick="delPost(${p.id})">刪除</button>` : ''}
   <h2>${esc(p.title)}</h2><div class="meta">${esc(p.category)} · ${esc(p.author_name)}${extra}</div><p class="body">${esc(p.body)}</p>
   <h3>${rs.length} 則回覆</h3>${rs.map(r => `<p><b>${esc(r.author_name)}</b><br><span class="body">${esc(r.body)}</span></p>`).join('')}
   ${p.status === 'public' ? '<textarea id="rb" rows="3" placeholder="寫下你的回覆"></textarea><button class="btn" onclick="reply()">發表回覆</button>' : ''}</div>`;
@@ -186,7 +198,7 @@ async function showStats() {
     '寫博客':'Write a blog','發表回覆':'Post reply','發表':'Publish','發送':'Send','取消':'Cancel','關閉':'Close',
     '大家在此聊天':'Chat with everyone','開視頻房間':'Start video room','輸入訊息':'Type a message',
     '信箱':'Email','密碼':'Password','暱稱':'Nickname','標題':'Title','內容':'Content','分類':'Category','回覆':'Replies','返回':'Back',
-    '返回列表':'Back to list','存草稿':'Save draft','我的文章':'My posts','編輯':'Edit','草稿':'Draft','公開':'Public','僅自己可見':'Only me','公開（全站可見）':'Public (everyone)'
+    '返回列表':'Back to list','存草稿':'Save draft','我的文章':'My posts','編輯':'Edit','刪除':'Delete','草稿':'Draft','公開':'Public','僅自己可見':'Only me','公開（全站可見）':'Public (everyone)'
   };
   let lang = 'zh';
   try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
@@ -718,8 +730,8 @@ async function showStats() {
 
     ta.after(w);
     const msg = w.querySelector('span');
-const onPick = async inp => {
-  const f = inp.files[0]; inp.value = '';
+    const onPick = async inp => {
+      const f = inp.files[0]; inp.value = '';
 
       if (!f) return;
       if (!user) return authBox();
@@ -734,9 +746,9 @@ const onPick = async inp => {
         const before = ta.value.slice(0, pos), after = ta.value.slice(pos);
         ta.value = before + (before && !before.endsWith('\n') ? '\n' : '') + url + '\n' + after;
         msg.textContent = '已插入';
-    } catch (e) { msg.textContent = '上傳失敗：' + (e.message || e); }
-  };
-  w.querySelectorAll('input').forEach(i => { i.onchange = () => onPick(i); });
+      } catch (e) { msg.textContent = '上傳失敗：' + (e.message || e); }
+    };
+    w.querySelectorAll('input').forEach(i => { i.onchange = () => onPick(i); });
   };
   new MutationObserver(add).observe(document.body, { childList: true, subtree: true });
 })();
