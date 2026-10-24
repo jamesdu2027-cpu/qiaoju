@@ -829,3 +829,85 @@ async function showStats() {
   new MutationObserver(attach).observe(document.body, { childList: true, subtree: true });
   attach();
 })();
+// ===== 文章內視頻：單獨一行的 YouTube 連結（或 mp4 直連）自動變成播放器 =====
+(() => {
+  const _dt = detail;
+  const YT = /^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:\S*&)?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[&?#]\S*)?$/i;
+  const MP4 = /^https:\/\/\S+\.(?:mp4|webm|mov)(?:\?\S*)?$/i;
+  const player = line => {
+    const y = line.match(YT);
+    if (y) {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9;margin:8px 0;background:#000;border-radius:6px;overflow:hidden';
+      d.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + y[1] + '" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>';
+      return d;
+    }
+    if (MP4.test(line)) {
+      const v = document.createElement('video');
+      v.src = line; v.controls = true; v.playsInline = true; v.preload = 'metadata';
+      v.style.cssText = 'max-width:100%;display:block;margin:8px 0;border-radius:6px';
+      return v;
+    }
+    return null;
+  };
+  detail = async (...a) => {
+    await _dt(...a);
+    const b = document.querySelector('#app p.body');
+    if (!b || b.dataset.vid) return;
+    b.dataset.vid = '1';
+    const nodes = [], w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) nodes.push(n);
+    nodes.forEach(t => {
+      const lines = t.nodeValue.split('\n');
+      if (!lines.some(l => player(l.trim()))) return;
+      const f = document.createDocumentFragment();
+      lines.forEach((l, i) => {
+        const p = player(l.trim());
+        if (p) f.appendChild(p); else if (l) f.appendChild(document.createTextNode(l + (i < lines.length - 1 ? '\n' : '')));
+        else if (i < lines.length - 1) f.appendChild(document.createTextNode('\n'));
+      });
+      t.replaceWith(f);
+    });
+  };
+})();
+// ===== 手機上傳視頻（開關：Supabase settings 表 key = 'vidup'，預設關閉）=====
+(() => {
+  if (!('vidup' in SW)) SW.vidup = false;
+  const MAX = 50 * 1024 * 1024; // 與 Supabase 免費版單檔上限一致
+  const EXT = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' };
+  const add = () => {
+    const w = document.getElementById('imgup');
+    if (!w || !SW.vidup || document.getElementById('vidbtn')) return;
+    const lab = document.createElement('label');
+    lab.id = 'vidbtn'; lab.className = 'btn';
+    lab.style.cssText = 'display:inline-block;cursor:pointer;margin:6px 0 6px 6px';
+    lab.innerHTML = '上傳視頻<input type="file" accept="video/mp4,video/webm,video/quicktime,video/*" hidden>';
+    w.insertBefore(lab, w.querySelector('span'));
+    const msg = w.querySelector('span'), inp = lab.querySelector('input');
+    inp.onchange = async () => {
+      const f = inp.files[0]; inp.value = '';
+      if (!f) return;
+      if (!user) return authBox();
+      const ext = EXT[f.type] || (/\.(mp4|webm|mov)$/i.test(f.name) ? f.name.split('.').pop().toLowerCase() : '');
+      if (!ext) { msg.textContent = '只支援 mp4、webm、mov 格式'; return; }
+      if (f.size > MAX) { msg.textContent = '視頻太大（' + Math.round(f.size / 1048576) + 'MB），上限 50MB，請先壓縮或剪短'; return; }
+      msg.textContent = '視頻上傳中，請不要離開頁面…';
+      try {
+        const path = user.id + '/' + Date.now() + '.' + ext;
+        const { error } = await db.storage.from('post-videos').upload(path, f, { contentType: EXT[f.type] ? f.type : 'video/' + ext });
+        if (error) throw error;
+        const url = db.storage.from('post-videos').getPublicUrl(path).data.publicUrl;
+        const ta = document.getElementById('pb');
+        if (!ta) { msg.textContent = '上傳完成，但找不到輸入框'; return; }
+        const pos = ta.selectionStart ?? ta.value.length;
+        const before = ta.value.slice(0, pos), after = ta.value.slice(pos);
+        ta.value = before + (before && !before.endsWith('\n') ? '\n' : '') + url + '\n' + after;
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+        msg.textContent = '視頻已插入';
+      } catch (e) { msg.textContent = '上傳失敗：' + (e.message || e); }
+    };
+  };
+  new MutationObserver(add).observe(document.body, { childList: true, subtree: true });
+  add();
+})();
