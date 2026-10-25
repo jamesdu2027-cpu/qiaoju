@@ -20,7 +20,7 @@ const fail = e => alert(/switch_off/.test(e.message) ? '這個功能暫未開放
 
 (async () => {
   await loadSwitches();
-  try { const t = new Date().toISOString().slice(0, 10); let s = null; try { s = localStorage.getItem('hit'); } catch (e) {} if (s !== t) { try { localStorage.setItem('hit', t); } catch (e) {} db.rpc('hit_site'); } } catch (e) {}
+  db.rpc('hit_site');
   user = (await db.auth.getSession()).data.session?.user || null;
   if (!SW.login && user) { await db.auth.signOut(); user = null; }
   db.auth.onAuthStateChange((_, s) => { user = s?.user || null; render(); showStats(); });
