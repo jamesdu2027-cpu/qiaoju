@@ -1,0 +1,492 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>奇门遁甲排盘</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap">
+<style>
+/* Layout: one narrow column; the nine-palace board is the hero, readings and remedies follow beneath it. */
+:root {
+  --bg: #E6ECEA;
+  --surface: #F3F7F5;
+  --ink: #12202A;
+  --muted: #56686A;
+  --line: #C3CFCB;
+  --accent: #2B4C7E;
+  --good: #1D7653;
+  --bad: #AE3A2B;
+  --f-display: 'Ma Shan Zheng', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+  --f-chart: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+  --f-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D161B; --surface: #152127; --ink: #E4ECE9; --muted: #92A3A0;
+    --line: #29393F; --accent: #8FB0E8; --good: #5CC49A; --bad: #EA8573;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D161B; --surface: #152127; --ink: #E4ECE9; --muted: #92A3A0;
+  --line: #29393F; --accent: #8FB0E8; --good: #5CC49A; --bad: #EA8573;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); line-height: 1.7; }
+.wrap {
+  max-width: 760px; margin: 0 auto; padding-block: 24px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.eyebrow { margin: 0; font-size: 13px; letter-spacing: .18em; color: var(--muted); }
+h1 { margin: 4px 0 6px; font-family: var(--f-display); font-weight: 400; font-size: clamp(44px, 12vw, 72px); line-height: 1.1; letter-spacing: .06em; text-wrap: balance; }
+.lede { margin: 0 0 20px; color: var(--muted); max-width: 34em; }
+h2 { margin: 36px 0 10px; font-family: var(--f-chart); font-weight: 900; font-size: 22px; letter-spacing: .08em; text-wrap: balance; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 200px; min-width: 0; }
+.field label { font-size: 13px; color: var(--muted); letter-spacing: .06em; }
+input, select, button { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 9px 10px; min-width: 0; width: 100%; }
+button { width: auto; flex: 0 0 auto; cursor: pointer; background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; padding-inline: 20px; }
+button:hover { filter: brightness(1.08); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }
+.pillar { border-top: 2px solid var(--ink); padding-top: 6px; text-align: center; }
+.pillar small { display: block; font-size: 12px; color: var(--muted); letter-spacing: .2em; }
+.pillar b { font-family: var(--f-chart); font-weight: 900; font-size: clamp(22px, 6.4vw, 32px); letter-spacing: .04em; }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; margin: 16px 0 0; }
+.meta div { min-width: 0; }
+.meta dt { font-size: 12px; color: var(--muted); letter-spacing: .12em; }
+.meta dd { margin: 0; font-weight: 500; }
+.legend { margin: 18px 0 8px; font-size: 13px; color: var(--muted); }
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.pal { position: relative; min-height: 150px; padding: 7px 8px 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pal.good { background: color-mix(in srgb, var(--good) 13%, var(--surface)); border-color: color-mix(in srgb, var(--good) 55%, var(--line)); }
+.pal.bad { background: color-mix(in srgb, var(--bad) 11%, var(--surface)); border-color: color-mix(in srgb, var(--bad) 50%, var(--line)); }
+.pal.focus { outline: 2.5px solid var(--accent); outline-offset: 1px; }
+.ptop { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font-size: 12px; color: var(--muted); }
+.badges { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
+.badges i { font-style: normal; font-size: 11px; line-height: 1; padding: 2px 3px; border: 1px solid var(--line); border-radius: 2px; color: var(--ink); }
+.god { font-size: 13px; color: var(--muted); letter-spacing: .08em; }
+.door { font-family: var(--f-chart); font-weight: 900; font-size: clamp(19px, 5.4vw, 26px); line-height: 1.25; }
+.star { font-size: 13px; }
+.stems { margin-top: auto; display: flex; align-items: baseline; gap: 6px; font-family: var(--f-chart); font-variant-numeric: tabular-nums; }
+.stems .tg { font-size: clamp(17px, 5vw, 22px); font-weight: 900; }
+.stems .dg { font-size: 14px; color: var(--muted); }
+.pal.center { align-items: center; justify-content: center; text-align: center; background: transparent; border-style: dashed; }
+.pal.center b { font-family: var(--f-chart); font-weight: 900; font-size: 22px; letter-spacing: .1em; }
+.pal.center span { font-size: 13px; color: var(--muted); }
+.reading p { margin: 0 0 10px; max-width: 38em; }
+.verdict { display: inline-block; font-weight: 700; padding: 0 8px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.verdict.good { background: color-mix(in srgb, var(--good) 22%, var(--surface)); }
+.verdict.bad { background: color-mix(in srgb, var(--bad) 20%, var(--surface)); }
+ul.plain { margin: 8px 0 0; padding-left: 1.2em; max-width: 38em; }
+ul.plain li { margin-bottom: 6px; }
+.hours { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.hours li { display: grid; grid-template-columns: 4.6em 1fr 3.4em; gap: 10px; align-items: center; font-size: 14px; font-variant-numeric: tabular-nums; }
+.hours .bar { height: 8px; background: var(--line); border-radius: 1px; position: relative; overflow: hidden; }
+.hours .bar span { position: absolute; inset: 0 auto 0 0; background: var(--muted); }
+.hours li.top .bar span { background: var(--good); }
+.hours li.now { font-weight: 700; }
+.hours .lab { text-align: right; color: var(--muted); }
+.hours li.top .lab { color: var(--good); font-weight: 700; }
+.ten { display: grid; gap: 10px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ten li { display: grid; grid-template-columns: 4.2em 1fr; gap: 10px; max-width: 40em; }
+.ten b { font-family: var(--f-chart); font-weight: 900; color: var(--accent); }
+.pillar em { display: block; font-style: normal; font-size: 13px; color: var(--accent); min-height: 1.4em; }
+.els { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; max-width: 30em; }
+.els li { display: grid; grid-template-columns: 2.2em 1fr 2em; gap: 10px; align-items: center; font-variant-numeric: tabular-nums; }
+.els .bar { height: 8px; background: var(--line); position: relative; overflow: hidden; }
+.els .bar span { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+.els li.zero { color: var(--bad); font-weight: 700; }
+#bz p { margin: 12px 0 0; max-width: 38em; }
+.note { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); max-width: 40em; }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">时家转盘 · 拆补法</p>
+    <h1>奇门遁甲</h1>
+    <p class="lede">输入时间，排出九宫、八门、九星、八神，再按所问之事找出吉方与吉时。</p>
+  </header>
+
+  <section class="controls" aria-label="排盘设置">
+    <div class="field">
+      <label for="dt">排盘时间（北京时间）</label>
+      <input id="dt" type="datetime-local">
+    </div>
+    <div class="field">
+      <label for="topic">所问之事</label>
+      <select id="topic">
+        <option value="wealth">求财</option>
+        <option value="career">事业·工作</option>
+        <option value="travel">出行·搬家</option>
+        <option value="study">考试·文书</option>
+        <option value="health">休养·静养</option>
+        <option value="love">婚恋·人际</option>
+      </select>
+    </div>
+    <button id="now" type="button">现在</button>
+  </section>
+
+  <section id="pillars" class="pillars" aria-label="四柱"></section>
+  <dl id="meta" class="meta"></dl>
+
+  <p class="legend">每宫自上而下：宫名、八神、八门、九星，左下为天盘干，右下为地盘干。蓝框是所问之事的用神宫。</p>
+  <div id="board" class="board"></div>
+
+  <section class="reading" id="reading"></section>
+
+  <section>
+    <h2>今日择时</h2>
+    <p style="margin:0 0 10px;color:var(--muted);font-size:14px">同一天十二个时辰里，所问之事的用神宫得分，绿色是前三名。</p>
+    <ol id="hours" class="hours"></ol>
+  </section>
+
+  <section>
+    <h2>生辰八字</h2>
+    <p style="margin:0 0 10px;color:var(--muted);font-size:14px;max-width:38em">自己排八字：填出生的日期和钟点，以及出生地的时区（中国填 8）。下面先放了一个示例，改成你的就行。</p>
+    <div class="controls">
+      <div class="field">
+        <label for="bd">出生时间</label>
+        <input id="bd" type="datetime-local" value="1990-01-01T12:00">
+      </div>
+      <div class="field" style="flex-basis:120px">
+        <label for="btz">时区（东八区填 8）</label>
+        <input id="btz" type="number" step="0.5" min="-12" max="14" value="8">
+      </div>
+    </div>
+    <div id="bz"></div>
+  </section>
+
+  <section>
+    <h2>改命法</h2>
+    <p style="max-width:38em">古人说“一命二运三风水，四积阴德五读书，六名七相八敬神，九交贵人十养生”。前两项由天定，后八项握在自己手里。下面按这十句，各给一条今天就能做的办法。</p>
+    <ol class="ten">
+      <li><b>一 命</b><span>先天的八字改不了，但可以看清自己的长处和短处，用长处吃饭，短处靠习惯补。</span></li>
+      <li><b>二 运</b><span>运有高低。低的时候守住本分、少折腾；高的时候再放手去做。</span></li>
+      <li><b>三 风水</b><span>居所整洁、通风、采光好；床头不压杂物，桌面清爽。环境顺了，心也顺。</span></li>
+      <li><b>四 积阴德</b><span>每周做一件不求回报的小事，帮人一把，孝敬父母，善待身边的人。</span></li>
+      <li><b>五 读书</b><span>读书明理，再学一门手艺。技能多一样，路就多一条。</span></li>
+      <li><b>六 名</b><span>守信用，说到做到，不欠账，不占便宜。名声是慢慢攒出来的运。</span></li>
+      <li><b>七 相</b><span>站直，面带笑容，衣着整洁。精神好，别人愿意靠近你，机会也多。</span></li>
+      <li><b>八 敬神</b><span>心里有敬畏，常存感恩。每天留十分钟静坐、祷告或散步，让心安下来。</span></li>
+      <li><b>九 交贵人</b><span>多结交正直、肯提点你的人，也让自己成为别人的贵人。</span></li>
+      <li><b>十 养生</b><span>作息规律，按时吃饭、按时服药，适度运动，定期体检。身体是其余九条的根。</span></li>
+    </ol>
+  </section>
+
+  <p class="note">奇门遁甲是中国传统术数文化，此页按拆补法排盘，只供了解传统文化和娱乐参考，不能预知未来。健康、法律和财务上的重大决定，请咨询医生、律师或财务专业人士。</p>
+</main>
+
+<script>
+(function () {
+  var STEMS = "甲乙丙丁戊己庚辛壬癸".split("");
+  var BR = "子丑寅卯辰巳午未申酉戌亥".split("");
+  var TERMS = "冬至 小寒 大寒 立春 雨水 惊蛰 春分 清明 谷雨 立夏 小满 芒种 夏至 小暑 大暑 立秋 处暑 白露 秋分 寒露 霜降 立冬 小雪 大雪".split(" ");
+  // 各节气上中下三元的局数；前12个为阳遁，后12个为阴遁
+  var JU = [
+    [1,7,4],[2,8,5],[3,9,6],[8,5,2],[9,6,3],[1,7,4],[3,9,6],[4,1,7],[5,2,8],[4,1,7],[5,2,8],[6,3,9],
+    [9,3,6],[8,2,5],[7,1,4],[2,5,8],[1,4,7],[9,3,6],[7,1,4],[6,9,3],[5,8,2],[6,9,3],[5,8,2],[4,7,1]
+  ];
+  var CNUM = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  var PAL = {
+    1: { n: "坎", d: "北" }, 2: { n: "坤", d: "西南" }, 3: { n: "震", d: "东" }, 4: { n: "巽", d: "东南" },
+    5: { n: "中", d: "中" }, 6: { n: "乾", d: "西北" }, 7: { n: "兑", d: "西" }, 8: { n: "艮", d: "东北" }, 9: { n: "离", d: "南" }
+  };
+  var RING = [1, 8, 3, 4, 9, 2, 7, 6]; // 顺时针：北、东北、东、东南、南、西南、西、西北
+  var STAR0 = { 1: "天蓬", 2: "天芮", 3: "天冲", 4: "天辅", 5: "天禽", 6: "天心", 7: "天柱", 8: "天任", 9: "天英" };
+  var DOOR0 = { 1: "休", 8: "生", 3: "伤", 4: "杜", 9: "景", 2: "死", 7: "惊", 6: "开" };
+  var GODS = ["值符", "腾蛇", "太阴", "六合", "白虎", "玄武", "九地", "九天"];
+  var SIX = ["戊", "己", "庚", "辛", "壬", "癸"];
+  var SEQ = ["戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"];
+  var PAL_BR = { 1: [0], 8: [1, 2], 3: [3], 4: [4, 5], 9: [6], 2: [7, 8], 7: [9], 6: [10, 11] };
+  var DOOR_S = { "开": 3, "休": 3, "生": 3, "景": 0, "杜": -1, "伤": -2, "惊": -2, "死": -3 };
+  var STAR_S = { "天辅": 2, "天心": 2, "天任": 2, "天禽": 1, "天冲": 1, "天英": -1, "天柱": -1, "天蓬": -2, "天芮": -2 };
+  var GOD_S = { "值符": 2, "太阴": 2, "六合": 2, "九地": 1, "九天": 1, "腾蛇": -1, "白虎": -2, "玄武": -2 };
+  var DOOR_TIP = {
+    "开": "开门主开创，宜求职、谈判、开业、出行。",
+    "休": "休门主安宁，宜休养、拜访、求和、见长辈。",
+    "生": "生门主生发，宜求财、创业、置业、播种。",
+    "景": "景门主文采，宜考试、写文书、投稿、宣传。",
+    "杜": "杜门主闭塞，宜守成、静修，不宜张扬。",
+    "伤": "伤门主折损，宜出力气的活，不宜远行和争执。",
+    "惊": "惊门主惊疑，易生口舌，说话行事多留余地。",
+    "死": "死门主收止，宜收尾、整理旧物，不宜开新局。"
+  };
+  var TOPICS = {
+    wealth: { name: "求财", kind: "door", key: "生", why: "求财看生门" },
+    career: { name: "事业·工作", kind: "door", key: "开", why: "事业看开门" },
+    travel: { name: "出行·搬家", kind: "door", key: "休", why: "出行搬家取休门，求平安顺遂" },
+    study: { name: "考试·文书", kind: "door", key: "景", why: "考试文书看景门" },
+    health: { name: "休养·静养", kind: "star", key: "天心", why: "休养静养看天心星，求安稳调理" },
+    love: { name: "婚恋·人际", kind: "god", key: "六合", why: "婚恋人际看六合神" }
+  };
+
+  function jdn(y, m, d) {
+    var a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3;
+    return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+  }
+  function sunLon(jd) {
+    var T = (jd - 2451545) / 36525, r = Math.PI / 180;
+    var L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+    var M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+    var C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * r) + (0.019993 - 0.000101 * T) * Math.sin(2 * M * r) + 0.000289 * Math.sin(3 * M * r);
+    var lon = L0 + C - 0.00569 - 0.00478 * Math.sin((125.04 - 1934.136 * T) * r);
+    return ((lon % 360) + 360) % 360;
+  }
+  function mod(a, n) { return ((a % n) + n) % n; }
+  function gz(i) { return STEMS[i % 10] + BR[i % 12]; }
+
+  function calc(y, mo, d, h) {
+    var hb = Math.floor(((h + 1) % 24) / 2);
+    var dt = new Date(Date.UTC(y, mo - 1, d));
+    if (h >= 23) dt = new Date(dt.getTime() + 864e5); // 晚子时按次日日柱
+    var Y = dt.getUTCFullYear(), M = dt.getUTCMonth() + 1, D = dt.getUTCDate();
+    var J = jdn(Y, M, D);
+    var di = mod(J + 49, 60);
+    var hs = ((di % 10) % 5 * 2 + hb) % 10, hi = 0;
+    for (var i = 0; i < 60; i++) { if (i % 10 === hs && i % 12 === hb) { hi = i; break; } }
+    // 节气：取当日结束时（北京时间23:59）太阳黄经
+    var lon = sunLon(J - 0.5 + (15 + 59 / 60) / 24);
+    var k = Math.floor(mod(lon - 270, 360) / 15);
+    var yearAdj = (M <= 2 && k < 3) ? Y - 1 : Y;
+    var yi = mod(yearAdj - 4, 60);
+    var jie = (k % 2 === 1) ? k : k - 1; if (jie < 1) jie = 23;
+    var mb = mod(2 + (jie - 3) / 2, 12);
+    var ms = ((yi % 10) % 5 * 2 + 2 + mod(mb - 2, 12)) % 10;
+    var monthStr = STEMS[ms] + BR[mb];
+    // 符头与三元
+    var fu = di - (di % 5), fb = mod(fu, 12);
+    var yuan = [0, 3, 6, 9].indexOf(fb) >= 0 ? 0 : ([2, 5, 8, 11].indexOf(fb) >= 0 ? 1 : 2);
+    var yang = k < 12, ju = JU[k][yuan];
+    // 地盘
+    var e = {}, p;
+    for (i = 0; i < 9; i++) { p = yang ? ((ju - 1 + i) % 9) + 1 : mod(ju - 1 - i, 9) + 1; e[p] = SEQ[i]; }
+    var xi = Math.floor(hi / 10), xunStem = SIX[xi], xunPal = 0;
+    for (p = 1; p <= 9; p++) if (e[p] === xunStem) xunPal = p;
+    var look = hs === 0 ? xunStem : STEMS[hs], tp = 0;
+    for (p = 1; p <= 9; p++) if (e[p] === look) tp = p;
+    var o = xunPal === 5 ? 2 : xunPal, t = tp === 5 ? 2 : tp;
+    function pos(q) { return RING.indexOf(q === 5 ? 2 : q); }
+    var shift = mod(pos(t) - pos(o), 8);
+    var steps = hi % 10;
+    var L = yang ? ((o - 1 + steps) % 9) + 1 : mod(o - 1 - steps, 9) + 1;
+    if (L === 5) L = 2;
+    var shiftD = mod(pos(L) - pos(o), 8);
+    var cells = {}, j, q, orig;
+    for (j = 0; j < 8; j++) {
+      q = RING[j];
+      orig = RING[mod(j - shift, 8)];
+      var c = { q: q, star: STAR0[orig], tian: e[orig], tian2: orig === 2 ? e[5] : "", qin: orig === 2 };
+      orig = RING[mod(j - shiftD, 8)];
+      c.door = DOOR0[orig];
+      c.di = e[q];
+      cells[q] = c;
+    }
+    var gi = pos(t);
+    for (i = 0; i < 8; i++) {
+      q = RING[yang ? (gi + i) % 8 : mod(gi - i, 8)];
+      cells[q].god = GODS[i];
+    }
+    // 空亡与马星
+    var voidB = [[10, 11], [8, 9], [6, 7], [4, 5], [2, 3], [0, 1]][xi];
+    var horseB = ({ 8: 2, 0: 2, 4: 2, 5: 11, 9: 11, 1: 11, 2: 8, 6: 8, 10: 8, 11: 5, 3: 5, 7: 5 })[hb];
+    for (q in cells) {
+      var br = PAL_BR[q];
+      cells[q].empty = br.some(function (b) { return voidB.indexOf(b) >= 0; });
+      cells[q].horse = br.indexOf(horseB) >= 0;
+      var sc = DOOR_S[cells[q].door] + STAR_S[cells[q].star] + GOD_S[cells[q].god];
+      var qi = ["乙", "丙", "丁"].indexOf(cells[q].tian) >= 0;
+      cells[q].qi = qi;
+      cells[q].score = sc + (qi ? 1 : 0);
+    }
+    return {
+      pillars: [gz(yi), monthStr, gz(di), gz(hi)],
+      term: TERMS[k], yang: yang, ju: ju, yuan: ["上元", "中元", "下元"][yuan],
+      xun: "甲" + BR[(xi * 10) % 12] + SIX[xi],
+      fuStar: STAR0[xunPal], fuPal: t, shiPal: L, shiDoor: DOOR0[o] + "门",
+      earth5: e[5], cells: cells, hb: hb
+    };
+  }
+
+  function label(s) { return s >= 5 ? "大吉" : s >= 3 ? "吉" : s >= 0 ? "平" : s >= -3 ? "小凶" : "凶"; }
+  function tone(s) { return s >= 3 ? "good" : s <= -2 ? "bad" : ""; }
+  function topicPalace(ch, tp) {
+    for (var q in ch.cells) {
+      var c = ch.cells[q];
+      if (tp.kind === "door" && c.door === tp.key) return +q;
+      if (tp.kind === "god" && c.god === tp.key) return +q;
+      if (tp.kind === "star" && c.star === tp.key) return +q;
+    }
+    return 1;
+  }
+  function dirOf(q) { return PAL[q].d + "方（" + PAL[q].n + CNUM[q] + "宫）"; }
+
+  var ELEM = "木火土金水";
+  var BR_E = [4, 2, 0, 0, 2, 1, 1, 2, 3, 3, 2, 4]; // 子丑寅卯辰巳午未申酉戌亥 的本气五行
+  var ZODIAC = "鼠牛虎兔龙蛇马羊猴鸡狗猪";
+  var ELEM_FIX = {
+    "木": "东方、绿色、多亲近草木，早起舒展身体",
+    "火": "南方、红色，多晒太阳，保持热情和笑容",
+    "土": "居中、黄色，脚踏实地，三餐按时",
+    "金": "西方、白色，整理收纳，做事干脆、守规矩",
+    "水": "北方、黑蓝色，多喝水，多读书、多静思"
+  };
+  function god(dm, o) {
+    var ed = Math.floor(dm / 2), eo = Math.floor(o / 2), same = (dm % 2) === (o % 2);
+    switch (mod(eo - ed, 5)) {
+      case 0: return same ? "比肩" : "劫财";
+      case 1: return same ? "食神" : "伤官";
+      case 2: return same ? "偏财" : "正财";
+      case 3: return same ? "七杀" : "正官";
+      default: return same ? "偏印" : "正印";
+    }
+  }
+  function bazi(y, mo, d, h, mi, tz) {
+    var hb = Math.floor(((h + 1) % 24) / 2);
+    var dt = new Date(Date.UTC(y, mo - 1, d));
+    if (h >= 23) dt = new Date(dt.getTime() + 864e5); // 晚子时按次日日柱
+    var di = mod(jdn(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate()) + 49, 60);
+    var hs = ((di % 10) % 5 * 2 + hb) % 10;
+    var lon = sunLon(jdn(y, mo, d) - 0.5 + (h + mi / 60 - tz) / 24);
+    var k = Math.floor(mod(lon - 270, 360) / 15);
+    var yi = mod(((mo <= 2 && k < 3) ? y - 1 : y) - 4, 60);
+    var jie = (k % 2 === 1) ? k : k - 1; if (jie < 1) jie = 23;
+    var mb = mod(2 + (jie - 3) / 2, 12);
+    var ms = ((yi % 10) % 5 * 2 + 2 + mod(mb - 2, 12)) % 10;
+    var st = [yi % 10, ms, di % 10, hs], br = [yi % 12, mb, di % 12, hb];
+    var cnt = [0, 0, 0, 0, 0];
+    st.forEach(function (s) { cnt[Math.floor(s / 2)]++; });
+    br.forEach(function (b) { cnt[BR_E[b]]++; });
+    return { st: st, br: br, cnt: cnt };
+  }
+
+  if (typeof document === "undefined") {
+    if (typeof module !== "undefined") module.exports = { calc: calc, topicPalace: topicPalace, TOPICS: TOPICS, bazi: bazi };
+    return;
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var ORDER = [4, 9, 2, 3, 5, 7, 8, 1, 6];
+  var BRN = ["子 23–01", "丑 01–03", "寅 03–05", "卯 05–07", "辰 07–09", "巳 09–11", "午 11–13", "未 13–15", "申 15–17", "酉 17–19", "戌 19–21", "亥 21–23"];
+
+  function parse() {
+    var v = $("dt").value;
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(v);
+    return m ? { y: +m[1], mo: +m[2], d: +m[3], h: +m[4], mi: +m[5] } : null;
+  }
+  function setNow() {
+    var b = new Date(Date.now() + 8 * 3600e3);
+    $("dt").value = b.toISOString().slice(0, 16);
+  }
+
+  function render() {
+    var t = parse();
+    if (!t) return;
+    var ch = calc(t.y, t.mo, t.d, t.h);
+    var tp = TOPICS[$("topic").value];
+    var fq = topicPalace(ch, tp);
+
+    var lab = ["年", "月", "日", "时"];
+    $("pillars").innerHTML = ch.pillars.map(function (p, i) {
+      return '<div class="pillar"><small>' + lab[i] + '柱</small><b>' + p + '</b></div>';
+    }).join("");
+
+    $("meta").innerHTML = [
+      ["节气", ch.term], ["局数", (ch.yang ? "阳遁" : "阴遁") + CNUM[ch.ju] + "局 · " + ch.yuan],
+      ["旬首", ch.xun], ["值符", ch.fuStar + "落" + PAL[ch.fuPal].n + CNUM[ch.fuPal] + "宫"],
+      ["值使", ch.shiDoor + "落" + PAL[ch.shiPal].n + CNUM[ch.shiPal] + "宫"]
+    ].map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join("");
+
+    $("board").innerHTML = ORDER.map(function (q) {
+      if (q === 5) {
+        return '<div class="pal center"><b>中宫</b><span>地盘 ' + ch.earth5 + '</span><span>寄坤二宫</span></div>';
+      }
+      var c = ch.cells[q];
+      var bd = (c.empty ? "<i>空</i>" : "") + (c.horse ? "<i>马</i>" : "") + (c.qi ? "<i>奇</i>" : "") + (q === ch.shiPal ? "<i>使</i>" : "");
+      var cls = "pal " + tone(c.score) + (q === fq ? " focus" : "");
+      return '<div class="' + cls.trim() + '">' +
+        '<div class="ptop"><span>' + PAL[q].n + CNUM[q] + '·' + PAL[q].d + '</span><span class="badges">' + bd + '</span></div>' +
+        '<div class="god">' + c.god + '</div>' +
+        '<div class="door">' + c.door + '门</div>' +
+        '<div class="star">' + c.star + (c.qin ? '<span style="color:var(--muted)">·禽</span>' : '') + '</div>' +
+        '<div class="stems"><span class="tg">' + c.tian + (c.tian2 ? '<span style="font-size:.7em">·' + c.tian2 + '</span>' : '') + '</span><span class="dg">' + c.di + '</span></div>' +
+        '</div>';
+    }).join("");
+
+    // 用神解读
+    var f = ch.cells[fq], lb = label(f.score);
+    var best = 0, bs = -99;
+    for (var q in ch.cells) if (ch.cells[q].score > bs) { bs = ch.cells[q].score; best = +q; }
+    var bc = ch.cells[best];
+    var html = '<h2>用神解读</h2>';
+    html += '<p>' + tp.why + '。用神落在<b>' + dirOf(fq) + '</b>：' + f.god + '、' + f.door + '门、' + f.star + '，天盘' + f.tian + '加地盘' + f.di + '。综合判断 <span class="verdict ' + tone(f.score) + '">' + lb + '</span></p>';
+    html += '<p>' + DOOR_TIP[f.door] + '</p>';
+    if (f.empty) html += '<p>此宫逢空亡，事情容易落空或延迟，宜多做一手准备。</p>';
+    html += '<p>整张盘里最吉的方位是<b>' + dirOf(best) + '</b>：' + bc.god + '、' + bc.door + '门、' + bc.star + '。';
+    html += best === fq ? '正好是所问之事的用神宫。' : '办事、谈事、出行可以尽量朝这个方向。';
+    html += '</p>';
+    html += '<h2>解决方法</h2><ul class="plain">';
+    if (f.score >= 3) {
+      html += '<li>时机不错。把要紧的事放在这个时辰内推进，先做最重要的一件，别拖。</li>';
+      html += '<li>面朝' + PAL[fq].d + '方办事，或把座位、洽谈位置安排在这个方向。</li>';
+    } else if (f.score >= 0) {
+      html += '<li>局势平稳。适合核对细节、做准备、打听消息，不宜冒大险。</li>';
+      html += '<li>想要更顺，可以换到下方“今日择时”里得分更高的时辰再动手。</li>';
+    } else {
+      html += '<li>这个时辰不宜硬推。重大决定、签约、借贷往后挪，先做整理和准备。</li>';
+      html += '<li>换时：打开“今日择时”，选绿色的前三个时辰再办。</li>';
+      html += '<li>换向：改朝' + PAL[best].d + '方办事或出行，化凶为吉的古法就是避凶趋吉。</li>';
+    }
+    html += '<li>事前列好清单，事后复盘。心里有数，比任何方位都管用。</li>';
+    html += '<li>凡事留余地，言语和气，多与人商量。古人说“吉凶由人”。</li>';
+    html += '</ul>';
+    $("reading").innerHTML = html;
+
+    // 今日择时
+    var rows = [];
+    for (var h = 0; h < 24; h += 2) {
+      var c2 = calc(t.y, t.mo, t.d, h);
+      rows.push({ br: c2.hb, s: c2.cells[topicPalace(c2, tp)].score });
+    }
+    var sorted = rows.slice().sort(function (a, b) { return b.s - a.s; });
+    var cut = sorted[2].s;
+    var nowBr = ch.hb;
+    $("hours").innerHTML = rows.map(function (r) {
+      var w = Math.round((r.s + 7) / 15 * 100);
+      var top = r.s >= cut && r.s >= 3;
+      return '<li class="' + (top ? "top " : "") + (r.br === nowBr ? "now" : "") + '"><span>' + BRN[r.br] + '</span>' +
+        '<span class="bar"><span style="width:' + w + '%"></span></span><span class="lab">' + label(r.s) + '</span></li>';
+    }).join("");
+  }
+
+  function renderBazi() {
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec($("bd").value);
+    if (!m) { $("bz").innerHTML = "<p>请填写出生的日期和钟点。</p>"; return; }
+    var tz = parseFloat($("btz").value); if (isNaN(tz)) tz = 8;
+    var r = bazi(+m[1], +m[2], +m[3], +m[4], +m[5], tz);
+    var names = ["年", "月", "日", "时"], dm = r.st[2];
+    var html = '<div class="pillars">' + names.map(function (n, i) {
+      return '<div class="pillar"><small>' + n + '柱</small><em>' + (i === 2 ? "日主" : god(dm, r.st[i])) + '</em><b>' + STEMS[r.st[i]] + BR[r.br[i]] + '</b></div>';
+    }).join("") + '</div>';
+    var mx = Math.max.apply(null, r.cnt);
+    html += '<ul class="els">' + r.cnt.map(function (n, i) {
+      return '<li class="' + (n === 0 ? "zero" : "") + '"><span>' + ELEM[i] + '</span><span class="bar"><span style="width:' + Math.round(n / Math.max(mx, 1) * 100) + '%"></span></span><span>' + n + '</span></li>';
+    }).join("") + '</ul>';
+    var low = Math.min.apply(null, r.cnt), weak = [];
+    r.cnt.forEach(function (n, i) { if (n === low) weak.push(ELEM[i]); });
+    html += '<p>日主是<b>' + STEMS[dm] + ELEM[Math.floor(dm / 2)] + '</b>（' + (dm % 2 ? "阴" : "阳") + '），属' + ZODIAC[r.br[0]] + '。八个字里' + weak.join("、") + '最少' + (low === 0 ? '，命盘缺' + weak.join("、") : '') + '。</p>';
+    html += '<p>传统改运的说法是“缺什么补什么”：' + weak.map(function (w) { return w + '偏少，取' + ELEM_FIX[w]; }).join("；") + '。这是生活习惯上的提醒，不是定论。</p>';
+    html += '<p style="color:var(--muted);font-size:13px">按节气交接的时刻定月柱，23 点后算次日；未按出生地真太阳时修正。</p>';
+    $("bz").innerHTML = html;
+  }
+  $("bd").addEventListener("input", renderBazi);
+  $("btz").addEventListener("input", renderBazi);
+  renderBazi();
+  $("dt").addEventListener("input", render);
+  $("topic").addEventListener("change", render);
+  $("now").addEventListener("click", function () { setNow(); render(); });
+  setNow();
+  render();
+})();
+</script>
+
+</body></html>
