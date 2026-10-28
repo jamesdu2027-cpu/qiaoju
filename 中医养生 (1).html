@@ -1,0 +1,250 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>中医养生</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap">
+<style>
+/* Layout: one narrow column. A search field leads, recognised symptoms sit under it, matching syndromes (证型) come next. */
+:root {
+  --bg: #EDF2F0;
+  --surface: #FAFCFB;
+  --ink: #14262B;
+  --muted: #587073;
+  --line: #CCD9D6;
+  --accent: #0D5C63;
+  --accent-soft: #DCEEEC;
+  --warn: #8F6410;
+  --warn-soft: #F3E9D2;
+  --bad: #A83A2C;
+  --f-head: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+  --f-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E191B; --surface: #152326; --ink: #E3EDEB; --muted: #92A6A8; --line: #28393C;
+    --accent: #5CC3C9; --accent-soft: #19393C; --warn: #DDB660; --warn-soft: #3A3119; --bad: #EA8573;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E191B; --surface: #152326; --ink: #E3EDEB; --muted: #92A6A8; --line: #28393C;
+  --accent: #5CC3C9; --accent-soft: #19393C; --warn: #DDB660; --warn-soft: #3A3119; --bad: #EA8573;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); line-height: 1.7; }
+.wrap {
+  max-width: 720px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.eyebrow { margin: 0; font-size: 13px; letter-spacing: .2em; color: var(--muted); }
+h1 { margin: 2px 0 6px; font-family: var(--f-head); font-weight: 900; font-size: clamp(38px, 11vw, 60px); line-height: 1.15; letter-spacing: .08em; text-wrap: balance; }
+.lede { margin: 0 0 20px; color: var(--muted); max-width: 32em; }
+h2 { margin: 30px 0 10px; font-family: var(--f-head); font-weight: 900; font-size: 20px; letter-spacing: .06em; text-wrap: balance; }
+.search { display: flex; gap: 8px; }
+.search input { flex: 1 1 auto; min-width: 0; font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--accent); border-radius: 4px; padding: 12px 12px; }
+.search button, .chip, .ex { font: inherit; cursor: pointer; border-radius: 4px; }
+.search button { flex: 0 0 auto; color: var(--bg); background: var(--accent); border: 1.5px solid var(--accent); padding: 0 18px; font-weight: 700; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hint { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.chip { color: var(--ink); background: var(--surface); border: 1px solid var(--line); padding: 5px 12px; }
+.chip[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+.ex { color: var(--accent); background: none; border: 1px dashed var(--accent); padding: 4px 10px; font-size: 14px; }
+.unk { margin: 10px 0 0; font-size: 14px; color: var(--warn); }
+.card { margin: 0 0 12px; padding: 14px 14px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.card.hit { border-color: var(--accent); }
+.card header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.card h3 { margin: 0; font-family: var(--f-head); font-weight: 900; font-size: 24px; letter-spacing: .06em; }
+.pill { font-size: 13px; font-weight: 700; padding: 0 8px; border-radius: 2px; color: var(--accent); background: var(--accent-soft); }
+.pill.part { color: var(--warn); background: var(--warn-soft); }
+.card dl { display: grid; grid-template-columns: 4.5em 1fr; gap: 4px 10px; margin: 10px 0 0; }
+.card dt { font-size: 13px; color: var(--muted); letter-spacing: .1em; padding-top: 2px; }
+.card dd { margin: 0; min-width: 0; }
+.ok { color: var(--accent); font-weight: 500; }
+.miss { color: var(--muted); }
+.no { color: var(--bad); font-weight: 500; }
+.empty { padding: 18px 14px; border: 1px dashed var(--line); border-radius: 4px; color: var(--muted); }
+.safe { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); max-width: 40em; }
+.safe b { color: var(--ink); }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">辨证参考 · 症状搜索</p>
+    <h1>中医养生</h1>
+    <p class="lede">把症状写进搜索栏，用逗号或空格隔开，下面会列出相符的证型、治法和鉴别要点。</p>
+  </header>
+
+  <form class="search" id="form" role="search">
+    <input id="q" type="search" autocomplete="off" placeholder="例如：五心烦热，盗汗，腰膝酸软" aria-label="症状" value="五心烦热，盗汗，腰膝酸软">
+    <button type="submit">辨证</button>
+  </form>
+  <p class="hint">输入框里现在是示例症状，改成你要查的就行。点下面的症状词也可以。</p>
+  <ul class="chips" id="chips" aria-label="症状库"></ul>
+  <p class="unk" id="unk" hidden></p>
+
+  <h2>相符的证型</h2>
+  <div id="out"></div>
+
+  <h2>试试这几组</h2>
+  <p style="margin:0 0 8px;color:var(--muted);font-size:14px">症状相近，多一个或少一个，结论就不同。</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px">
+    <button class="ex" type="button" data-q="五心烦热，盗汗，腰膝酸软">五心烦热，盗汗，腰膝酸软</button>
+    <button class="ex" type="button" data-q="五心烦热，盗汗，咳嗽，吐痰">五心烦热，盗汗，咳嗽，吐痰</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微">有气无力，声音低微</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽">有气无力，声音低微，咳嗽</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，腰膝酸软">有气无力，声音低微，腰膝酸软</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽，腰膝酸软">有气无力，声音低微，咳嗽，腰膝酸软</button>
+  </div>
+
+  <p class="safe"><b>请注意：</b>这里只是按症状给出的辨证参考，不能代替医生面诊。辨证要四诊合参，舌象和脉象同样重要。咳嗽超过两周，并伴有盗汗、午后低热、消瘦或咯血时，要先去医院排除肺结核；长期尿频、尿急或血尿，也要去检查。出现胸痛、呼吸困难、持续高热时，请尽快就医。已经在服药的慢性病患者，不要自行停药或换药。</p>
+</main>
+
+<script>
+(function () {
+  /* ========== 症状库与证型库：要增加内容，只改这两段 ==========
+     SYMPTOMS：name 是标准写法，alias 是别的说法。
+     SYNDROMES：must 是必须同时具备的症状，not 是出现了就排除本证的症状，
+                treat 是治法，diff 是与相近证型的鉴别要点。 */
+  var SYMPTOMS = [
+    { name: "五心烦热", alias: ["手足心热", "五心煩熱", "手足心发热", "手心脚心热"] },
+    { name: "盗汗", alias: ["盜汗", "夜间出汗", "睡中出汗", "睡着出汗"] },
+    { name: "腰膝酸软", alias: ["腰膝酸軟", "腰酸膝软", "腰膝痠軟", "腰酸腿软"] },
+    { name: "咳嗽", alias: ["咳"] },
+    { name: "吐痰", alias: ["咳痰", "咯痰", "痰多", "有痰", "痰"] },
+    { name: "有气无力", alias: ["有氣無力", "浑身无力", "全身无力", "没力气"] },
+    { name: "声音低微", alias: ["聲音低微", "声低", "说话声音小", "说话声低", "声低气怯"] }
+  ];
+  var SYNDROMES = [
+    {
+      name: "肾阴虚",
+      must: ["五心烦热", "盗汗", "腰膝酸软"],
+      not: [],
+      treat: "滋阴补肾",
+      diff: "腰膝酸软是辨别的关键。若没有腰膝酸软，而见咳嗽吐痰，则考虑肺阴虚。"
+    },
+    {
+      name: "肺阴虚",
+      must: ["五心烦热", "盗汗", "咳嗽", "吐痰"],
+      not: ["腰膝酸软"],
+      treat: "滋阴润肺",
+      diff: "同样有五心烦热、盗汗，区别在于没有腰膝酸软，而见咳嗽吐痰。若有腰膝酸软，则考虑肾阴虚。"
+    },
+    {
+      name: "气虚",
+      must: ["有气无力", "声音低微"],
+      not: [],
+      treat: "补气",
+      diff: "有气无力、声音低微是气虚的基本表现。再加咳嗽，则为肺气虚；没有咳嗽而见腰膝酸软，则为肾气虚；咳嗽和腰膝酸软同时有，则是肺肾气虚，病情较重。"
+    },
+    {
+      name: "肺气虚",
+      must: ["有气无力", "声音低微", "咳嗽"],
+      not: ["腰膝酸软"],
+      treat: "补益肺气",
+      diff: "在气虚（有气无力、声音低微）的基础上，加上咳嗽，而没有腰膝酸软。若同时有腰膝酸软，则是肺肾气虚，病情较重。"
+    },
+    {
+      name: "肾气虚",
+      must: ["有气无力", "声音低微", "腰膝酸软"],
+      not: ["咳嗽"],
+      treat: "补益肾气",
+      diff: "在气虚的基础上，没有咳嗽而见腰膝酸软。若同时有咳嗽，则是肺肾气虚，病情较重。"
+    },
+    {
+      name: "肺肾气虚",
+      must: ["有气无力", "声音低微", "咳嗽", "腰膝酸软"],
+      not: [],
+      treat: "补益肺肾之气",
+      level: "较重，肺和肾同时气虚，建议尽早请医生面诊。",
+      diff: "在气虚的基础上，咳嗽和腰膝酸软同时出现。只有咳嗽是肺气虚，只有腰膝酸软是肾气虚，两者兼有则病情更重。"
+    }
+  ];
+
+  function names() { return SYMPTOMS.map(function (s) { return s.name; }); }
+
+  function parse(text) {
+    var sel = {}, rest = [];
+    text.split(/[,，、;；\s]+/).filter(Boolean).forEach(function (frag) {
+      var hit = false;
+      SYMPTOMS.forEach(function (s) {
+        var keys = [s.name].concat(s.alias || []);
+        if (keys.some(function (k) { return frag.indexOf(k) >= 0; })) { sel[s.name] = true; hit = true; }
+      });
+      if (!hit) rest.push(frag);
+    });
+    return { sel: sel, rest: rest };
+  }
+
+  function match(sel) {
+    var out = [];
+    SYNDROMES.forEach(function (sy) {
+      var have = sy.must.filter(function (m) { return sel[m]; });
+      var block = sy.not.filter(function (n) { return sel[n]; });
+      if (!have.length) return;
+      var full = have.length === sy.must.length && !block.length;
+      out.push({ sy: sy, have: have, block: block, full: full, ratio: have.length / sy.must.length - (block.length ? 0.5 : 0) });
+    });
+    out.sort(function (a, b) { return (b.full - a.full) || (b.full ? b.sy.must.length - a.sy.must.length : b.ratio - a.ratio); });
+    return out;
+  }
+
+  if (typeof document === "undefined") {
+    if (typeof module !== "undefined") module.exports = { parse: parse, match: match, SYNDROMES: SYNDROMES };
+    return;
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function render() {
+    var r = parse($("q").value);
+    $("chips").innerHTML = names().map(function (n) {
+      return '<li><button type="button" class="chip" data-s="' + n + '" aria-pressed="' + (r.sel[n] ? "true" : "false") + '">' + n + '</button></li>';
+    }).join("");
+    var unk = $("unk");
+    if (r.rest.length) { unk.hidden = false; unk.textContent = "症状库里暂时没有：" + r.rest.join("、") + "。"; } else { unk.hidden = true; }
+
+    var res = match(r.sel), out = $("out");
+    if (!Object.keys(r.sel).length) {
+      out.innerHTML = '<div class="empty">还没有识别到症状。请在上面的搜索栏输入，或点一个症状词。</div>';
+      return;
+    }
+    if (!res.length) {
+      out.innerHTML = '<div class="empty">这几个症状没有对上库里的任何证型。可以再补充几个症状，或者交给医生面诊辨证。</div>';
+      return;
+    }
+    out.innerHTML = res.map(function (m) {
+      var sy = m.sy;
+      var basis = sy.must.map(function (s) { return m.have.indexOf(s) >= 0 ? '<span class="ok">' + s + ' ✓</span>' : '<span class="miss">' + s + ' 未见</span>'; }).join("　");
+      var rows = '<dt>依据</dt><dd>' + basis + '</dd>';
+      if (m.block.length) rows += '<dt>排除</dt><dd class="no">出现了' + m.block.join("、") + '，不按' + sy.name + '论。</dd>';
+      rows += '<dt>治法</dt><dd>' + sy.treat + '</dd>';
+      if (sy.level) rows += '<dt>程度</dt><dd class="no">' + sy.level + '</dd>';
+      rows += '<dt>鉴别</dt><dd>' + sy.diff + '</dd>';
+      var status = m.block.length ? '' : (m.full ? '<span class="pill">相符</span>' : '<span class="pill part">部分相符</span>');
+      return '<article class="card' + (m.full && !m.block.length ? ' hit' : '') + '"><header><h3>' + sy.name + '</h3>' + status + '</header><dl>' + rows + '</dl></article>';
+    }).join("");
+  }
+
+  function setText(t) { $("q").value = t; render(); }
+
+  $("q").addEventListener("input", render);
+  $("form").addEventListener("submit", function (e) { e.preventDefault(); render(); });
+  $("chips").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-s]");
+    if (!b) return;
+    var r = parse($("q").value), n = b.getAttribute("data-s");
+    if (r.sel[n]) delete r.sel[n]; else r.sel[n] = true;
+    var keep = names().filter(function (x) { return r.sel[x]; }).concat(r.rest);
+    setText(keep.join("，"));
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-q]");
+    if (b) setText(b.getAttribute("data-q"));
+  });
+  render();
+})();
+</script>
+
+</body></html>
