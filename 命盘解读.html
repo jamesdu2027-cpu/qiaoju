@@ -1,0 +1,282 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>命盘解读</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap">
+<style>
+/* 布局：单栏长页。顶部讲怎么找本命宫，中间速查表，下面是选日干和本命宫自动出解读的工具。
+   色彩：宣纸底、墨色字、朱砂强调，五行各一个固定色。 */
+:root{
+  --bg:#f6f4ee; --fg:#1f2428; --mute:#5d666e; --line:#d9d4c6; --card:#fffdf8;
+  --accent:#a8322d; --accent-soft:#f3dedb; --ok:#2f6b4f; --ok-soft:#dcebe3; --bad:#a8322d; --bad-soft:#f3dedb; --mid:#8a6d1f; --mid-soft:#f1e8c9;
+  --wood:#2f7d4f; --fire:#b53a30; --earth:#8a6a45; --metal:#b0831b; --water:#2c6f9e;
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15181b; --fg:#e7e4dc; --mute:#9aa3ab; --line:#33383d; --card:#1c2024;
+  --accent:#e07a72; --accent-soft:#3a2523; --ok:#7cc4a0; --ok-soft:#1f3329; --bad:#e07a72; --bad-soft:#3a2523; --mid:#d4b45c; --mid-soft:#352e1a;
+  --wood:#6cc08b; --fire:#e8746a; --earth:#c4a074; --metal:#dcb04a; --water:#6fb0de; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15181b; --fg:#e7e4dc; --mute:#9aa3ab; --line:#33383d; --card:#1c2024;
+  --accent:#e07a72; --accent-soft:#3a2523; --ok:#7cc4a0; --ok-soft:#1f3329; --bad:#e07a72; --bad-soft:#3a2523; --mid:#d4b45c; --mid-soft:#352e1a;
+  --wood:#6cc08b; --fire:#e8746a; --earth:#c4a074; --metal:#dcb04a; --water:#6fb0de; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.75;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+main{max-width:820px;margin:0 auto}
+h1,h2,h3{font-family:var(--serif);line-height:1.3;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,6vw,44px);letter-spacing:.12em}
+h2{font-size:22px;margin-top:44px;padding-bottom:8px;border-bottom:2px solid var(--fg)}
+h3{font-size:17px;margin-top:22px}
+p{margin:10px 0}
+.eyebrow{font-size:13px;letter-spacing:.18em;color:var(--mute)}
+.lede{color:var(--mute);max-width:36em}
+.note{font-size:14px;color:var(--mute)}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--card);font-weight:700;white-space:nowrap}
+.e-木{color:var(--wood);font-weight:700}.e-火{color:var(--fire);font-weight:700}.e-土{color:var(--earth);font-weight:700}.e-金{color:var(--metal);font-weight:700}.e-水{color:var(--water);font-weight:700}
+.g9{display:grid;grid-template-columns:repeat(3,1fr);max-width:380px;border-top:1px solid var(--line);border-left:1px solid var(--line);margin:14px 0}
+.g9>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 6px;text-align:center;background:var(--card);line-height:1.5}
+.g9 b{display:block;font-family:var(--serif);font-size:19px}
+.g9 small{color:var(--mute);font-size:12px;display:block}
+.steps{counter-reset:s;list-style:none;padding:0;margin:14px 0}
+.steps li{counter-increment:s;padding-left:38px;position:relative;margin:12px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:2px;width:26px;height:26px;border-radius:50%;background:var(--fg);color:var(--bg);font-size:14px;text-align:center;line-height:26px;font-weight:700}
+.tag{display:inline-block;padding:0 8px;border-radius:3px;font-size:13px;font-weight:700;line-height:22px;vertical-align:1px}
+.t-ok{background:var(--ok-soft);color:var(--ok)}.t-bad{background:var(--bad-soft);color:var(--bad)}.t-mid{background:var(--mid-soft);color:var(--mid)}
+.tool{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px;margin-top:14px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:3px}
+select{width:100%;font:inherit;font-size:16px;padding:8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
+.checks{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}
+.checks label{display:flex;align-items:center;gap:6px;margin:0;color:var(--fg);font-size:15px}
+button{font:inherit;font-size:15px;padding:8px 14px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);border-radius:4px;cursor:pointer;font-weight:700}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.out{margin-top:18px}
+.sec{border-left:4px solid var(--line);padding:2px 0 2px 14px;margin:16px 0}
+.sec.ok{border-color:var(--ok)}.sec.bad{border-color:var(--bad)}.sec.mid{border-color:var(--mid)}
+.sec h3{margin:0 0 4px}
+.final{background:var(--accent-soft);border-radius:6px;padding:4px 16px 12px;margin-top:20px}
+.foot{margin-top:44px;padding-top:14px;border-top:1px solid var(--line)}
+</style>
+
+<main>
+<div class="eyebrow">奇门遁甲 · 命盘入门</div>
+<h1>命盘解读</h1>
+<p class="lede">排出命盘后，怎么知道自己的本命宫好不好？这一页把方法拆成五步：天时、地利、人和、神助、日干，最后给出调整办法。下面有速查表，也有一个小工具，选好自己的盘面就能自动出解读。</p>
+
+<h2>一、先找到"我"在哪一宫</h2>
+<ol class="steps">
+<li>用出生日期和时间排出命盘（本站<a href="/qimen#birth" style="color:var(--accent)">奇门遁甲排盘</a>里有"查本命宫"）。</li>
+<li>找到出生那天的<b>日柱天干</b>，比如日柱是"戊子"，日干就是戊。</li>
+<li>看九宫每格中间一行：九星的右边是<b>天盘干</b>。天盘干里有方框的那个，就是日干所在的宫，这一宫就是你的<b>本命宫</b>。</li>
+<li>再看这个宫里的九星、八门、八神，加上日干的五行，就能判断吉凶。</li>
+</ol>
+<p class="note">出生时辰不同，本命宫可能不同，所以时辰要尽量准确。</p>
+
+<h2>二、速查表</h2>
+<h3>九宫八卦与五行</h3>
+<div class="g9" aria-label="九宫五行">
+<div><b>巽四</b><span class="e-木">木</span><small>东南</small></div>
+<div><b>离九</b><span class="e-火">火</span><small>正南</small></div>
+<div><b>坤二</b><span class="e-土">土</span><small>西南</small></div>
+<div><b>震三</b><span class="e-木">木</span><small>正东</small></div>
+<div><b>中五</b><span class="e-土">土</span><small>寄坤二宫</small></div>
+<div><b>兑七</b><span class="e-金">金</span><small>正西</small></div>
+<div><b>艮八</b><span class="e-土">土</span><small>东北</small></div>
+<div><b>坎一</b><span class="e-水">水</span><small>正北</small></div>
+<div><b>乾六</b><span class="e-金">金</span><small>西北</small></div>
+</div>
+<p class="note">九宫的上方为南，所以左上是巽、右上是坤。</p>
+
+<h3>日干五行，和各自的"财"</h3>
+<div class="wrap"><table>
+<tr><th>日干</th><th>我的五行</th><th>财的五行（我克者为财）</th></tr>
+<tr><td>甲 乙</td><td class="e-木">木</td><td class="e-土">土</td></tr>
+<tr><td>丙 丁</td><td class="e-火">火</td><td class="e-金">金</td></tr>
+<tr><td>戊 己</td><td class="e-土">土</td><td class="e-水">水</td></tr>
+<tr><td>庚 辛</td><td class="e-金">金</td><td class="e-木">木</td></tr>
+<tr><td>壬 癸</td><td class="e-水">水</td><td class="e-火">火</td></tr>
+</table></div>
+
+<h3>日干和本命宫的关系（判断吉凶的核心）</h3>
+<p>五行相生：木生火，火生土，土生金，金生水，水生木。五行相克：木克土，土克水，水克火，火克金，金克木。</p>
+<div class="wrap"><table>
+<tr><th>关系</th><th>说明</th><th>吉凶</th></tr>
+<tr><td>宫生我</td><td>宫的五行生日干，得到滋养</td><td><span class="tag t-ok">吉</span></td></tr>
+<tr><td>宫同我</td><td>宫和日干同一五行，得到帮扶</td><td><span class="tag t-ok">吉</span></td></tr>
+<tr><td>我生宫</td><td>日干去生宫，力气外泄，付出多</td><td><span class="tag t-bad">凶</span></td></tr>
+<tr><td>我克宫</td><td>日干去克宫，要费力去压</td><td><span class="tag t-bad">凶</span></td></tr>
+<tr><td>宫克我</td><td>宫克日干，受到压制</td><td><span class="tag t-bad">凶</span></td></tr>
+</table></div>
+<p class="note">例：日干属土，本命宫在乾（金），土生金，是"我生宫"，按这一套规则为凶，需要换宫。</p>
+
+<h3>八门的五行与吉凶</h3>
+<div class="wrap"><table>
+<tr><th>八门</th><th>五行</th><th>吉凶</th><th>人和的含义</th></tr>
+<tr><td>开门</td><td class="e-金">金</td><td><span class="tag t-ok">吉</span></td><td>事业顺畅，有机会被任用</td></tr>
+<tr><td>休门</td><td class="e-水">水</td><td><span class="tag t-ok">吉</span></td><td>安稳，容易得到贵人</td></tr>
+<tr><td>生门</td><td class="e-土">土</td><td><span class="tag t-ok">吉</span></td><td>有生机，利求财</td></tr>
+<tr><td>景门</td><td class="e-火">火</td><td><span class="tag t-mid">平</span></td><td>利文书、名声，也容易有口舌</td></tr>
+<tr><td>杜门</td><td class="e-木">木</td><td><span class="tag t-mid">平</span></td><td>宜守不宜进，事情容易被堵住</td></tr>
+<tr><td>伤门</td><td class="e-木">木</td><td><span class="tag t-bad">凶</span></td><td>易有损耗、争执</td></tr>
+<tr><td>死门</td><td class="e-土">土</td><td><span class="tag t-bad">凶</span></td><td>事情停滞，没有进展</td></tr>
+<tr><td>惊门</td><td class="e-金">金</td><td><span class="tag t-bad">凶</span></td><td>易有惊扰、是非</td></tr>
+</table></div>
+
+<h3>九星的吉凶（天时）</h3>
+<div class="wrap"><table>
+<tr><th>九星</th><th>吉凶</th><th>含义</th></tr>
+<tr><td>天辅</td><td><span class="tag t-ok">吉</span></td><td>利学习、文教、得到指点</td></tr>
+<tr><td>天心</td><td><span class="tag t-ok">吉</span></td><td>利谋划、医药、出主意</td></tr>
+<tr><td>天任</td><td><span class="tag t-ok">吉</span></td><td>稳重、踏实，积累型</td></tr>
+<tr><td>天冲</td><td><span class="tag t-ok">吉</span></td><td>行动力强，利出击</td></tr>
+<tr><td>天禽</td><td><span class="tag t-mid">平</span></td><td>居中宫，寄坤二宫</td></tr>
+<tr><td>天英</td><td><span class="tag t-bad">凶</span></td><td>急躁、火气大</td></tr>
+<tr><td>天芮</td><td><span class="tag t-bad">凶</span></td><td>多病多虑，宜调养</td></tr>
+<tr><td>天柱</td><td><span class="tag t-bad">凶</span></td><td>破损、口舌，做事受阻</td></tr>
+<tr><td>天蓬</td><td><span class="tag t-bad">凶</span></td><td>耗散，财进财出</td></tr>
+</table></div>
+
+<h3>八神的吉凶（神助）</h3>
+<div class="wrap"><table>
+<tr><th>八神</th><th>吉凶</th><th>含义</th></tr>
+<tr><td>值符</td><td><span class="tag t-ok">吉</span></td><td>领头、有权威，贵人相助</td></tr>
+<tr><td>太阴</td><td><span class="tag t-ok">吉</span></td><td>暗中有助，利谋划</td></tr>
+<tr><td>六合</td><td><span class="tag t-ok">吉</span></td><td>利合作、人缘</td></tr>
+<tr><td>九天</td><td><span class="tag t-ok">吉</span></td><td>利进取、扩展</td></tr>
+<tr><td>九地</td><td><span class="tag t-mid">平</span></td><td>宜守、宜稳，不宜冒进</td></tr>
+<tr><td>腾蛇</td><td><span class="tag t-bad">凶</span></td><td>虚惊、反复、缠绕</td></tr>
+<tr><td>白虎</td><td><span class="tag t-bad">凶</span></td><td>压力大、冲突</td></tr>
+<tr><td>玄武</td><td><span class="tag t-bad">凶</span></td><td>暗损、欺瞒，防小人</td></tr>
+</table></div>
+
+<h3>入墓的含义</h3>
+<p>"入墓"是某个干落在它的墓库宫，力量被收起来，不容易发挥出来。它是提示，不是定论。</p>
+<div class="wrap"><table>
+<tr><th>入墓的是</th><th>常见的解释</th></tr>
+<tr><td>本宫入墓</td><td>容易迷茫，外部阻力大</td></tr>
+<tr><td>生门入墓</td><td>求财辛苦，付出没有回报</td></tr>
+<tr><td>开门入墓</td><td>晋升无望，得不到重用</td></tr>
+<tr><td>休门入墓</td><td>单打独斗，没有贵人相助</td></tr>
+<tr><td>六合入墓</td><td>缺乏感情，容易互相猜疑</td></tr>
+<tr><td>天辅入墓</td><td>无心学习，学习压力大</td></tr>
+</table></div>
+<p class="note">冲墓：墓属土，对角线的宫相冲，即辰冲戌、未冲丑。在盘上，对角线是乾↔巽、坤↔艮、离↔坎、震↔兑。</p>
+
+<h3>冲墓的民俗做法：摆生肖吉祥物</h3>
+<p>民间的做法是在"冲墓"的方位，放上对应生肖的小摆件，当作一个象征：</p>
+<div class="wrap"><table>
+<tr><th>墓在</th><th>对冲的生肖</th><th>摆放方位</th><th>时间</th></tr>
+<tr><td>乾六宫（戌）</td><td>辰龙</td><td>东南（巽四宫）</td><td>辰时 7–9点</td></tr>
+<tr><td>艮八宫（丑）</td><td>未羊</td><td>西南（坤二宫）</td><td>未时 13–15点</td></tr>
+<tr><td>巽四宫（辰）</td><td>戌狗</td><td>西北（乾六宫）</td><td>戌时 19–21点</td></tr>
+<tr><td>坤二宫（未）</td><td>丑牛</td><td>东北（艮八宫）</td><td>丑时 1–3点</td></tr>
+</table></div>
+<p class="note">什么属相的人适合摆，课件里没有讲，需要请教老师。摆件只是民俗里的象征，没有科学证明，不要为此花大钱，也不要因此耽误现实中该做的事。</p>
+
+<h3>九宫的方位与时辰</h3>
+<div class="wrap"><table>
+<tr><th>宫</th><th>方位</th><th>时辰（当地时间）</th></tr>
+<tr><td>坎一</td><td>正北</td><td>子 23–1点</td></tr>
+<tr><td>艮八</td><td>东北</td><td>丑 1–3点，寅 3–5点</td></tr>
+<tr><td>震三</td><td>正东</td><td>卯 5–7点</td></tr>
+<tr><td>巽四</td><td>东南</td><td>辰 7–9点，巳 9–11点</td></tr>
+<tr><td>离九</td><td>正南</td><td>午 11–13点</td></tr>
+<tr><td>坤二</td><td>西南</td><td>未 13–15点，申 15–17点</td></tr>
+<tr><td>兑七</td><td>正西</td><td>酉 17–19点</td></tr>
+<tr><td>乾六</td><td>西北</td><td>戌 19–21点，亥 21–23点</td></tr>
+</table></div>
+
+<h2>三、选出你的盘面，自动解读</h2>
+<p class="note">先在排盘页找到自己的本命宫，再把日干、宫、九星、八门、八神选在下面。没看清的可以留空。</p>
+<div class="tool">
+<div class="row">
+<div><label for="gan">我的日干</label><select id="gan"></select></div>
+<div><label for="gong">本命宫</label><select id="gong"></select></div>
+<div><label for="xing">九星</label><select id="xing"></select></div>
+<div><label for="men">八门</label><select id="men"></select></div>
+<div><label for="shen">八神</label><select id="shen"></select></div>
+</div>
+<div class="checks">
+<label><input type="checkbox" id="rumu"> 入墓</label>
+<label><input type="checkbox" id="jixing"> 击刑</label>
+<label><input type="checkbox" id="menpo"> 门迫</label>
+<label><input type="checkbox" id="kong"> 空亡</label>
+<button type="button" id="demo">填入例子：戊落乾六</button>
+</div>
+<div class="out" id="out" aria-live="polite"></div>
+</div>
+
+<p class="foot note">以上依据常见的奇门遁甲教学整理，各流派的取法不同，仅供传统文化学习和参考。工作、财务、健康、法律上的重要决定，请以现实情况和专业意见为准。</p>
+</main>
+
+<script>
+var GAN={甲:"木",乙:"木",丙:"火",丁:"火",戊:"土",己:"土",庚:"金",辛:"金",壬:"水",癸:"水"};
+var GONG={"乾六":{e:"金",d:"西北",t:"戌亥 19–23点",opp:"巽四"},"坎一":{e:"水",d:"正北",t:"子 23–1点",opp:"离九"},"艮八":{e:"土",d:"东北",t:"丑寅 1–5点",opp:"坤二"},"震三":{e:"木",d:"正东",t:"卯 5–7点",opp:"兑七"},"巽四":{e:"木",d:"东南",t:"辰巳 7–11点",opp:"乾六"},"离九":{e:"火",d:"正南",t:"午 11–13点",opp:"坎一"},"坤二":{e:"土",d:"西南",t:"未申 13–17点",opp:"艮八"},"兑七":{e:"金",d:"正西",t:"酉 17–19点",opp:"震三"}};
+var GEN={木:"火",火:"土",土:"金",金:"水",水:"木"}, KE={木:"土",土:"水",水:"火",火:"金",金:"木"};
+var XING={天辅:["吉","利学习、文教，容易得到指点"],天心:["吉","利谋划、出主意"],天任:["吉","稳重踏实，适合慢慢积累"],天冲:["吉","行动力强，利出击"],天禽:["平","居中宫，寄坤二宫"],天英:["凶","急躁、火气大，做事易冲动"],天芮:["凶","多病多虑，宜调养、少硬撑"],天柱:["凶","易受阻、有口舌，做事不顺"],天蓬:["凶","耗散，财进财出，需要守住"]};
+var MEN={开门:["吉","金","事业顺畅，有机会被任用"],休门:["吉","水","安稳，容易得到贵人"],生门:["吉","土","有生机，利求财"],景门:["平","火","利文书名声，也容易有口舌"],杜门:["平","木","宜守不宜进，事情易被堵住"],伤门:["凶","木","易有损耗和争执"],死门:["凶","土","事情停滞，没有进展"],惊门:["凶","金","易有惊扰和是非"]};
+var SHEN={值符:["吉","领头有权威，贵人相助"],太阴:["吉","暗中有助，利谋划"],六合:["吉","利合作、人缘"],九天:["吉","利进取、扩展"],九地:["平","宜守宜稳，不宜冒进"],腾蛇:["凶","虚惊、反复、缠绕"],白虎:["凶","压力大，易有冲突"],玄武:["凶","暗损欺瞒，防小人"]};
+var MEN_RUMU={生门:"求财辛苦，付出没有回报",开门:"晋升无望，得不到重用",休门:"单打独斗，没有贵人相助"};
+function $(i){return document.getElementById(i)}
+function fill(id,list,blank){var s=$(id),h=blank?'<option value="">'+blank+'</option>':'';list.forEach(function(x){h+='<option>'+x+'</option>'});s.innerHTML=h}
+fill("gan",Object.keys(GAN));fill("gong",Object.keys(GONG));
+fill("xing",Object.keys(XING),"（不选）");fill("men",Object.keys(MEN),"（不选）");fill("shen",Object.keys(SHEN),"（不选）");
+$("gan").value="戊";$("gong").value="乾六";
+function cls(j){return j==="吉"?"ok":j==="凶"?"bad":"mid"}
+function tg(j){return '<span class="tag t-'+cls(j)+'">'+j+'</span>'}
+function el(e){return '<span class="e-'+e+'">'+e+'</span>'}
+function rel(me,pal){
+  if(me===pal)return["宫同我","吉","宫和日干同属"+me+"，得到帮扶。"];
+  if(GEN[pal]===me)return["宫生我","吉",pal+"生"+me+"，日干得到滋养。"];
+  if(GEN[me]===pal)return["我生宫","凶",me+"生"+pal+"，日干的力气往外泄，付出多、回收少。"];
+  if(KE[me]===pal)return["我克宫","凶",me+"克"+pal+"，要花很大力气去压住它，事情做得辛苦。"];
+  return["宫克我","凶",pal+"克"+me+"，日干受到压制，容易被限制。"];
+}
+function render(){
+  var g=$("gan").value,gg=$("gong").value,xs=$("xing").value,mn=$("men").value,sn=$("shen").value;
+  var me=GAN[g],P=GONG[gg],r=rel(me,P.e),h="",bad=0,ok=0;
+  function count(j){if(j==="吉")ok++;if(j==="凶")bad++}
+  // 1 天时
+  if(xs){var x=XING[xs];count(x[0]);h+='<div class="sec '+cls(x[0])+'"><h3>1　天时：'+xs+'星 '+tg(x[0])+'</h3><p>'+x[1]+'。'+(x[0]==="凶"?'天时不够顺，这时不宜硬冲，可以借别的吉星宫的力量，课上称为"移星换斗"。':x[0]==="吉"?'天时上有助力。':'')+'</p></div>'}
+  else h+='<div class="sec"><h3>1　天时：九星</h3><p class="note">没有选九星，可以在排盘页查看本命宫里的九星再选。</p></div>';
+  // 2 地利
+  count(r[1]);
+  h+='<div class="sec '+cls(r[1])+'"><h3>2　地利：'+gg+'宫，五行属'+el(P.e)+' '+tg(r[1])+'</h3><p>日干'+g+'属'+el(me)+'，落在'+P.e+'宫：<b>'+r[0]+'</b>。'+r[2]+'</p><p class="note">方位'+P.d+'，时辰'+P.t+'。</p></div>';
+  // 3 人和
+  if(mn){var m=MEN[mn];count(m[0]);
+    var mr=KE[GONG[gg].e]===m[1]?"":"";
+    var po=$("menpo").checked?'<p>门迫：门的五行（'+m[1]+'）被宫克住，人和被压，做事容易受限。</p>':'';
+    h+='<div class="sec '+cls(m[0])+'"><h3>3　人和：'+mn+'（五行属'+el(m[1])+'）'+tg(m[0])+'</h3><p>'+m[2]+'。</p>'+po+'</div>'}
+  else h+='<div class="sec"><h3>3　人和：八门</h3><p class="note">没有选八门。</p></div>';
+  // 4 神助
+  if(sn){var s=SHEN[sn];count(s[0]);h+='<div class="sec '+cls(s[0])+'"><h3>4　神助：'+sn+' '+tg(s[0])+'</h3><p>'+s[1]+'。</p></div>'}
+  else h+='<div class="sec"><h3>4　神助：八神</h3><p class="note">没有选八神。</p></div>';
+  // 5 日干
+  h+='<div class="sec '+cls(r[1])+'"><h3>5　我的日干：'+g+'，五行属'+el(me)+'</h3><p>你的"财"是'+el(KE[me])+'（我克者为财）。日干与本命宫的关系是<b>'+r[0]+'</b>，判为'+tg(r[1])+'。</p></div>';
+  // 特殊标记
+  var sp=[];
+  if($("rumu").checked){var ex=(mn&&MEN_RUMU[mn]?"；门入墓：<b>"+mn+"</b>，"+MEN_RUMU[mn]:"");sp.push('<b>入墓</b>：本宫入墓，常见的解释是容易迷茫，外部阻力大'+ex+'。入墓是力量被收起来，要找机会"冲墓"：墓属土，对角线相冲。本命宫的对宫是<b>'+P.opp+'</b>（方位'+GONG[P.opp].d+'，时辰'+GONG[P.opp].t+'），可以多往那个方向、在那个时辰安排要紧的事。')}
+  if($("jixing").checked)sp.push('<b>击刑</b>：容易自己与自己较劲、有内耗，做事前多想一步，别急。');
+  if($("kong").checked)sp.push('<b>空亡</b>：这一宫的力量暂时落空，事情多半要等一等，等"填实"之后再看。');
+  if(sp.length)h+='<div class="sec mid"><h3>特殊标记</h3><p>'+sp.join('</p><p>')+'</p></div>';
+  // 解决方法
+  var good=[];Object.keys(GONG).forEach(function(k){var q=GONG[k],rr=rel(me,q.e);if(rr[1]==="吉")good.push('<tr><td>'+k+'</td><td>'+el(q.e)+'</td><td>'+rr[0]+'</td><td>'+q.d+'</td><td>'+q.t+'</td></tr>')});
+  h+='<div class="final"><h3>解决方法</h3>';
+  if(r[1]==="凶")h+='<p>本命宫与日干不太顺，这套方法的做法是<b>换宫</b>：重要的事，尽量选在对日干有利的宫所代表的方位和时辰去做。你的日干属'+me+'，宫生我、宫同我的宫有：</p><div class="wrap"><table><tr><th>宫</th><th>五行</th><th>关系</th><th>方位</th><th>时辰</th></tr>'+good.join("")+'</table></div>';
+  else h+='<p>本命宫与日干的关系是吉，可以把这一宫当作自己的主场：'+P.d+'方位、'+P.t+'的时间，做重要的事比较顺。</p>';
+  if(mn&&MEN[mn][0]==="凶")h+='<p>人和偏弱（'+mn+'）：这类事情靠自己硬冲效果不好，先找可靠的人一起做，或者另选吉门的时间再办。</p>';
+  if(sn&&SHEN[sn][0]==="凶")h+='<p>神助偏弱（'+sn+'）：重要的约定和合同多留书面记录，多核实。</p>';
+  if(xs&&XING[xs][0]==="凶")h+='<p>天时偏弱（'+xs+'星）：不宜急于出手，先做准备，等条件更好。</p>';
+  h+='<p class="note">综合：吉项 '+ok+' 个，凶项 '+bad+' 个。盘面只是参考，不等于定论。日子是靠人过出来的，排盘提示的是怎么选时间和方位，不是替你决定。</p></div>';
+  $("out").innerHTML=h;
+}
+["gan","gong","xing","men","shen","rumu","jixing","menpo","kong"].forEach(function(i){$(i).addEventListener("change",render)});
+$("demo").addEventListener("click",function(){$("gan").value="戊";$("gong").value="乾六";$("xing").value="天辅";$("men").value="生门";$("shen").value="九天";$("rumu").checked=true;$("jixing").checked=false;$("menpo").checked=false;$("kong").checked=false;render()});
+render();
+</script>
+
+</body></html>
