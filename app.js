@@ -20,7 +20,7 @@ const fail = e => alert(/switch_off/.test(e.message) ? '這個功能暫未開放
 
 (async () => {
   await loadSwitches();
-  db.rpc('hit_site');
+  db.rpc('hit_site').then(() => {});
   user = (await db.auth.getSession()).data.session?.user || null;
   if (!SW.login && user) { await db.auth.signOut(); user = null; }
   db.auth.onAuthStateChange((_, s) => { user = s?.user || null; render(); showStats(); });
