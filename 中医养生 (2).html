@@ -1,0 +1,350 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>中医养生</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap">
+<style>
+/* Layout: one narrow column. A search field leads, recognised symptoms sit under it, matching syndromes (证型) come next. */
+:root {
+  --bg: #EDF2F0;
+  --surface: #FAFCFB;
+  --ink: #14262B;
+  --muted: #587073;
+  --line: #CCD9D6;
+  --accent: #0D5C63;
+  --accent-soft: #DCEEEC;
+  --warn: #8F6410;
+  --warn-soft: #F3E9D2;
+  --bad: #A83A2C;
+  --f-head: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+  --f-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E191B; --surface: #152326; --ink: #E3EDEB; --muted: #92A6A8; --line: #28393C;
+    --accent: #5CC3C9; --accent-soft: #19393C; --warn: #DDB660; --warn-soft: #3A3119; --bad: #EA8573;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E191B; --surface: #152326; --ink: #E3EDEB; --muted: #92A6A8; --line: #28393C;
+  --accent: #5CC3C9; --accent-soft: #19393C; --warn: #DDB660; --warn-soft: #3A3119; --bad: #EA8573;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); line-height: 1.7; }
+.wrap {
+  max-width: 720px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.eyebrow { margin: 0; font-size: 13px; letter-spacing: .2em; color: var(--muted); }
+h1 { margin: 2px 0 6px; font-family: var(--f-head); font-weight: 900; font-size: clamp(38px, 11vw, 60px); line-height: 1.15; letter-spacing: .08em; text-wrap: balance; }
+.lede { margin: 0 0 20px; color: var(--muted); max-width: 32em; }
+h2 { margin: 30px 0 10px; font-family: var(--f-head); font-weight: 900; font-size: 20px; letter-spacing: .06em; text-wrap: balance; }
+.search { display: flex; gap: 8px; }
+.search input { flex: 1 1 auto; min-width: 0; font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--accent); border-radius: 4px; padding: 12px 12px; }
+.search button, .chip, .ex { font: inherit; cursor: pointer; border-radius: 4px; }
+.search button { flex: 0 0 auto; color: var(--bg); background: var(--accent); border: 1.5px solid var(--accent); padding: 0 18px; font-weight: 700; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hint { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.chip { color: var(--ink); background: var(--surface); border: 1px solid var(--line); padding: 5px 12px; }
+.chip[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+.ex { color: var(--accent); background: none; border: 1px dashed var(--accent); padding: 4px 10px; font-size: 14px; }
+.unk { margin: 10px 0 0; font-size: 14px; color: var(--warn); }
+.card { margin: 0 0 12px; padding: 14px 14px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.card.hit { border-color: var(--accent); }
+.card header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.card h3 { margin: 0; font-family: var(--f-head); font-weight: 900; font-size: 24px; letter-spacing: .06em; }
+.pill { font-size: 13px; font-weight: 700; padding: 0 8px; border-radius: 2px; color: var(--accent); background: var(--accent-soft); }
+.pill.part { color: var(--warn); background: var(--warn-soft); }
+.card dl { display: grid; grid-template-columns: 4.5em 1fr; gap: 4px 10px; margin: 10px 0 0; }
+.card dt { font-size: 13px; color: var(--muted); letter-spacing: .1em; padding-top: 2px; }
+.card dd { margin: 0; min-width: 0; }
+.ok { color: var(--accent); font-weight: 500; }
+.miss { color: var(--muted); }
+.no { color: var(--bad); font-weight: 500; }
+.empty { padding: 18px 14px; border: 1px dashed var(--line); border-radius: 4px; color: var(--muted); }
+.safe { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); max-width: 40em; }
+.safe b { color: var(--ink); }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">辨证参考 · 症状搜索</p>
+    <h1>中医养生</h1>
+    <p class="lede">把症状写进搜索栏，用逗号或空格隔开，下面会列出相符的证型、治法和鉴别要点。</p>
+  </header>
+
+  <form class="search" id="form" role="search">
+    <input id="q" type="search" autocomplete="off" placeholder="例如：五心烦热，盗汗，腰膝酸软" aria-label="症状" value="五心烦热，盗汗，腰膝酸软">
+    <button type="submit">辨证</button>
+  </form>
+  <p class="hint">输入框里现在是示例症状，改成你要查的就行。点下面的症状词也可以。</p>
+  <ul class="chips" id="chips" aria-label="症状库"></ul>
+  <p class="unk" id="unk" hidden></p>
+
+  <h2>相符的证型</h2>
+  <div id="out"></div>
+
+  <h2>试试这几组</h2>
+  <p style="margin:0 0 8px;color:var(--muted);font-size:14px">症状相近，多一个或少一个，结论就不同。</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px">
+    <button class="ex" type="button" data-q="五心烦热，盗汗，腰膝酸软">五心烦热，盗汗，腰膝酸软</button>
+    <button class="ex" type="button" data-q="五心烦热，盗汗，咳嗽，吐痰">五心烦热，盗汗，咳嗽，吐痰</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微">有气无力，声音低微</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽">有气无力，声音低微，咳嗽</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，腰膝酸软">有气无力，声音低微，腰膝酸软</button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽，腰膝酸软">有气无力，声音低微，咳嗽，腰膝酸软</button>
+    <button class="ex" type="button" data-q="心悸，失眠，健忘，面色无华">心悸，失眠，健忘，面色无华</button>
+    <button class="ex" type="button" data-q="心悸，失眠，五心烦热，盗汗">心悸，失眠，五心烦热，盗汗</button>
+    <button class="ex" type="button" data-q="情志抑郁，胁肋胀痛，善太息">情志抑郁，胁肋胀痛，善太息</button>
+    <button class="ex" type="button" data-q="头痛，目赤，急躁易怒，口苦">头痛，目赤，急躁易怒，口苦</button>
+    <button class="ex" type="button" data-q="食欲不振，腹胀，大便稀溏，有气无力">食欲不振，腹胀，大便稀溏，有气无力</button>
+    <button class="ex" type="button" data-q="食欲不振，大便稀溏，腹部冷痛，畏寒肢冷">食欲不振，大便稀溏，腹部冷痛，畏寒肢冷</button>
+  </div>
+
+  <p class="safe"><b>请注意：</b>这里只是按症状给出的辨证参考，不能代替医生面诊。辨证要四诊合参，舌象和脉象同样重要。咳嗽超过两周，并伴有盗汗、午后低热、消瘦或咯血时，要先去医院排除肺结核；长期尿频、尿急或血尿，也要去检查。出现胸痛、呼吸困难、持续高热时，请尽快就医。已经在服药的慢性病患者，不要自行停药或换药。</p>
+</main>
+
+<script>
+(function () {
+  /* ========== 症状库与证型库：要增加内容，只改这两段 ==========
+     SYMPTOMS：name 是标准写法，alias 是别的说法。
+     SYNDROMES：must 是必须同时具备的症状，not 是出现了就排除本证的症状，
+                treat 是治法，diff 是与相近证型的鉴别要点。 */
+  var SYMPTOMS = [
+    { name: "五心烦热", alias: ["手足心热", "五心煩熱", "手足心发热", "手心脚心热"] },
+    { name: "盗汗", alias: ["盜汗", "夜间出汗", "睡中出汗", "睡着出汗"] },
+    { name: "腰膝酸软", alias: ["腰膝酸軟", "腰酸膝软", "腰膝痠軟", "腰酸腿软"] },
+    { name: "咳嗽", alias: ["咳"] },
+    { name: "吐痰", alias: ["咳痰", "咯痰", "痰多", "有痰", "痰"] },
+    { name: "有气无力", alias: ["有氣無力", "浑身无力", "全身无力", "没力气"] },
+    { name: "声音低微", alias: ["聲音低微", "声低", "说话声音小", "说话声低", "声低气怯"] },
+    { name: "心悸", alias: ["心慌", "心跳快", "心跳不稳"] },
+    { name: "失眠", alias: ["睡不着", "睡不好", "难入睡", "入睡困难"] },
+    { name: "健忘", alias: ["记忆力差", "记性差", "忘事"] },
+    { name: "气短", alias: ["少气", "短气"] },
+    { name: "自汗", alias: ["白天出汗", "动则汗出", "稍动就出汗"] },
+    { name: "胸闷", alias: ["胸口闷", "胸部憋闷"] },
+    { name: "胸部刺痛", alias: ["胸痛", "胸口刺痛", "心前区痛"] },
+    { name: "唇甲青紫", alias: ["嘴唇发紫", "口唇青紫", "指甲发紫"] },
+    { name: "畏寒肢冷", alias: ["怕冷", "手脚冰凉", "手脚发冷", "畏寒"] },
+    { name: "面色无华", alias: ["面色淡白", "面色苍白", "脸色苍白"] },
+    { name: "心烦", alias: ["心中烦热", "烦躁不安"] },
+    { name: "口舌生疮", alias: ["口腔溃疡", "口疮", "舌上生疮"] },
+    { name: "面赤", alias: ["面红", "脸红"] },
+    { name: "小便黄赤", alias: ["小便黄", "尿黄", "尿赤"] },
+    { name: "头晕", alias: ["眩晕", "头昏"] },
+    { name: "头痛", alias: ["头疼"] },
+    { name: "耳鸣", alias: ["耳朵鸣", "耳内鸣响"] },
+    { name: "目赤", alias: ["眼红", "眼睛红"] },
+    { name: "口苦", alias: ["嘴苦"] },
+    { name: "急躁易怒", alias: ["易怒", "脾气急", "爱发火", "烦躁易怒"] },
+    { name: "情志抑郁", alias: ["心情抑郁", "情绪低落", "郁闷", "心情不好"] },
+    { name: "善太息", alias: ["爱叹气", "叹气", "长叹气"] },
+    { name: "胁肋胀痛", alias: ["两胁胀痛", "胁痛", "肋痛", "胁胀"] },
+    { name: "两目干涩", alias: ["眼睛干涩", "眼干", "目涩"] },
+    { name: "肢体麻木", alias: ["手脚麻木", "手麻", "肢麻"] },
+    { name: "身目发黄", alias: ["黄疸", "皮肤发黄", "眼睛发黄"] },
+    { name: "食欲不振", alias: ["不想吃饭", "纳呆", "没胃口", "食少", "纳差"] },
+    { name: "腹胀", alias: ["饭后腹胀", "肚子胀"] },
+    { name: "大便稀溏", alias: ["便溏", "拉肚子", "大便稀", "大便不成形"] },
+    { name: "腹部冷痛", alias: ["腹痛喜温", "肚子冷痛", "腹冷痛"] },
+    { name: "面色萎黄", alias: ["脸色发黄", "面黄"] },
+    { name: "头身困重", alias: ["身体沉重", "身重", "头重"] },
+    { name: "脘腹坠胀", alias: ["腹部坠胀", "小腹坠胀", "脱肛"] },
+    { name: "慢性出血", alias: ["皮下出血", "紫癜", "便血", "月经过多", "容易出血", "牙龈出血"] },
+    { name: "脘腹痞闷", alias: ["胃脘胀闷", "胃胀", "痞满"] },
+    { name: "饥不欲食", alias: ["饿了不想吃", "饥而不食"] },
+    { name: "口干咽燥", alias: ["口干", "咽干", "口燥咽干"] },
+    { name: "大便干结", alias: ["便秘", "大便干", "便干"] },
+    { name: "胃脘隐痛", alias: ["胃隐痛", "胃脘隐隐作痛"] },
+    { name: "胃脘灼痛", alias: ["胃灼痛", "胃烧痛"] },
+    { name: "口渴", alias: ["口渴喜冷饮"] },
+    { name: "口臭", alias: ["口气重"] }
+  ];
+  var SYNDROMES = [
+    {
+      name: "肾阴虚",
+      must: ["五心烦热", "盗汗", "腰膝酸软"],
+      not: [],
+      treat: "滋阴补肾",
+      diff: "腰膝酸软是辨别的关键。若没有腰膝酸软，而见咳嗽吐痰，则考虑肺阴虚。"
+    },
+    {
+      name: "肺阴虚",
+      must: ["五心烦热", "盗汗", "咳嗽", "吐痰"],
+      not: ["腰膝酸软"],
+      treat: "滋阴润肺",
+      diff: "同样有五心烦热、盗汗，区别在于没有腰膝酸软，而见咳嗽吐痰。若有腰膝酸软，则考虑肾阴虚。"
+    },
+    {
+      name: "气虚",
+      must: ["有气无力", "声音低微"],
+      not: [],
+      treat: "补气",
+      diff: "有气无力、声音低微是气虚的基本表现。再加咳嗽，则为肺气虚；没有咳嗽而见腰膝酸软，则为肾气虚；咳嗽和腰膝酸软同时有，则是肺肾气虚，病情较重。"
+    },
+    {
+      name: "肺气虚",
+      must: ["有气无力", "声音低微", "咳嗽"],
+      not: ["腰膝酸软"],
+      treat: "补益肺气",
+      diff: "在气虚（有气无力、声音低微）的基础上，加上咳嗽，而没有腰膝酸软。若同时有腰膝酸软，则是肺肾气虚，病情较重。"
+    },
+    {
+      name: "肾气虚",
+      must: ["有气无力", "声音低微", "腰膝酸软"],
+      not: ["咳嗽"],
+      treat: "补益肾气",
+      diff: "在气虚的基础上，没有咳嗽而见腰膝酸软。若同时有咳嗽，则是肺肾气虚，病情较重。"
+    },
+    {
+      name: "肺肾气虚",
+      must: ["有气无力", "声音低微", "咳嗽", "腰膝酸软"],
+      not: [],
+      treat: "补益肺肾之气",
+      level: "较重，肺和肾同时气虚，建议尽早请医生面诊。",
+      diff: "在气虚的基础上，咳嗽和腰膝酸软同时出现。只有咳嗽是肺气虚，只有腰膝酸软是肾气虚，两者兼有则病情更重。"
+    },
+    /* ===== 心 ===== */
+    { name: "心气虚", must: ["心悸", "气短", "自汗", "有气无力"], not: ["畏寒肢冷"], treat: "补益心气",
+      diff: "心悸、气短、自汗，活动后加重。若兼畏寒肢冷、胸闷，则是心阳虚；若兼失眠、健忘、面色无华，则是心血虚。" },
+    { name: "心阳虚", must: ["心悸", "气短", "畏寒肢冷", "胸闷"], not: [], treat: "温补心阳",
+      diff: "在心气虚的基础上，又见畏寒肢冷、胸闷。没有怕冷，只是气短自汗，是心气虚。" },
+    { name: "心血虚", must: ["心悸", "失眠", "健忘", "面色无华"], not: ["五心烦热"], treat: "补血养心",
+      diff: "心悸、失眠、健忘，面色无华，没有虚热表现。若同时五心烦热、盗汗，则是心阴虚。" },
+    { name: "心阴虚", must: ["心悸", "失眠", "五心烦热", "盗汗"], not: ["腰膝酸软"], treat: "滋阴养心",
+      diff: "心悸、失眠，加上五心烦热、盗汗。若同时有腰膝酸软，则要考虑心肾不交。" },
+    { name: "心肾不交", must: ["失眠", "心烦", "五心烦热", "腰膝酸软"], not: [], treat: "交通心肾，滋阴降火",
+      diff: "心烦失眠的同时有五心烦热、腰膝酸软，是心火在上、肾水不足。只有心悸失眠、没有腰膝酸软，多是心阴虚。" },
+    { name: "心火亢盛", must: ["心烦", "失眠", "口舌生疮", "面赤"], not: [], treat: "清心泻火",
+      diff: "心烦失眠，兼口舌生疮、面赤，是实火。虚热则有五心烦热、盗汗，那是阴虚。" },
+    { name: "心血瘀阻", must: ["心悸", "胸部刺痛", "唇甲青紫"], not: [], treat: "活血化瘀，通络止痛",
+      level: "胸痛发作时不要拖，请尽快去医院。",
+      diff: "心悸，胸部刺痛，唇甲青紫。痛的特点是刺痛、位置固定。" },
+    /* ===== 肝 ===== */
+    { name: "肝气郁结", must: ["情志抑郁", "胁肋胀痛", "善太息"], not: [], treat: "疏肝解郁，理气",
+      diff: "情绪抑郁、爱叹气、胁肋胀痛。若变得急躁易怒、头痛目赤、口苦，则是郁而化火，为肝火上炎。" },
+    { name: "肝火上炎", must: ["头痛", "目赤", "急躁易怒", "口苦"], not: [], treat: "清肝泻火",
+      diff: "头痛、目赤、急躁易怒、口苦，是实火。若头晕、腰膝酸软、头重脚轻，则是肝阳上亢。" },
+    { name: "肝阳上亢", must: ["头晕", "头痛", "急躁易怒", "腰膝酸软"], not: ["目赤"], treat: "平肝潜阳，滋养肝肾",
+      diff: "上盛下虚：头晕头痛、急躁易怒是上盛，腰膝酸软是下虚。目赤口苦明显的，多是肝火上炎。" },
+    { name: "肝血虚", must: ["头晕", "两目干涩", "肢体麻木", "面色无华"], not: ["五心烦热"], treat: "补血养肝",
+      diff: "头晕、眼睛干涩、手脚麻木、面色无华，没有虚热。若有五心烦热、盗汗，则是肝阴虚。" },
+    { name: "肝阴虚", must: ["头晕", "两目干涩", "五心烦热", "盗汗"], not: ["腰膝酸软"], treat: "滋阴养肝",
+      diff: "头晕、眼干，加上五心烦热、盗汗。若同时有腰膝酸软、耳鸣，则是肝肾阴虚。" },
+    { name: "肝肾阴虚", must: ["头晕", "耳鸣", "两目干涩", "腰膝酸软", "五心烦热"], not: [], treat: "滋补肝肾",
+      diff: "肝阴虚和肾阴虚同时存在：头晕、耳鸣、眼干，加上腰膝酸软、五心烦热。" },
+    { name: "肝胆湿热", must: ["胁肋胀痛", "口苦", "身目发黄", "小便黄赤"], not: [], treat: "清利肝胆湿热",
+      level: "出现身目发黄，请尽快去医院。",
+      diff: "胁肋胀痛、口苦，加上身目发黄、小便黄赤。只有胁肋胀痛而情绪抑郁的，多是肝气郁结。" },
+    /* ===== 脾胃 ===== */
+    { name: "脾气虚", must: ["食欲不振", "腹胀", "大便稀溏", "有气无力"], not: ["畏寒肢冷"], treat: "健脾益气",
+      diff: "食欲不振、饭后腹胀、大便稀溏、乏力。若兼畏寒肢冷、腹部冷痛，则是脾阳虚；若兼脘腹坠胀，则是中气下陷。" },
+    { name: "脾阳虚", must: ["食欲不振", "大便稀溏", "腹部冷痛", "畏寒肢冷"], not: [], treat: "温中健脾",
+      diff: "在脾气虚的基础上，腹部冷痛、喜温喜按、畏寒肢冷。" },
+    { name: "中气下陷", must: ["脘腹坠胀", "气短", "有气无力", "大便稀溏"], not: [], treat: "补中益气，升阳举陷",
+      diff: "脘腹坠胀，气短乏力，久泻或有脱肛、内脏下垂的感觉，是脾气虚的进一步发展。" },
+    { name: "脾不统血", must: ["食欲不振", "有气无力", "慢性出血"], not: [], treat: "益气健脾，摄血",
+      level: "有出血情况，请先请医生面诊，不要只靠自己调理。",
+      diff: "脾气虚，加上皮下出血、便血、月经过多等慢性出血，是脾气虚不能统摄血液。" },
+    { name: "脾虚生痰", must: ["吐痰", "食欲不振", "大便稀溏", "头身困重"], not: ["口渴"], treat: "健脾燥湿化痰",
+      diff: "痰多，食欲不振，大便稀溏，身体困重。所谓脾为生痰之源，治痰要先健脾。" },
+    { name: "寒湿困脾", must: ["脘腹痞闷", "食欲不振", "头身困重", "大便稀溏"], not: ["小便黄赤"], treat: "温化寒湿，健脾",
+      diff: "脘腹痞闷、身体困重、大便稀溏，属实证（湿困）。脾阳虚属虚证，以腹冷痛、畏寒为主。若小便黄赤、身目发黄，则是湿热。" },
+    { name: "湿热蕴脾", must: ["脘腹痞闷", "食欲不振", "头身困重", "小便黄赤"], not: [], treat: "清热利湿",
+      diff: "和寒湿困脾的区别是有热象：小便黄赤。若同时身目发黄，要及时就医。" },
+    { name: "胃阴虚", must: ["饥不欲食", "口干咽燥", "大便干结", "胃脘隐痛"], not: [], treat: "养阴益胃",
+      diff: "胃脘隐隐作痛，饿了又不想吃，口干咽燥，大便干。属阴虚，不是实热。" },
+    { name: "胃火炽盛", must: ["胃脘灼痛", "口渴", "口臭", "大便干结"], not: [], treat: "清胃泻火",
+      diff: "胃脘灼痛、口渴、口臭、便干，是实火。胃阴虚则隐痛、饥不欲食。" }
+  ];
+
+  function names() { return SYMPTOMS.map(function (s) { return s.name; }); }
+
+  function parse(text) {
+    var sel = {}, rest = [];
+    text.split(/[,，、;；\s]+/).filter(Boolean).forEach(function (frag) {
+      var hit = false;
+      SYMPTOMS.forEach(function (s) {
+        var keys = [s.name].concat(s.alias || []);
+        if (keys.some(function (k) { return frag.indexOf(k) >= 0; })) { sel[s.name] = true; hit = true; }
+      });
+      if (!hit) rest.push(frag);
+    });
+    return { sel: sel, rest: rest };
+  }
+
+  function match(sel) {
+    var out = [];
+    SYNDROMES.forEach(function (sy) {
+      var have = sy.must.filter(function (m) { return sel[m]; });
+      var block = sy.not.filter(function (n) { return sel[n]; });
+      if (!have.length) return;
+      var full = have.length === sy.must.length && !block.length;
+      out.push({ sy: sy, have: have, block: block, full: full, ratio: have.length / sy.must.length - (block.length ? 0.5 : 0) });
+    });
+    out.sort(function (a, b) { return (b.full - a.full) || (b.full ? b.sy.must.length - a.sy.must.length : b.ratio - a.ratio); });
+    return out;
+  }
+
+  if (typeof document === "undefined") {
+    if (typeof module !== "undefined") module.exports = { parse: parse, match: match, SYNDROMES: SYNDROMES };
+    return;
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function render() {
+    var r = parse($("q").value);
+    $("chips").innerHTML = names().map(function (n) {
+      return '<li><button type="button" class="chip" data-s="' + n + '" aria-pressed="' + (r.sel[n] ? "true" : "false") + '">' + n + '</button></li>';
+    }).join("");
+    var unk = $("unk");
+    if (r.rest.length) { unk.hidden = false; unk.textContent = "症状库里暂时没有：" + r.rest.join("、") + "。"; } else { unk.hidden = true; }
+
+    var res = match(r.sel), out = $("out");
+    if (!Object.keys(r.sel).length) {
+      out.innerHTML = '<div class="empty">还没有识别到症状。请在上面的搜索栏输入，或点一个症状词。</div>';
+      return;
+    }
+    if (!res.length) {
+      out.innerHTML = '<div class="empty">这几个症状没有对上库里的任何证型。可以再补充几个症状，或者交给医生面诊辨证。</div>';
+      return;
+    }
+    out.innerHTML = res.map(function (m) {
+      var sy = m.sy;
+      var basis = sy.must.map(function (s) { return m.have.indexOf(s) >= 0 ? '<span class="ok">' + s + ' ✓</span>' : '<span class="miss">' + s + ' 未见</span>'; }).join("　");
+      var rows = '<dt>依据</dt><dd>' + basis + '</dd>';
+      if (m.block.length) rows += '<dt>排除</dt><dd class="no">出现了' + m.block.join("、") + '，不按' + sy.name + '论。</dd>';
+      rows += '<dt>治法</dt><dd>' + sy.treat + '</dd>';
+      if (sy.level) rows += '<dt>程度</dt><dd class="no">' + sy.level + '</dd>';
+      rows += '<dt>鉴别</dt><dd>' + sy.diff + '</dd>';
+      var status = m.block.length ? '' : (m.full ? '<span class="pill">相符</span>' : '<span class="pill part">部分相符</span>');
+      return '<article class="card' + (m.full && !m.block.length ? ' hit' : '') + '"><header><h3>' + sy.name + '</h3>' + status + '</header><dl>' + rows + '</dl></article>';
+    }).join("");
+  }
+
+  function setText(t) { $("q").value = t; render(); }
+
+  $("q").addEventListener("input", render);
+  $("form").addEventListener("submit", function (e) { e.preventDefault(); render(); });
+  $("chips").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-s]");
+    if (!b) return;
+    var r = parse($("q").value), n = b.getAttribute("data-s");
+    if (r.sel[n]) delete r.sel[n]; else r.sel[n] = true;
+    var keep = names().filter(function (x) { return r.sel[x]; }).concat(r.rest);
+    setText(keep.join("，"));
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-q]");
+    if (b) setText(b.getAttribute("data-q"));
+  });
+  render();
+})();
+</script>
+
+</body></html>
