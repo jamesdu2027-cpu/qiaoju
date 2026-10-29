@@ -1,0 +1,473 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>故事動畫機</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 布局：单栏。上面输入故事，中间 16:9 画布，下面是控制条和场景解读列表。 */
+:root{--bg:#eef3f2;--surface:#ffffff;--ink:#14262b;--muted:#587073;--line:#ccd9d6;--accent:#0d5c63;--accent-ink:#ffffff;--soft:#dceeec;--warn:#8f6410}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e191b;--surface:#152326;--ink:#e3edeb;--muted:#92a6a8;--line:#28393c;--accent:#5cc3c9;--accent-ink:#06191b;--soft:#19393c;--warn:#ddb660;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e191b;--surface:#152326;--ink:#e3edeb;--muted:#92a6a8;--line:#28393c;--accent:#5cc3c9;--accent-ink:#06191b;--soft:#19393c;--warn:#ddb660;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;margin:0;
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+main{max-width:980px;margin:0 auto}
+h1{font-size:28px;margin:0;letter-spacing:.08em}
+.sub{color:var(--muted);margin:4px 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:3px}
+textarea,input[type=text],select{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+textarea{min-height:130px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.row>*{min-width:0}
+button{font:inherit;padding:8px 16px;border-radius:6px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer}
+button.main{background:var(--accent);color:var(--accent-ink)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);font-weight:500;padding:4px 10px;font-size:14px}
+.stage{margin-top:14px;background:#000;border-radius:8px;overflow:hidden;line-height:0}
+canvas{width:100%;height:auto;display:block;aspect-ratio:16/9}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.ctl input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+.opt{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink);margin:0}
+.opt select{width:auto}
+.note{font-size:13px;color:var(--muted)}
+.warn{color:var(--warn)}
+ol.sc{margin:8px 0 0;padding-left:22px;font-size:14px}
+ol.sc li{margin:4px 0}
+.tag{display:inline-block;background:var(--soft);color:var(--accent);border-radius:4px;padding:0 6px;font-size:12px;margin-right:4px}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--accent);font-weight:700}
+#out{margin-top:12px}
+#out video{width:100%;max-width:640px;border-radius:8px;display:block;margin-bottom:8px}
+#out a{color:var(--accent);font-weight:700}
+.hide{display:none}
+</style>
+
+<main>
+<h1>故事動畫機</h1>
+<p class="sub">寫一段小故事，自動做成有場景、有角色動作、有字幕的動畫，還能錄成視頻。</p>
+
+<div class="card">
+  <label for="title">故事標題（可不填）</label>
+  <input type="text" id="title" placeholder="例：小女孩和小貓">
+  <label for="story" style="margin-top:10px">故事內容</label>
+  <textarea id="story"></textarea>
+  <div class="row">
+    <span class="note">範例：</span>
+    <button class="chip" data-s="0">童話</button>
+    <button class="chip" data-s="1">海邊</button>
+    <button class="chip" data-s="2">雪夜</button>
+  </div>
+  <div class="row">
+    <label class="opt"><input type="radio" name="mode" value="cartoon" checked> 卡通場景（自動配畫面）</label>
+    <label class="opt"><input type="radio" name="mode" value="photo"> 我的圖片（老照片、插圖，加推拉鏡頭）</label>
+  </div>
+  <div class="row hide" id="photoRow">
+    <input type="file" id="files" accept="image/*" multiple style="width:auto">
+    <span class="note" id="fileNote">按故事順序選圖，一句話配一張，不夠就循環使用。</span>
+  </div>
+  <div class="row">
+    <button class="main" id="go">生成動畫並播放</button>
+    <button id="pause" disabled>暫停</button>
+    <button id="rec" disabled>錄製視頻</button>
+  </div>
+  <details>
+    <summary>怎樣寫，畫面才會更豐富？</summary>
+    <p class="note">故事裡寫上<b>地點</b>（森林、海邊、山、村、城、沙漠、雪）、<b>時間</b>（清晨、黃昏、夜裡）、<b>天氣</b>（下雨、下雪、起風、大霧、打雷）、<b>角色</b>（小女孩、老爺爺、小貓、龍……）和<b>動作</b>（走、跑、飛、跳、睡、哭、笑、招手），畫面就會跟著變。人物說的話用「」或“”括起來，會出現對話泡泡。一句話就是一個鏡頭。</p>
+  </details>
+</div>
+
+<div class="stage"><canvas id="cv" width="960" height="540"></canvas></div>
+<div class="ctl">
+  <input type="range" id="seek" min="0" max="100" step="0.01" value="0" aria-label="進度">
+  <label class="opt">速度 <select id="spd"><option value="0.75">慢</option><option value="1" selected>正常</option><option value="1.5">快</option></select></label>
+  <label class="opt"><input type="checkbox" id="tts"> 朗讀</label>
+  <label class="opt"><input type="checkbox" id="mus" checked> 背景音樂</label>
+</div>
+<p class="note" id="msg"></p>
+<div id="out"></div>
+
+<div class="card" style="margin-top:14px">
+  <b>鏡頭列表</b>
+  <p class="note" style="margin:2px 0 0">程序是這樣理解你的故事的，覺得不對，就改一改句子裡的詞。</p>
+  <ol class="sc" id="list"></ol>
+</div>
+<p class="note" style="margin-top:14px">這是用程序自動畫的動畫，不是 AI 生成的真實視頻。錄出的視頻帶背景音樂，但不含朗讀聲音。視頻是 webm 格式，Chrome、Edge 可直接播放。</p>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const isPhoto=()=>document.querySelector('input[name=mode]:checked').value==='photo';
+const cv=$('cv'),ctx=cv.getContext('2d');
+const W=960,H=540,GY=Math.round(H*.74);
+const EMO='"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+const SANS='system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif';
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,t)=>a+(b-a)*t;
+const easeOut=t=>1-Math.pow(1-t,3),easeIO=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+
+/* ---------- 词库（简体、繁体都认） ---------- */
+const SETTINGS=[['desert',/沙漠|沙丘|戈壁/],['snow',/雪|冰|寒冬|冬天|冬日/],['sea',/海|沙灘|沙滩|船|島|岛/],['city',/城市|城|街|市場|市场|廣場|广场|樓|楼|商店|學校|学校/],['village',/村|房|屋|(?<!大)家|院子|農舍|农舍|田野|炊煙|炊烟/],['mountain',/山|峰|崖|懸崖|悬崖/],['river',/河|湖|溪|池塘|瀑布|水邊|水边/],['forest',/森林|樹林|树林|叢林|丛林|林|樹|树/],['meadow',/草地|草原|花園|花园|花|田/]];
+const SET_NAME={desert:'沙漠',snow:'雪地',sea:'海邊',city:'城市',village:'村莊',mountain:'山野',river:'河邊',forest:'森林',meadow:'草地'};
+const TODS=[['dusk',/黃昏|黄昏|傍晚|日落|夕陽|夕阳|晚霞/],['dawn',/清晨|早晨|早上|黎明|日出|天亮|拂曉|拂晓/],['night',/夜|晚上|深夜|半夜|午夜|月|星/],['day',/中午|白天|午後|午后|下午|正午|陽光|阳光|晴|太陽|太阳/]];
+const TOD_NAME={dawn:'清晨',day:'白天',dusk:'黃昏',night:'夜晚'};
+const CH=[[/小女孩|女孩|姑娘|少女|女兒|女儿/,'👧',112],[/小男孩|男孩|少年|兒子|儿子/,'👦',112],[/老爺爺|老爷爷|爺爺|爷爷|外公|外祖父|老人|老頭|老头/,'👴',116],[/老奶奶|奶奶|外婆|婆婆|老太太/,'👵',116],[/媽媽|妈妈|母親|母亲/,'👩',116],[/爸爸|父親|父亲/,'👨',116],[/國王|国王|王子/,'🤴',116],[/公主/,'👸',116],[/士兵|戰士|战士|軍人|军人/,'💂',116],[/醫生|医生/,'🧑‍⚕️',116],[/老師|老师/,'🧑‍🏫',116],[/農夫|农夫|農民|农民/,'🧑‍🌾',116],[/孩子|孩童|小孩|兒童|儿童/,'🧒',104],
+[/貓|猫/,'🐱',84],[/狗/,'🐶',84],[/鳥|鸟/,'🐦',64],[/兔/,'🐰',80],[/熊/,'🐻',96],[/狐/,'🦊',84],[/狼/,'🐺',90],[/龍|龙/,'🐉',130],[/馬(?!上)|马(?!上)/,'🐴',110],[/魚|鱼/,'🐟',76],[/牛(?!奶)/,'🐮',100],[/羊/,'🐑',90],[/豬|猪/,'🐷',90],[/雞|鸡/,'🐔',80],[/虎/,'🐯',104],[/猴/,'🐵',86],[/鼠/,'🐭',70],[/青蛙|蛙/,'🐸',70],[/蝴蝶/,'🦋',64],[/大象|象群/,'🐘',130],[/鹿/,'🦌',110]];
+const FLYERS=['🐦','🦋','🐉'];
+const ACTS=[['run',/跑|奔|追|衝|冲/],['fly',/飛|飞|翱翔/],['jump',/跳|蹦|躍|跃/],['swim',/游泳|游|潛|潜/],['sleep',/睡|躺|休息|入眠|夢|梦/],['cry',/哭|淚|泪|傷心|伤心|難過|难过|悲/],['laugh',/笑|開心|开心|高興|高兴|快樂|快乐|歡|欢/],['wave',/招手|揮手|挥手|告別|告别|再見|再见/],['walk',/走|行|步|前往|向前|出發|出发|來到|来到|進入|进入|去|回/]];
+const ACT_NAME={run:'奔跑',fly:'飛行',jump:'跳躍',swim:'游泳',sleep:'入睡',cry:'哭泣',laugh:'歡笑',wave:'揮手',walk:'走路',idle:'站立'};
+const PROPS=[[/花/,'🌸'],[/火/,'🔥'],[/船/,'⛵'],[/彩虹/,'🌈'],[/蘋果|苹果/,'🍎'],[/書|书/,'📖'],[/信/,'✉️'],[/鑰匙|钥匙/,'🔑'],[/寶藏|宝藏|寶箱|宝箱/,'🎁'],[/心/,'❤️'],[/燈|灯/,'🏮'],[/蛋糕/,'🎂'],[/星星/,'⭐'],[/蘑菇/,'🍄'],[/帳篷|帐篷/,'⛺'],[/橋|桥/,'🌉'],[/塔/,'🗼'],[/城堡/,'🏰']];
+const FLOAT=['❤️','⭐','🌈'];
+const SAMPLES=[
+ {t:'小女孩和小貓',s:'清晨，小女孩帶著小貓走進森林。她們沿著小河一路向前，天空忽然下起了小雨。「別怕，」小女孩笑著說，「雨很快就會停。」傍晚，雨停了，天邊出現一道彩虹，小貓開心地跳了起來。夜裡，星星出來了，小女孩和小貓靠著篝火睡著了。'},
+ {t:'海邊的老人',s:'黃昏的海邊，老爺爺獨自坐在沙灘上。海浪輕輕拍著岸，一艘小船慢慢駛向遠方。「該回家了。」老爺爺站起來，朝著夕陽招了招手。夜幕降臨，月亮升起，老爺爺走回了小屋，窗裡亮起一盞燈。'},
+ {t:'雪夜送信',s:'雪夜，一個小男孩在小山村的路上跑著，他要把一封信送到外婆家。大雪紛飛，風越來越大。他終於看見了遠處的房子，外婆在門口揮手。屋裡的火爐燒得很旺，小男孩笑了。'}];
+
+/* ---------- 解析故事 ---------- */
+function splitSentences(text){
+  const PH={'。':'\u0001','！':'\u0002','？':'\u0003','!':'\u0002','?':'\u0003'},RE={'\u0001':'。','\u0002':'！','\u0003':'？'};
+  text=text.replace(/\r/g,'').replace(/[“「『][^”」』]*[”」』]/g,m=>m.replace(/[。！？!?]/g,c=>PH[c]));
+  const parts=text.match(/[^。！？!?；;\n]+[。！？!?；;]*/g)||[];
+  const out=[];
+  for(let p of parts){p=p.replace(/[\u0001\u0002\u0003]/g,c=>RE[c]).trim();if(!p)continue;
+    if(out.length&&p.replace(/[。！？!?；;，,\s]/g,'').length<3)out[out.length-1]+=p;else out.push(p)}
+  return out;
+}
+function analyze(text,prev){
+  const sc={text,setting:prev.setting,tod:prev.tod,chars:prev.chars,rain:0,snow:0,fog:0,wind:0,storm:0,action:'idle',props:[],bubble:null};
+  for(const [k,re] of SETTINGS)if(re.test(text)){sc.setting=k;break}
+  for(const [k,re] of TODS)if(re.test(text)){sc.tod=k;break}
+  if(/雨/.test(text))sc.rain=1;
+  if(/雪/.test(text)||sc.setting==='snow'&&!/雨/.test(text))sc.snow=1;
+  if(/霧|雾/.test(text))sc.fog=1;
+  if(/風|风/.test(text))sc.wind=1;
+  if(/雷|閃電|闪电|暴風|暴风|風暴|风暴/.test(text)){sc.storm=1;sc.rain=1}
+  const found=[];
+  CH.forEach(([re,e,s])=>{const m=text.match(re);if(m)found.push({i:m.index,e,s})});
+  found.sort((a,b)=>a.i-b.i);
+  if(found.length)sc.chars=found.slice(0,3).map(f=>({e:f.e,s:f.s}));
+  for(const [k,re] of ACTS)if(re.test(text)){sc.action=k;break}
+  PROPS.forEach(([re,e])=>{if(re.test(text)&&sc.props.indexOf(e)<0)sc.props.push(e)});
+  const b=text.match(/[“「『]([^”」』]{1,40})[”」』]/);
+  if(b)sc.bubble=b[1].replace(/[，,。！？!?]+$/,'');
+  return sc;
+}
+function buildScenes(){
+  const text=$('story').value.trim(),title=$('title').value.trim();
+  const sents=splitSentences(text),out=[];
+  let prev={setting:'meadow',tod:'day',chars:[{e:'🧑',s:112}]};
+  const speed=+$('spd').value;
+  const tts=$('tts').checked;
+  if(title)out.push({kind:'title',text:title,dur:3});
+  sents.forEach((s,i)=>{
+    const sc=analyze(s,prev);prev={setting:sc.setting,tod:sc.tod,chars:sc.chars};
+    const len=s.replace(/\s/g,'').length;
+    sc.dur=clamp(tts?1.4+len*.28:2.6+len*.13,3,14);
+    sc.kind='scene';sc.seed=hash(s)+i*7919;sc.n=i;
+    sc.rn=mulberry(sc.seed);
+    sc.drops=Array.from({length:150},()=>[sc.rn(),sc.rn(),.6+sc.rn()*.8]);
+    out.push(sc);
+  });
+  if(out.length)out.push({kind:'end',text:'完',dur:2.4});
+  let t=0;out.forEach(s=>{s.start=t;t+=s.dur});
+  return out;
+}
+function renderList(){
+  const L=$('list');L.innerHTML='';
+  scenes.filter(s=>s.kind==='scene').forEach(s=>{
+    const li=document.createElement('li');
+    const tag=x=>'<span class="tag">'+x+'</span>';
+    li.innerHTML=tag(SET_NAME[s.setting])+tag(TOD_NAME[s.tod])+tag(s.chars.map(c=>c.e).join(''))+tag(ACT_NAME[s.action])+
+      (s.rain?tag('下雨'):'')+(s.snow?tag('下雪'):'')+(s.fog?tag('起霧'):'')+(s.wind?tag('起風'):'')+(s.storm?tag('打雷'):'')+
+      s.text.replace(/</g,'&lt;');
+    L.appendChild(li);
+  });
+}
+
+/* ---------- 画面 ---------- */
+const SKY={dawn:['#f6a98f','#ffe6b3'],day:['#66bdf2','#d9f1ff'],dusk:['#4f4585','#ffb86b'],night:['#080d2b','#2a3a6e']};
+const THEME={meadow:{g:'#6dbb5a',g2:'#55a04b',far:'#9bcfa8',mid:'#7fba80'},forest:{g:'#4f9a46',g2:'#3b7d3a',far:'#6aa383',mid:'#468a5e'},mountain:{g:'#7aa05a',g2:'#5f8447',far:'#9aa7c2',mid:'#7889a6'},village:{g:'#86bf5a',g2:'#6aa24a',far:'#a5d0ae',mid:'#84b87f'},city:{g:'#6b7280',g2:'#565c68',far:'#a2acbf',mid:'#818da1'},desert:{g:'#e6c27a',g2:'#d3a85c',far:'#ecd09a',mid:'#e0b974'},snow:{g:'#f3f8ff',g2:'#dce8f6',far:'#cdd9ec',mid:'#b9c9e0'},sea:{g:'#ead9a6',g2:'#d9c488',far:'#a4cbea',mid:'#6fa8d8'},river:{g:'#6dbb5a',g2:'#55a04b',far:'#9bcfa8',mid:'#7fba80'}};
+function emoji(e,x,y,size,rot,sx,sy){
+  ctx.save();ctx.translate(x,y);if(rot)ctx.rotate(rot);ctx.scale(sx||1,sy||sx||1);
+  ctx.font=size+'px '+EMO;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e,0,0);ctx.restore();
+}
+function ridge(color,base,amp,seed,scroll,f1,f2,alpha){
+  ctx.save();ctx.globalAlpha=alpha||1;ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(-20,H);
+  for(let x=-20;x<=W+20;x+=8){const xx=x+scroll;ctx.lineTo(x,base-amp*(.5+.5*Math.sin(xx*f1+seed)+.35*Math.sin(xx*f2+seed*2.3)))}
+  ctx.lineTo(W+20,H);ctx.closePath();ctx.fill();ctx.restore();
+}
+function pine(x,y,s,snow,sway){
+  ctx.save();ctx.translate(x,y);ctx.rotate(sway);
+  ctx.fillStyle='#5b3a24';ctx.fillRect(-5*s,-8*s,10*s,16*s);
+  for(let k=0;k<3;k++){const w=(46-k*10)*s,h=(46-k*4)*s,yy=-8*s-k*h*.55;
+    ctx.fillStyle=k%2?'#2f7a45':'#3a8d4f';ctx.beginPath();ctx.moveTo(-w,yy);ctx.lineTo(w,yy);ctx.lineTo(0,yy-h);ctx.fill();
+    if(snow){ctx.fillStyle='#f4f9ff';ctx.beginPath();ctx.moveTo(-w*.45,yy-h*.55);ctx.lineTo(w*.45,yy-h*.55);ctx.lineTo(0,yy-h);ctx.fill()}}
+  ctx.restore();
+}
+function roundTree(x,y,s,sway,col){
+  ctx.save();ctx.translate(x,y);ctx.rotate(sway);ctx.fillStyle='#6b4630';ctx.fillRect(-6*s,-50*s,12*s,56*s);
+  ctx.fillStyle=col||'#3f9a4a';[[0,-78,34],[-24,-58,26],[24,-58,26]].forEach(c=>{ctx.beginPath();ctx.arc(c[0]*s,c[1]*s,c[2]*s,0,7);ctx.fill()});
+  ctx.restore();
+}
+function cloud(x,y,s,a){
+  ctx.save();ctx.globalAlpha=a;ctx.fillStyle='#fff';
+  [[0,0,36],[34,-10,30],[-34,6,26],[64,6,24]].forEach(c=>{ctx.beginPath();ctx.ellipse(x+c[0]*s,y+c[1]*s,c[2]*s*1.2,c[2]*s*.8,0,0,7);ctx.fill()});
+  ctx.restore();
+}
+function drawWorld(sc,t,u){
+  const th=THEME[sc.setting],R=sc.rn=mulberry(sc.seed),tod=sc.tod,night=tod==='night';
+  // 天空
+  const sk=SKY[tod],g=ctx.createLinearGradient(0,0,0,GY);g.addColorStop(0,sk[0]);g.addColorStop(1,sk[1]);
+  ctx.fillStyle=g;ctx.fillRect(-60,-60,W+120,H+120);
+  if(sc.rain||sc.fog||sc.storm){ctx.fillStyle='rgba(70,80,100,'+(sc.storm?.5:.28)+')';ctx.fillRect(-60,-60,W+120,H+120)}
+  if(night){ctx.fillStyle='#fff';for(let i=0;i<70;i++){const x=R()*W,y=R()*GY*.8,tw=.4+.6*Math.abs(Math.sin(t*1.5+i));ctx.globalAlpha=tw*.9;ctx.fillRect(x,y,1.8,1.8)}ctx.globalAlpha=1}
+  // 日月
+  let cx,cy,body;
+  if(tod==='dawn'){cx=W*.22;cy=lerp(GY*.95,GY*.55,u);body='sun'}
+  else if(tod==='day'){cx=W*.68;cy=GY*.24;body='sun'}
+  else if(tod==='dusk'){cx=W*.8;cy=lerp(GY*.6,GY*.92,u);body='sun'}
+  else{cx=W*.74;cy=GY*.22;body='moon'}
+  if(body==='sun'){const rg=ctx.createRadialGradient(cx,cy,10,cx,cy,120);rg.addColorStop(0,tod==='day'?'rgba(255,240,170,.9)':'rgba(255,190,120,.85)');rg.addColorStop(1,'rgba(255,220,150,0)');ctx.fillStyle=rg;ctx.fillRect(cx-130,cy-130,260,260);ctx.fillStyle=tod==='day'?'#fff3b0':'#ffd28a';ctx.beginPath();ctx.arc(cx,cy,sc.setting==='desert'?52:40,0,7);ctx.fill()}
+  else{ctx.fillStyle='#f6f1d8';ctx.beginPath();ctx.arc(cx,cy,34,0,7);ctx.fill();ctx.fillStyle=SKY.night[0];ctx.beginPath();ctx.arc(cx+14,cy-6,30,0,7);ctx.fill()}
+  // 远景
+  const sc1=t*(sc.wind?10:4);
+  if(sc.setting==='mountain'){
+    [[.2,.32,230,'#9aa7c2'],[.55,.28,280,'#8997b3'],[.85,.36,200,'#a7b3cb']].forEach(m=>{const x=m[0]*W-sc1*.15,b=GY-10,h=m[2];ctx.fillStyle=m[3];ctx.beginPath();ctx.moveTo(x-h*.9,b);ctx.lineTo(x,b-h);ctx.lineTo(x+h*.9,b);ctx.fill();ctx.fillStyle='#f4f8ff';ctx.beginPath();ctx.moveTo(x-h*.26,b-h*.71);ctx.lineTo(x,b-h);ctx.lineTo(x+h*.26,b-h*.71);ctx.lineTo(x+h*.1,b-h*.78);ctx.lineTo(x,b-h*.68);ctx.lineTo(x-h*.1,b-h*.78);ctx.fill()});
+  }else if(sc.setting==='city'){
+    const R2=mulberry(sc.seed+5);let x=-20;
+    while(x<W+20){const w=50+R2()*60,h=100+R2()*160;ctx.fillStyle=night?'#1d2540':th.far;ctx.fillRect(x,GY-h,w,h+4);
+      for(let wy=GY-h+12;wy<GY-12;wy+=22)for(let wx=x+8;wx<x+w-10;wx+=18){const on=R2()<.5;ctx.fillStyle=night?(on?'#ffd86b':'#2c3558'):'rgba(255,255,255,.35)';ctx.fillRect(wx,wy,8,11)}
+      x+=w+6}
+  }else if(sc.setting==='desert'){ridge(th.far,GY-30,70,sc.seed%7,sc1*.3,.006,.013);ridge(th.mid,GY-6,50,sc.seed%5+2,sc1*.6,.008,.017)}
+  else if(sc.setting==='sea'){ctx.fillStyle=th.mid;ctx.fillRect(-20,GY*.62,W+40,GY*.38+60);const wg=ctx.createLinearGradient(0,GY*.62,0,GY+60);wg.addColorStop(0,'#8cc0ea');wg.addColorStop(1,'#3f86c2');ctx.fillStyle=wg;ctx.fillRect(-20,GY*.62,W+40,GY*.38+60);
+    ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=2;for(let r=0;r<6;r++){const y=GY*.66+r*18;ctx.beginPath();for(let x=-10;x<=W+10;x+=10){const yy=y+Math.sin(x*.03+t*1.4+r*1.7)*4;x<-5?ctx.moveTo(x,yy):ctx.lineTo(x,yy)}ctx.stroke()}}
+  else{ridge(th.far,GY-30,120,sc.seed%9,sc1*.4,.004,.011);ridge(th.mid,GY-4,70,sc.seed%6+3,sc1*.8,.007,.015)}
+  // 云
+  const ca=night?.25:.88;for(let i=0;i<4;i++){const sp=(sc.wind?30:9)+i*3,x=((i*260+t*sp+R()*200)%(W+300))-150;cloud(x,60+i*38+R()*20,.8+i*.12,ca)}
+  // 地面
+  if(sc.setting!=='sea'){const gg=ctx.createLinearGradient(0,GY-20,0,H);gg.addColorStop(0,th.g);gg.addColorStop(1,th.g2);ctx.fillStyle=gg;ctx.fillRect(-60,GY-6,W+120,H-GY+80)}
+  else{const gg=ctx.createLinearGradient(0,GY,0,H);gg.addColorStop(0,th.g);gg.addColorStop(1,th.g2);ctx.fillStyle=gg;ctx.fillRect(-60,GY+8,W+120,H-GY+80)}
+  if(sc.setting==='city'){ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=4;ctx.setLineDash([28,26]);ctx.beginPath();ctx.moveTo(-10,GY+64);ctx.lineTo(W+10,GY+64);ctx.stroke();ctx.setLineDash([])}
+  if(sc.setting==='village'){ctx.fillStyle='#c9a46a';ctx.beginPath();ctx.moveTo(W*.4,H+10);ctx.lineTo(W*.46,GY+4);ctx.lineTo(W*.54,GY+4);ctx.lineTo(W*.62,H+10);ctx.fill()}
+  if(sc.setting==='river'){const rg=ctx.createLinearGradient(0,GY+46,0,H);rg.addColorStop(0,'#7cc0ea');rg.addColorStop(1,'#3f86c2');ctx.fillStyle=rg;ctx.beginPath();ctx.moveTo(-20,GY+60);for(let x=-20;x<=W+20;x+=20)ctx.lineTo(x,GY+54+Math.sin(x*.012)*10);ctx.lineTo(W+20,H+10);ctx.lineTo(-20,H+10);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2;for(let r=0;r<3;r++){ctx.beginPath();for(let x=0;x<=W;x+=12){const yy=GY+84+r*22+Math.sin(x*.04+t*1.6+r)*3;x?ctx.lineTo(x,yy):ctx.moveTo(x,yy)}ctx.stroke()}}
+  // 景物
+  const Rs=mulberry(sc.seed+11);
+  if(sc.setting==='forest'||sc.setting==='snow'||sc.setting==='mountain'){
+    const n=sc.setting==='forest'?16:8,arr=[];for(let i=0;i<n;i++)arr.push([Rs()*W,GY-6+Rs()*46,.7+Rs()*.7]);arr.sort((a,b)=>a[1]-b[1]);
+    arr.forEach((a,i)=>{if(Math.abs(a[0]-W*.5)<60&&sc.setting!=='forest')return;pine(a[0],a[1],a[2],sc.setting==='snow',Math.sin(t*(1+sc.wind)+i)*(.012+.03*sc.wind))})}
+  else if(sc.setting==='meadow'||sc.setting==='river'){for(let i=0;i<5;i++){roundTree(Rs()*W,GY-4+Rs()*30,.8+Rs()*.5,Math.sin(t*(1+sc.wind)+i)*(.01+.03*sc.wind))}}
+  else if(sc.setting==='village'){emoji('🏠',W*.13,GY-34,150);emoji('🏡',W*.88,GY-30,140);roundTree(W*.28,GY,.9,Math.sin(t)*.01);roundTree(W*.74,GY+6,.8,Math.sin(t+1)*.01);
+    if(night)for(const x of [W*.13,W*.88]){ctx.fillStyle='rgba(255,210,100,.35)';ctx.beginPath();ctx.arc(x,GY-30,60,0,7);ctx.fill()}}
+  else if(sc.setting==='desert'){[.12,.3,.82].forEach((x,i)=>emoji('🌵',W*x,GY+10+i*8,90+i*10))}
+  else if(sc.setting==='city'){}
+  // 道具
+  sc.props.forEach((e,i)=>{
+    const px=[.12,.88,.26,.74,.5,.34][i%6]*W,fl=FLOAT.indexOf(e)>=0;
+    if(e==='⛵'){emoji(e,((t*30+i*300)%(W+200))-100,GY*.74+Math.sin(t*1.5)*5,92,Math.sin(t)*.06);return}
+    if(e==='🌈'){ctx.globalAlpha=.9;emoji(e,W*.5,GY*.35,330);ctx.globalAlpha=1;return}
+    if(fl){for(let k=0;k<4;k++){const ph=((t*.35+k*.25+i*.1)%1);emoji(e,W*(.3+.13*k+.05*Math.sin(t+k)),GY-ph*GY*.9,46,0,1)}return}
+    if(e==='🔥'){emoji(e,px,GY+40,70+Math.sin(t*9)*5,Math.sin(t*7)*.08);if(night||sc.tod==='dusk'){ctx.fillStyle='rgba(255,150,60,.25)';ctx.beginPath();ctx.arc(px,GY+30,90+Math.sin(t*8)*6,0,7);ctx.fill()}return}
+    emoji(e,px,GY+34+Math.sin(t*2+i)*2,64);
+  });
+  // 角色
+  drawChars(sc,t,u);
+  // 天气
+  if(sc.rain){ctx.strokeStyle='rgba(210,230,255,.7)';ctx.lineWidth=1.6;ctx.beginPath();sc.drops.forEach(d=>{const x=(d[0]*W*1.2+t*140*d[2])%(W+40)-20,y=(d[1]*H+t*720*d[2])%(H+40)-20;ctx.moveTo(x,y);ctx.lineTo(x-6,y+18)});ctx.stroke()}
+  if(sc.snow){ctx.fillStyle='#fff';sc.drops.forEach((d,i)=>{const x=(d[0]*W+Math.sin(t*1.3+i)*20+t*20*sc.wind*20)%W,y=(d[1]*H+t*70*d[2])%H;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(x<0?x+W:x,y,1.6+d[2]*1.6,0,7);ctx.fill()});ctx.globalAlpha=1}
+  if(sc.wind&&!sc.snow&&!sc.rain){for(let i=0;i<10;i++){const x=((t*260*(.6+i*.07)+i*190)%(W+200))-100;emoji('🍂',x,60+(i*47)%(GY-40)+Math.sin(t*3+i)*14,30,t*3+i)}}
+  if(sc.fog){for(let i=0;i<3;i++){ctx.fillStyle='rgba(235,240,245,.35)';ctx.fillRect(((t*14*(i+1))%(W+400))-400,GY*(.4+i*.22),W+400,70)}ctx.fillStyle='rgba(235,240,245,.3)';ctx.fillRect(-60,-60,W+120,H+120)}
+  // 光色
+  if(night){ctx.fillStyle='rgba(8,14,48,.42)';ctx.fillRect(-60,-60,W+120,H+120)}
+  else if(tod==='dusk'){ctx.fillStyle='rgba(255,120,70,.13)';ctx.fillRect(-60,-60,W+120,H+120)}
+  else if(tod==='dawn'){ctx.fillStyle='rgba(255,190,130,.1)';ctx.fillRect(-60,-60,W+120,H+120)}
+  if(sc.storm&&Math.sin(t*2.2)>.93&&Math.sin(t*13)>0){ctx.fillStyle='rgba(255,255,255,.7)';ctx.fillRect(-60,-60,W+120,H+120)}
+}
+function drawChars(sc,t,u){
+  const n=sc.chars.length;
+  sc.chars.forEach((c,i)=>{
+    let x=W*(.4+.13*i-.07*(n-1)/2*1.0+(n>1?0:.1)),y=GY+14,rot=0,sx=1,sy=1,sh=1;
+    const ph=i*.7,flier=FLYERS.indexOf(c.e)>=0;
+    let act=sc.action;
+    if(flier&&act!=='sleep')act='fly';
+    const enter=easeOut(clamp(t/.9,0,1));
+    switch(act){
+      case 'walk':x=lerp(W*.1,W*.74,easeIO(u))+i*-62;y-=Math.abs(Math.sin(t*7+ph))*13;rot=Math.sin(t*7+ph)*.06;break;
+      case 'run':x=lerp(W*.04,W*.9,u)+i*-70;y-=Math.abs(Math.sin(t*10+ph))*20;rot=.12+Math.sin(t*10+ph)*.05;break;
+      case 'jump':x=W*(.36+.14*i);y-=Math.abs(Math.sin(t*4.2+ph))*95;sy=1+.08*Math.sin(t*8.4+ph);sh=1-Math.abs(Math.sin(t*4.2+ph))*.5;break;
+      case 'fly':x=lerp(W*.1,W*.85,u)+i*-50+Math.sin(t*2)*18;y=GY-170-i*30+Math.sin(t*2.4+ph)*26;rot=Math.sin(t*2.4+ph)*.1;sh=.4;break;
+      case 'swim':x=W*(.34+.14*i)+Math.sin(t*1.4)*30;y=GY*.84+Math.sin(t*3+ph)*7;rot=Math.sin(t*3+ph)*.05;break;
+      case 'sleep':x=W*(.36+.14*i);y+=16;rot=-1.35;break;
+      case 'laugh':x=W*(.36+.14*i);y-=Math.abs(Math.sin(t*6+ph))*14;sx=1+.06*Math.sin(t*12+ph);sy=1-.06*Math.sin(t*12+ph);break;
+      case 'cry':x=W*(.36+.14*i)+Math.sin(t*30)*2;y+=Math.sin(t*3)*2;break;
+      case 'wave':x=W*(.36+.14*i);rot=Math.sin(t*5+ph)*.22;break;
+      default:x=W*(.36+.14*i);y-=Math.abs(Math.sin(t*2+ph))*4;sy=1+.025*Math.sin(t*2.4+ph);
+    }
+    if(act==='idle'||act==='laugh'||act==='cry'||act==='wave'||act==='jump'||act==='sleep'||act==='swim')x=lerp(-90,x,enter);
+    // 影子
+    if(act!=='swim'){ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(x,GY+24+(act==='fly'?0:0),c.s*.38*sh,10*sh,0,0,7);ctx.fill()}
+    emoji(c.e,x,y-c.s*.45,c.s,rot,sx,sy);
+    if(act==='sleep'){for(let k=0;k<3;k++){const p=((t*.5+k/3)%1);emoji('💤',x+30+p*30,y-70-p*70,26,0,1)}}
+    if(act==='cry'){for(let k=0;k<2;k++){const p=((t*1.2+k*.5)%1);emoji('💧',x+(k?18:-18),y-c.s*.5+p*55,20)}}
+    if(i===0&&sc.bubble)bubble(x,y-c.s-10,sc.bubble,clamp((t-.5)/.5,0,1));
+  });
+}
+function bubble(x,y,text,a){
+  if(a<=0)return;
+  const t=text.length>16?text.slice(0,16)+'…':text;
+  ctx.save();ctx.globalAlpha=a;ctx.font='bold 26px '+SANS;const w=ctx.measureText(t).width+34,h=46;
+  const bx=clamp(x-w/2,12,W-w-12),by=clamp(y-h-14,10,GY-40);
+  ctx.fillStyle='#fff';ctx.strokeStyle='#223';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.roundRect(bx,by,w,h,16);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-8,by+h);ctx.lineTo(x,by+h+16);ctx.lineTo(x+10,by+h);ctx.fillStyle='#fff';ctx.fill();
+  ctx.fillStyle='#223';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,bx+w/2,by+h/2+1);ctx.restore();
+}
+/* 字幕：逐字出现 */
+function wrap(text,font,maxW){
+  ctx.font=font;const toks=text.match(/[　-〿＀-￯一-鿿]|[^\s　-〿＀-￯一-鿿]+|\s/g)||[];
+  const lines=[''];toks.forEach(k=>{const cur=lines[lines.length-1];if(ctx.measureText(cur+k).width>maxW&&cur){lines.push(k.trim()?k:'')}else lines[lines.length-1]=cur+k});return lines;
+}
+function caption(text,t,dur){
+  let fs=30,lines=wrap(text,'bold '+fs+'px '+SANS,W-120);
+  if(lines.length>3){fs=24;lines=wrap(text,'bold '+fs+'px '+SANS,W-120)}
+  const lh=fs*1.45,bh=lines.length*lh+22,by=H-bh-22;
+  const total=text.length,shown=Math.floor(clamp((t-.25)/(dur*.62),0,1)*total);
+  ctx.save();ctx.fillStyle='rgba(8,18,22,.62)';ctx.beginPath();ctx.roundRect(40,by,W-80,bh,14);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold '+fs+'px '+SANS;ctx.textAlign='left';ctx.textBaseline='middle';
+  let left=shown;lines.forEach((ln,i)=>{const s=ln.slice(0,Math.max(0,left));left-=ln.length;if(s)ctx.fillText(s,60,by+11+lh*(i+.5))});
+  ctx.restore();
+}
+function tagChip(sc,t){
+  const a=clamp(t/.6,0,1)*clamp((2.4-t)/.6,0,1);if(a<=0)return;
+  const s=SET_NAME[sc.setting]+' · '+TOD_NAME[sc.tod];
+  ctx.save();ctx.globalAlpha=a;ctx.font='bold 20px '+SANS;const w=ctx.measureText(s).width+28;
+  ctx.fillStyle='rgba(8,18,22,.55)';ctx.beginPath();ctx.roundRect(24,22,w,36,10);ctx.fill();ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(s,38,41);ctx.restore();
+}
+/* 图片模式 */
+let images=[];
+function photoScene(sc,t,u){
+  const im=images[sc.n%images.length];
+  ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
+  if(im&&im.complete&&im.naturalWidth){
+    const k=Math.max(W/im.naturalWidth,H/im.naturalHeight),dir=sc.n%2?1:-1,z=1.08+(dir>0?u:1-u)*.12;
+    const w=im.naturalWidth*k*z,h=im.naturalHeight*k*z,px=(u-.5)*dir*(w-W)*.8;
+    ctx.drawImage(im,(W-w)/2-px,(H-h)/2,w,h);
+  }
+  const g=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+/* 一帧 */
+function drawFrame(sc,t){
+  if(sc.kind==='title'||sc.kind==='end'){
+    const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#10343a');g.addColorStop(1,'#0b1f33');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    const R=mulberry(7);ctx.fillStyle='#fff';for(let i=0;i<60;i++){ctx.globalAlpha=.3+.7*Math.abs(Math.sin(t*2+i));ctx.beginPath();ctx.arc(R()*W,R()*H,1+R()*1.5,0,7);ctx.fill()}ctx.globalAlpha=1;
+    const a=clamp(t/.8,0,1);ctx.globalAlpha=a;ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+    const fs=sc.kind==='end'?130:Math.min(86,Math.floor(W*.8/Math.max(1,sc.text.length)));ctx.font='bold '+fs+'px '+SANS;ctx.fillText(sc.text,W/2,H/2+(1-a)*20);ctx.globalAlpha=1;
+  }else{
+    const u=clamp(t/sc.dur,0,1);
+    ctx.save();
+    if(isPhoto()){photoScene(sc,t,u)}
+    else{const z=1+.07*u,px=(.5-u)*(z-1)*W*.9;ctx.translate(W/2+px,H/2);ctx.scale(z,z);ctx.translate(-W/2,-H/2);drawWorld(sc,t,u)}
+    ctx.restore();
+    if(!isPhoto())tagChip(sc,t);
+    caption(sc.text,t,sc.dur);
+  }
+  // 淡入淡出
+  const fa=Math.max(1-t/.5,(t-(sc.dur-.4))/.4);if(fa>0){ctx.fillStyle='rgba(0,0,0,'+clamp(fa,0,1)+')';ctx.fillRect(0,0,W,H)}
+  // 进度条
+  ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillRect(0,H-5,W*clamp(T/total,0,1),5);
+}
+
+
+/* ---------- 播放 ---------- */
+let scenes=[],T=0,total=0,playing=false,lastTs=0,curIdx=-1,recorder=null,recChunks=[],recording=false;
+function sceneAt(tm){for(let i=scenes.length-1;i>=0;i--)if(tm>=scenes[i].start)return i;return 0}
+function drawAt(tm){
+  const i=sceneAt(tm),sc=scenes[i];
+  if(i!==curIdx){curIdx=i;if(sc.kind==='scene')speak(sc.text);else if(window.speechSynthesis)speechSynthesis.cancel()}
+  drawFrame(sc,tm-sc.start);
+  $('seek').value=tm;
+}
+function tick(ts){
+  if(!playing)return;
+  const dt=Math.min(.1,(ts-lastTs)/1000);lastTs=ts;T+=dt*(recording?1:+$('spd').value);
+  if(T>=total){T=total-.001;drawAt(T);finish();return}
+  drawAt(T);requestAnimationFrame(tick);
+}
+function play(from){
+  playing=true;if(from!==undefined)T=from;lastTs=performance.now();$('pause').textContent='暫停';$('pause').disabled=false;requestAnimationFrame(tick);
+}
+function finish(){
+  playing=false;$('pause').textContent='重播';
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  stopMusic();
+  if(recording&&recorder){recorder.stop()}
+}
+function speak(txt){
+  if(recording||!$('tts').checked||!window.speechSynthesis)return;
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang=/[一-鿿]/.test(txt)?'zh-CN':'en-US';speechSynthesis.speak(u);
+}
+/* 背景音乐（五声音阶，随机轻柔的音） */
+let ac=null,mGain=null,mDest=null,mTimer=null;
+function startMusic(){
+  if(!$('mus').checked)return;
+  try{
+    if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();mDest=ac.createMediaStreamDestination();mGain=ac.createGain();mGain.gain.value=.13;mGain.connect(ac.destination);mGain.connect(mDest)}
+    ac.resume();stopMusic();
+    const pent=[0,2,4,7,9];
+    const note=()=>{const now=ac.currentTime,f=261.63*Math.pow(2,(pent[Math.floor(Math.random()*5)]+(Math.random()<.35?12:0))/12),o=ac.createOscillator(),g=ac.createGain();
+      o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.5,now+.05);g.gain.exponentialRampToValueAtTime(.001,now+1.8);o.connect(g);g.connect(mGain);o.start(now);o.stop(now+1.9)};
+    const pad=()=>{const now=ac.currentTime;[130.81,196,261.63].forEach(f=>{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.18,now+1.2);g.gain.linearRampToValueAtTime(0,now+4.4);o.connect(g);g.connect(mGain);o.start(now);o.stop(now+4.5)})};
+    note();pad();let n=0;mTimer=setInterval(()=>{note();if(++n%7===0)pad()},560);
+  }catch(e){}
+}
+function stopMusic(){if(mTimer){clearInterval(mTimer);mTimer=null}}
+
+/* ---------- 按钮 ---------- */
+function generate(){
+  if(!$('story').value.trim()){$('msg').textContent='請先寫一段故事。';return false}
+  if(isPhoto()&&!images.length){$('msg').textContent='「我的圖片」模式需要先選圖片。';return false}
+  $('msg').textContent='';
+  scenes=buildScenes();total=scenes.length?scenes[scenes.length-1].start+scenes[scenes.length-1].dur:0;
+  $('seek').max=total;curIdx=-1;renderList();$('rec').disabled=false;$('out').innerHTML='';
+  return scenes.length>0;
+}
+$('go').onclick=()=>{if(!generate())return;if(window.speechSynthesis)speechSynthesis.cancel();startMusic();play(0)};
+$('pause').onclick=()=>{
+  if(!scenes.length)return;
+  if(playing){playing=false;$('pause').textContent='繼續';if(window.speechSynthesis)speechSynthesis.pause();stopMusic()}
+  else{if(T>=total-.01){T=0;curIdx=-1;startMusic();play(0)}else{if(window.speechSynthesis)speechSynthesis.resume();startMusic();play()}}
+};
+$('seek').oninput=e=>{if(!scenes.length)return;T=+e.target.value;curIdx=-1;if(!playing)drawAt(T)};
+$('rec').onclick=()=>{
+  if(!generate())return;
+  if(!window.MediaRecorder||!cv.captureStream){$('msg').textContent='這個瀏覽器不支持錄製，請用電腦上的 Chrome 或 Edge。';return}
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  recording=true;recChunks=[];
+  startMusic();
+  const stream=cv.captureStream(30);
+  if($('mus').checked&&mDest)mDest.stream.getAudioTracks().forEach(tr=>stream.addTrack(tr));
+  const types=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'];
+  const mt=types.find(x=>MediaRecorder.isTypeSupported(x))||'';
+  recorder=new MediaRecorder(stream,mt?{mimeType:mt,videoBitsPerSecond:5e6}:{});
+  recorder.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data)};
+  recorder.onstop=()=>{
+    recording=false;const blob=new Blob(recChunks,{type:recorder.mimeType||'video/webm'}),url=URL.createObjectURL(blob);
+    const ext=/mp4/.test(blob.type)?'mp4':'webm';
+    $('out').innerHTML='<video controls src="'+url+'"></video><a href="'+url+'" download="story.'+ext+'">下載視頻</a> <span class="note">（放到 tiannanhaibei.com 後，這裡可直接下載；在預覽頁面下載可能無效，可在視頻上按右鍵另存。）</span>';
+    $('rec').disabled=false;$('rec').textContent='錄製視頻';$('msg').textContent='錄製完成。';
+  };
+  $('rec').disabled=true;$('rec').textContent='錄製中…';$('msg').textContent='正在錄製，請等動畫播完，不要切換標籤頁。';
+  recorder.start(250);play(0);
+};
+document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const s=SAMPLES[+b.dataset.s];$('title').value=s.t;$('story').value=s.s});
+document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{$('photoRow').classList.toggle('hide',!isPhoto())});
+$('files').onchange=e=>{
+  images=[];[...e.target.files].forEach(f=>{const im=new Image();im.src=URL.createObjectURL(f);images.push(im)});
+  $('fileNote').textContent='已選 '+images.length+' 張圖片。';
+};
+$('title').value=SAMPLES[0].t;$('story').value=SAMPLES[0].s;
+// 打开时先显示一帧预览
+(function(){generate();T=2.2;drawAt(T);$('pause').disabled=true;$('pause').textContent='暫停'})();
+</script>
+
+</body></html>
