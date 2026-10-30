@@ -132,7 +132,7 @@ async function gen(req){
   try{
     const r=await fetch('/api/compose',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token()},body:JSON.stringify(req)});
     let d={};try{d=await r.json()}catch(e){}
-    if(!r.ok||!d.ok){setSt('<span class="warn">'+errText(d.error||(r.status===404?'server_not_configured':'ai_failed'))+'</span>');}
+    if(!r.ok||!d.ok){setSt('<span class="warn">'+errText(d.error||(r.status===404?'server_not_configured':'ai_failed'))+'</span>'+(d.detail?'<br><span class="note" style="word-break:break-all">'+String(d.detail).replace(/</g,'&lt;')+'</span>':''));}
     else{lastRes=Object.assign({form:req.form},d);setSt('');render()}
   }catch(e){setSt('<span class="warn">'+X('网络出错，请再试一次。','Network error. Please try again.')+'</span>')}
   busy=false;$('go').disabled=false;$('again').disabled=false;
