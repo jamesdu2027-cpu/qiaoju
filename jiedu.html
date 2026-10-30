@@ -1,11 +1,15 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>命盘解读</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap">
 <style>
 /* 布局：单栏长页。顶部讲怎么找本命宫，中间速查表，下面是选日干和本命宫自动出解读的工具。
    色彩：宣纸底、墨色字、朱砂强调，五行各一个固定色。 */
 :root{
+  color-scheme:light;
   --bg:#f6f4ee; --fg:#1f2428; --mute:#5d666e; --line:#d9d4c6; --card:#fffdf8;
   --accent:#a8322d; --accent-soft:#f3dedb; --ok:#2f6b4f; --ok-soft:#dcebe3; --bad:#a8322d; --bad-soft:#f3dedb; --mid:#8a6d1f; --mid-soft:#f1e8c9;
   --wood:#2f7d4f; --fire:#b53a30; --earth:#8a6a45; --metal:#b0831b; --water:#2c6f9e;
@@ -21,6 +25,7 @@
   --accent:#e07a72; --accent-soft:#3a2523; --ok:#7cc4a0; --ok-soft:#1f3329; --bad:#e07a72; --bad-soft:#3a2523; --mid:#d4b45c; --mid-soft:#352e1a;
   --wood:#6cc08b; --fire:#e8746a; --earth:#c4a074; --metal:#dcb04a; --water:#6fb0de; color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.75;margin:0;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
 main{max-width:820px;margin:0 auto}
@@ -60,25 +65,39 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .sec h3{margin:0 0 4px}
 .final{background:var(--accent-soft);border-radius:6px;padding:4px 16px 12px;margin-top:20px}
 .foot{margin-top:44px;padding-top:14px;border-top:1px solid var(--line)}
+
+/* 语言切换 */
+.langbtn{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:10;padding:6px 12px;border-radius:16px;font-size:13px;color:var(--bg);background:var(--accent)}
+
+/* English layout adjustments */
+html[lang="en"] body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.6}
+html[lang="en"] h1,html[lang="en"] h2,html[lang="en"] h3,html[lang="en"] .g9 b{font-family:Georgia,"Times New Roman",serif}
+html[lang="en"] h1{letter-spacing:0}
+html[lang="en"] .eyebrow{letter-spacing:.04em}
+html[lang="en"] th{white-space:normal}
+html[lang="en"] .checks label{font-size:14px}
 </style>
+</head>
+<body>
+<button type="button" id="lang" class="langbtn" aria-label="Language / 语言">中 / EN</button>
 
 <main>
-<div class="eyebrow">奇门遁甲 · 命盘入门</div>
-<h1>命盘解读</h1>
-<p class="lede">排出命盘后，怎么知道自己的本命宫好不好？这一页把方法拆成五步：天时、地利、人和、神助、日干，最后给出调整办法。下面有速查表，也有一个小工具，选好自己的盘面就能自动出解读。</p>
+<div class="eyebrow" data-en="Qimen Dunjia · Introduction to chart reading">奇门遁甲 · 命盘入门</div>
+<h1 data-en="Reading Your Chart">命盘解读</h1>
+<p class="lede" data-en="Once you have cast your chart, how do you tell whether your natal palace is good or bad? This page breaks the method into five steps: Heaven's timing, Earth's advantage, human harmony, spirit help and the Day Stem, and ends with ways to adjust. Below are quick-reference tables and a small tool: pick the details of your chart and it gives an automatic reading.">排出命盘后，怎么知道自己的本命宫好不好？这一页把方法拆成五步：天时、地利、人和、神助、日干，最后给出调整办法。下面有速查表，也有一个小工具，选好自己的盘面就能自动出解读。</p>
 
-<h2>一、先找到"我"在哪一宫</h2>
+<h2 data-en="1. First find which palace “I” am in">一、先找到"我"在哪一宫</h2>
 <ol class="steps">
-<li>用出生日期和时间排出命盘（本站<a href="/qimen#birth" style="color:var(--accent)">奇门遁甲排盘</a>里有"查本命宫"）。</li>
-<li>找到出生那天的<b>日柱天干</b>，比如日柱是"戊子"，日干就是戊。</li>
-<li>看九宫每格中间一行：九星的右边是<b>天盘干</b>。天盘干里有方框的那个，就是日干所在的宫，这一宫就是你的<b>本命宫</b>。</li>
-<li>再看这个宫里的九星、八门、八神，加上日干的五行，就能判断吉凶。</li>
+<li data-en='Cast your chart from your birth date and time (the <a href="/qimen#birth" style="color:var(--accent)">Qimen Dunjia chart</a> on this site has “Check your natal palace”).'>用出生日期和时间排出命盘（本站<a href="/qimen#birth" style="color:var(--accent)">奇门遁甲排盘</a>里有"查本命宫"）。</li>
+<li data-en="Find the <b>Day Stem</b> of your birth day. For example, if the Day Pillar is Wu Zi, the Day Stem is Wu.">找到出生那天的<b>日柱天干</b>，比如日柱是"戊子"，日干就是戊。</li>
+<li data-en="Look at the middle row of each palace: to the right of the Nine Star is the <b>Heaven stem</b>. The Heaven stem with a box around it is the palace of the Day Stem, and that palace is your <b>natal palace</b>.">看九宫每格中间一行：九星的右边是<b>天盘干</b>。天盘干里有方框的那个，就是日干所在的宫，这一宫就是你的<b>本命宫</b>。</li>
+<li data-en="Then look at the Nine Star, Eight Door and Eight God in that palace, together with the element of the Day Stem, to judge good or bad fortune.">再看这个宫里的九星、八门、八神，加上日干的五行，就能判断吉凶。</li>
 </ol>
-<p class="note">出生时辰不同，本命宫可能不同，所以时辰要尽量准确。</p>
+<p class="note" data-en="Different birth hours can give different natal palaces, so make the hour as accurate as you can.">出生时辰不同，本命宫可能不同，所以时辰要尽量准确。</p>
 
-<h2>二、速查表</h2>
-<h3>九宫八卦与五行</h3>
-<div class="g9" aria-label="九宫五行">
+<h2 data-en="2. Quick-reference tables">二、速查表</h2>
+<h3 data-en="The Nine Palaces, trigrams and elements">九宫八卦与五行</h3>
+<div class="g9" id="g9" aria-label="九宫五行">
 <div><b>巽四</b><span class="e-木">木</span><small>东南</small></div>
 <div><b>离九</b><span class="e-火">火</span><small>正南</small></div>
 <div><b>坤二</b><span class="e-土">土</span><small>西南</small></div>
@@ -89,9 +108,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <div><b>坎一</b><span class="e-水">水</span><small>正北</small></div>
 <div><b>乾六</b><span class="e-金">金</span><small>西北</small></div>
 </div>
-<p class="note">九宫的上方为南，所以左上是巽、右上是坤。</p>
+<p class="note" data-en="The top of the Nine Palaces is South, so the upper left is Xun and the upper right is Kun.">九宫的上方为南，所以左上是巽、右上是坤。</p>
 
-<h3>日干五行，和各自的"财"</h3>
+<h3 data-en="Day Stem elements and their “wealth”">日干五行，和各自的"财"</h3>
 <div class="wrap"><table>
 <tr><th>日干</th><th>我的五行</th><th>财的五行（我克者为财）</th></tr>
 <tr><td>甲 乙</td><td class="e-木">木</td><td class="e-土">土</td></tr>
@@ -101,8 +120,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>壬 癸</td><td class="e-水">水</td><td class="e-火">火</td></tr>
 </table></div>
 
-<h3>日干和本命宫的关系（判断吉凶的核心）</h3>
-<p>五行相生：木生火，火生土，土生金，金生水，水生木。五行相克：木克土，土克水，水克火，火克金，金克木。</p>
+<h3 data-en="The Day Stem and the natal palace (the core of judging fortune)">日干和本命宫的关系（判断吉凶的核心）</h3>
+<p data-en="Five-element generation: Wood generates Fire, Fire generates Earth, Earth generates Metal, Metal generates Water, Water generates Wood. Five-element overcoming: Wood overcomes Earth, Earth overcomes Water, Water overcomes Fire, Fire overcomes Metal, Metal overcomes Wood.">五行相生：木生火，火生土，土生金，金生水，水生木。五行相克：木克土，土克水，水克火，火克金，金克木。</p>
 <div class="wrap"><table>
 <tr><th>关系</th><th>说明</th><th>吉凶</th></tr>
 <tr><td>宫生我</td><td>宫的五行生日干，得到滋养</td><td><span class="tag t-ok">吉</span></td></tr>
@@ -111,9 +130,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>我克宫</td><td>日干去克宫，要费力去压</td><td><span class="tag t-bad">凶</span></td></tr>
 <tr><td>宫克我</td><td>宫克日干，受到压制</td><td><span class="tag t-bad">凶</span></td></tr>
 </table></div>
-<p class="note">例：日干属土，本命宫在乾（金），土生金，是"我生宫"，按这一套规则为凶，需要换宫。</p>
+<p class="note" data-en="Example: the Day Stem is Earth and the natal palace is Qian (Metal). Earth generates Metal, so this is “I generate the palace”, which by this set of rules is unfavorable and calls for changing palaces.">例：日干属土，本命宫在乾（金），土生金，是"我生宫"，按这一套规则为凶，需要换宫。</p>
 
-<h3>八门的五行与吉凶</h3>
+<h3 data-en="The Eight Doors: elements and fortune">八门的五行与吉凶</h3>
 <div class="wrap"><table>
 <tr><th>八门</th><th>五行</th><th>吉凶</th><th>人和的含义</th></tr>
 <tr><td>开门</td><td class="e-金">金</td><td><span class="tag t-ok">吉</span></td><td>事业顺畅，有机会被任用</td></tr>
@@ -126,7 +145,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>惊门</td><td class="e-金">金</td><td><span class="tag t-bad">凶</span></td><td>易有惊扰、是非</td></tr>
 </table></div>
 
-<h3>九星的吉凶（天时）</h3>
+<h3 data-en="The Nine Stars: fortune (Heaven's timing)">九星的吉凶（天时）</h3>
 <div class="wrap"><table>
 <tr><th>九星</th><th>吉凶</th><th>含义</th></tr>
 <tr><td>天辅</td><td><span class="tag t-ok">吉</span></td><td>利学习、文教、得到指点</td></tr>
@@ -140,7 +159,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>天蓬</td><td><span class="tag t-bad">凶</span></td><td>耗散，财进财出</td></tr>
 </table></div>
 
-<h3>八神的吉凶（神助）</h3>
+<h3 data-en="The Eight Gods: fortune (spirit help)">八神的吉凶（神助）</h3>
 <div class="wrap"><table>
 <tr><th>八神</th><th>吉凶</th><th>含义</th></tr>
 <tr><td>值符</td><td><span class="tag t-ok">吉</span></td><td>领头、有权威，贵人相助</td></tr>
@@ -153,8 +172,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>玄武</td><td><span class="tag t-bad">凶</span></td><td>暗损、欺瞒，防小人</td></tr>
 </table></div>
 
-<h3>入墓的含义</h3>
-<p>"入墓"是某个干落在它的墓库宫，力量被收起来，不容易发挥出来。它是提示，不是定论。</p>
+<h3 data-en="What tomb means">入墓的含义</h3>
+<p data-en="“Tomb” means a stem falls in its tomb-store palace, so its strength is put away and hard to bring out. It is a hint, not a verdict.">"入墓"是某个干落在它的墓库宫，力量被收起来，不容易发挥出来。它是提示，不是定论。</p>
 <div class="wrap"><table>
 <tr><th>入墓的是</th><th>常见的解释</th></tr>
 <tr><td>本宫入墓</td><td>容易迷茫，外部阻力大</td></tr>
@@ -164,10 +183,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>六合入墓</td><td>缺乏感情，容易互相猜疑</td></tr>
 <tr><td>天辅入墓</td><td>无心学习，学习压力大</td></tr>
 </table></div>
-<p class="note">冲墓：墓属土，对角线的宫相冲，即辰冲戌、未冲丑。在盘上，对角线是乾↔巽、坤↔艮、离↔坎、震↔兑。</p>
+<p class="note" data-en="Clashing the tomb: the tomb is Earth, and the palace diagonally opposite clashes with it, that is, Chen clashes Xu and Wei clashes Chou. On the chart the diagonals are Qian↔Xun, Kun↔Gen, Li↔Kan and Zhen↔Dui.">冲墓：墓属土，对角线的宫相冲，即辰冲戌、未冲丑。在盘上，对角线是乾↔巽、坤↔艮、离↔坎、震↔兑。</p>
 
-<h3>冲墓的民俗做法：摆生肖吉祥物</h3>
-<p>民间的做法是在"冲墓"的方位，放上对应生肖的小摆件，当作一个象征：</p>
+<h3 data-en="Folk practice for clashing the tomb: placing zodiac charms">冲墓的民俗做法：摆生肖吉祥物</h3>
+<p data-en="A folk practice is to place a small figure of the matching zodiac animal in the direction of the “clash”, as a symbol:">民间的做法是在"冲墓"的方位，放上对应生肖的小摆件，当作一个象征：</p>
 <div class="wrap"><table>
 <tr><th>墓在</th><th>对冲的生肖</th><th>摆放方位</th><th>时间</th></tr>
 <tr><td>乾六宫（戌）</td><td>辰龙</td><td>东南（巽四宫）</td><td>辰时 7–9点</td></tr>
@@ -175,9 +194,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>巽四宫（辰）</td><td>戌狗</td><td>西北（乾六宫）</td><td>戌时 19–21点</td></tr>
 <tr><td>坤二宫（未）</td><td>丑牛</td><td>东北（艮八宫）</td><td>丑时 1–3点</td></tr>
 </table></div>
-<p class="note">什么属相的人适合摆，课件里没有讲，需要请教老师。摆件只是民俗里的象征，没有科学证明，不要为此花大钱，也不要因此耽误现实中该做的事。</p>
+<p class="note" data-en="The course material does not say which zodiac signs suit this, so you would need to ask a teacher. The figures are only a symbol from folk custom with no scientific proof; don’t spend much money on them, and don’t let them delay what needs doing in real life.">什么属相的人适合摆，课件里没有讲，需要请教老师。摆件只是民俗里的象征，没有科学证明，不要为此花大钱，也不要因此耽误现实中该做的事。</p>
 
-<h3>九宫的方位与时辰</h3>
+<h3 data-en="Palace directions and hours">九宫的方位与时辰</h3>
 <div class="wrap"><table>
 <tr><th>宫</th><th>方位</th><th>时辰（当地时间）</th></tr>
 <tr><td>坎一</td><td>正北</td><td>子 23–1点</td></tr>
@@ -190,8 +209,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <tr><td>乾六</td><td>西北</td><td>戌 19–21点，亥 21–23点</td></tr>
 </table></div>
 
-<h2>三、选出你的盘面，自动解读</h2>
-<p class="note">先在排盘页找到自己的本命宫，再把日干、宫、九星、八门、八神选在下面。没看清的可以留空。</p>
+<h2 data-en="3. Pick your chart details for an automatic reading">三、选出你的盘面，自动解读</h2>
+<p class="note" data-en="First find your natal palace on the chart page, then choose the Day Stem, palace, Nine Star, Eight Door and Eight God below. Leave blank anything you could not make out.">先在排盘页找到自己的本命宫，再把日干、宫、九星、八门、八神选在下面。没看清的可以留空。</p>
 <div class="tool">
 <div class="row">
 <div><label for="gan">我的日干</label><select id="gan"></select></div>
@@ -210,73 +229,298 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <div class="out" id="out" aria-live="polite"></div>
 </div>
 
-<p class="foot note">以上依据常见的奇门遁甲教学整理，各流派的取法不同，仅供传统文化学习和参考。工作、财务、健康、法律上的重要决定，请以现实情况和专业意见为准。</p>
+<p class="foot note" data-en="The above is compiled from common Qimen Dunjia teaching. Schools differ in their methods, and this is for traditional-culture study and reference only. For important decisions about work, money, health and law, go by real circumstances and professional advice.">以上依据常见的奇门遁甲教学整理，各流派的取法不同，仅供传统文化学习和参考。工作、财务、健康、法律上的重要决定，请以现实情况和专业意见为准。</p>
 </main>
 
 <script>
-var GAN={甲:"木",乙:"木",丙:"火",丁:"火",戊:"土",己:"土",庚:"金",辛:"金",壬:"水",癸:"水"};
-var GONG={"乾六":{e:"金",d:"西北",t:"戌亥 19–23点",opp:"巽四"},"坎一":{e:"水",d:"正北",t:"子 23–1点",opp:"离九"},"艮八":{e:"土",d:"东北",t:"丑寅 1–5点",opp:"坤二"},"震三":{e:"木",d:"正东",t:"卯 5–7点",opp:"兑七"},"巽四":{e:"木",d:"东南",t:"辰巳 7–11点",opp:"乾六"},"离九":{e:"火",d:"正南",t:"午 11–13点",opp:"坎一"},"坤二":{e:"土",d:"西南",t:"未申 13–17点",opp:"艮八"},"兑七":{e:"金",d:"正西",t:"酉 17–19点",opp:"震三"}};
-var GEN={木:"火",火:"土",土:"金",金:"水",水:"木"}, KE={木:"土",土:"水",水:"火",火:"金",金:"木"};
-var XING={天辅:["吉","利学习、文教，容易得到指点"],天心:["吉","利谋划、出主意"],天任:["吉","稳重踏实，适合慢慢积累"],天冲:["吉","行动力强，利出击"],天禽:["平","居中宫，寄坤二宫"],天英:["凶","急躁、火气大，做事易冲动"],天芮:["凶","多病多虑，宜调养、少硬撑"],天柱:["凶","易受阻、有口舌，做事不顺"],天蓬:["凶","耗散，财进财出，需要守住"]};
-var MEN={开门:["吉","金","事业顺畅，有机会被任用"],休门:["吉","水","安稳，容易得到贵人"],生门:["吉","土","有生机，利求财"],景门:["平","火","利文书名声，也容易有口舌"],杜门:["平","木","宜守不宜进，事情易被堵住"],伤门:["凶","木","易有损耗和争执"],死门:["凶","土","事情停滞，没有进展"],惊门:["凶","金","易有惊扰和是非"]};
-var SHEN={值符:["吉","领头有权威，贵人相助"],太阴:["吉","暗中有助，利谋划"],六合:["吉","利合作、人缘"],九天:["吉","利进取、扩展"],九地:["平","宜守宜稳，不宜冒进"],腾蛇:["凶","虚惊、反复、缠绕"],白虎:["凶","压力大，易有冲突"],玄武:["凶","暗损欺瞒，防小人"]};
-var MEN_RUMU={生门:"求财辛苦，付出没有回报",开门:"晋升无望，得不到重用",休门:"单打独斗，没有贵人相助"};
-function $(i){return document.getElementById(i)}
-function fill(id,list,blank){var s=$(id),h=blank?'<option value="">'+blank+'</option>':'';list.forEach(function(x){h+='<option>'+x+'</option>'});s.innerHTML=h}
-fill("gan",Object.keys(GAN));fill("gong",Object.keys(GONG));
-fill("xing",Object.keys(XING),"（不选）");fill("men",Object.keys(MEN),"（不选）");fill("shen",Object.keys(SHEN),"（不选）");
-$("gan").value="戊";$("gong").value="乾六";
-function cls(j){return j==="吉"?"ok":j==="凶"?"bad":"mid"}
-function tg(j){return '<span class="tag t-'+cls(j)+'">'+j+'</span>'}
-function el(e){return '<span class="e-'+e+'">'+e+'</span>'}
-function rel(me,pal){
-  if(me===pal)return["宫同我","吉","宫和日干同属"+me+"，得到帮扶。"];
-  if(GEN[pal]===me)return["宫生我","吉",pal+"生"+me+"，日干得到滋养。"];
-  if(GEN[me]===pal)return["我生宫","凶",me+"生"+pal+"，日干的力气往外泄，付出多、回收少。"];
-  if(KE[me]===pal)return["我克宫","凶",me+"克"+pal+"，要花很大力气去压住它，事情做得辛苦。"];
-  return["宫克我","凶",pal+"克"+me+"，日干受到压制，容易被限制。"];
+(function () {
+/* ===== 语言：读取 localStorage 的 lang（"en" 为英文，其余为中文），也支持网址 ?lang=en ===== */
+var LANG = "zh";
+try {
+  var qm = /[?&]lang=([\w-]+)/.exec(location.search);
+  var lv = qm ? qm[1] : localStorage.getItem("lang");
+  if (lv && /^en/i.test(lv)) LANG = "en";
+} catch (e) { }
+function EN() { return LANG === "en"; }
+function X(zh, en) { return LANG === "en" ? en : zh; }
+
+/* ===== 静态文字对照表：页面里普通单元格的中文 → 英文（整段、带链接或加粗的文字，直接写在网页里的 data-en 上） ===== */
+var D = {
+  "吉": "Good", "平": "Neutral", "凶": "Bad",
+  "木": "Wood", "火": "Fire", "土": "Earth", "金": "Metal", "水": "Water",
+  "巽四": "Xun 4", "离九": "Li 9", "坤二": "Kun 2", "震三": "Zhen 3", "中五": "Center 5", "兑七": "Dui 7", "艮八": "Gen 8", "坎一": "Kan 1", "乾六": "Qian 6",
+  "东南": "Southeast", "正南": "South", "西南": "Southwest", "正东": "East", "寄坤二宫": "Lends to Kun 2", "正西": "West", "东北": "Northeast", "正北": "North", "西北": "Northwest",
+  "日干": "Day Stem", "我的五行": "My element", "财的五行（我克者为财）": "Wealth element (what I overcome is wealth)",
+  "甲 乙": "Jia Yi", "丙 丁": "Bing Ding", "戊 己": "Wu Ji", "庚 辛": "Geng Xin", "壬 癸": "Ren Gui",
+  "关系": "Relation", "说明": "Explanation", "吉凶": "Verdict",
+  "宫生我": "Palace generates me", "宫同我": "Palace same as me", "我生宫": "I generate the palace", "我克宫": "I overcome the palace", "宫克我": "Palace overcomes me",
+  "宫的五行生日干，得到滋养": "The palace’s element generates the Day Stem, giving nourishment",
+  "宫和日干同一五行，得到帮扶": "The palace and the Day Stem share an element, giving support",
+  "日干去生宫，力气外泄，付出多": "The Day Stem generates the palace; energy drains out and much is given",
+  "日干去克宫，要费力去压": "The Day Stem overcomes the palace and must work hard to hold it down",
+  "宫克日干，受到压制": "The palace overcomes the Day Stem and suppresses it",
+  "八门": "Door", "五行": "Element", "人和的含义": "Meaning for human harmony",
+  "开门": "Open Door", "休门": "Rest Door", "生门": "Life Door", "景门": "Scenery Door", "杜门": "Delusion Door", "伤门": "Harm Door", "死门": "Death Door", "惊门": "Fear Door",
+  "事业顺畅，有机会被任用": "Career runs smoothly; a chance of being given a post",
+  "安稳，容易得到贵人": "Calm and stable; easy to find noble helpers",
+  "有生机，利求财": "Full of vitality, good for seeking wealth",
+  "利文书、名声，也容易有口舌": "Good for documents and reputation, but quarrels come easily",
+  "宜守不宜进，事情容易被堵住": "Better to hold than advance; things get blocked",
+  "易有损耗、争执": "Prone to losses and quarrels",
+  "事情停滞，没有进展": "Things stall with no progress",
+  "易有惊扰、是非": "Prone to alarms and disputes",
+  "九星": "Star", "含义": "Meaning",
+  "天辅": "Tian Fu", "天心": "Tian Xin", "天任": "Tian Ren", "天冲": "Tian Chong", "天禽": "Tian Qin", "天英": "Tian Ying", "天芮": "Tian Rui", "天柱": "Tian Zhu", "天蓬": "Tian Peng",
+  "利学习、文教、得到指点": "Good for study and teaching; easy to get guidance",
+  "利谋划、医药、出主意": "Good for planning, medicine and offering ideas",
+  "稳重、踏实，积累型": "Steady and down-to-earth; an accumulating type",
+  "行动力强，利出击": "Strong drive, good for taking the initiative",
+  "居中宫，寄坤二宫": "Sits in the center palace, which lends itself to Kun 2",
+  "急躁、火气大": "Hasty and fiery",
+  "多病多虑，宜调养": "Prone to illness and worry; recover gently",
+  "破损、口舌，做事受阻": "Breakage and quarrels; work is obstructed",
+  "耗散，财进财出": "Dispersing: money in, money out",
+  "八神": "God",
+  "值符": "Chief", "太阴": "Moon", "六合": "Harmony", "九天": "Nine Heaven", "九地": "Nine Earth", "腾蛇": "Snake", "白虎": "Tiger", "玄武": "Black Tortoise",
+  "领头、有权威，贵人相助": "Takes the lead with authority; noble people help",
+  "暗中有助，利谋划": "Hidden help; good for planning",
+  "利合作、人缘": "Good for cooperation and popularity",
+  "利进取、扩展": "Good for advancing and expanding",
+  "宜守、宜稳，不宜冒进": "Better to hold steady; don’t rush ahead",
+  "虚惊、反复、缠绕": "False alarms, back-and-forth, entanglement",
+  "压力大、冲突": "Heavy pressure and conflict",
+  "暗损、欺瞒，防小人": "Hidden loss and deception; watch for petty people",
+  "入墓的是": "What is in tomb", "常见的解释": "Common reading",
+  "本宫入墓": "The natal palace in tomb", "生门入墓": "Life Door in tomb", "开门入墓": "Open Door in tomb", "休门入墓": "Rest Door in tomb", "六合入墓": "Harmony in tomb", "天辅入墓": "Tian Fu in tomb",
+  "容易迷茫，外部阻力大": "Easily confused; heavy outside resistance",
+  "求财辛苦，付出没有回报": "Wealth comes with hardship; effort goes unrewarded",
+  "晋升无望，得不到重用": "No hope of promotion; not given responsibility",
+  "单打独斗，没有贵人相助": "Working alone, with no noble helper",
+  "缺乏感情，容易互相猜疑": "Lacking affection; easily suspicious of each other",
+  "无心学习，学习压力大": "No heart for study; heavy study pressure",
+  "墓在": "Tomb in", "对冲的生肖": "Clashing zodiac sign", "摆放方位": "Where to place it", "时间": "Time",
+  "乾六宫（戌）": "Qian 6 palace (Xu)", "艮八宫（丑）": "Gen 8 palace (Chou)", "巽四宫（辰）": "Xun 4 palace (Chen)", "坤二宫（未）": "Kun 2 palace (Wei)",
+  "辰龙": "Chen, the Dragon", "未羊": "Wei, the Goat", "戌狗": "Xu, the Dog", "丑牛": "Chou, the Ox",
+  "东南（巽四宫）": "Southeast (Xun 4 palace)", "西南（坤二宫）": "Southwest (Kun 2 palace)", "西北（乾六宫）": "Northwest (Qian 6 palace)", "东北（艮八宫）": "Northeast (Gen 8 palace)",
+  "辰时 7–9点": "Chen hour, 07:00–09:00", "未时 13–15点": "Wei hour, 13:00–15:00", "戌时 19–21点": "Xu hour, 19:00–21:00", "丑时 1–3点": "Chou hour, 01:00–03:00",
+  "宫": "Palace", "方位": "Direction", "时辰（当地时间）": "Hours (local time)",
+  "坎一 ": "Kan 1",
+  "子 23–1点": "Zi, 23:00–01:00", "丑 1–3点，寅 3–5点": "Chou, 01:00–03:00; Yin, 03:00–05:00", "卯 5–7点": "Mao, 05:00–07:00",
+  "辰 7–9点，巳 9–11点": "Chen, 07:00–09:00; Si, 09:00–11:00", "午 11–13点": "Wu, 11:00–13:00",
+  "未 13–15点，申 15–17点": "Wei, 13:00–15:00; Shen, 15:00–17:00", "酉 17–19点": "You, 17:00–19:00", "戌 19–21点，亥 21–23点": "Xu, 19:00–21:00; Hai, 21:00–23:00",
+  "我的日干": "My Day Stem", "本命宫": "Natal palace",
+  "入墓": "Tomb", "击刑": "Punishment", "门迫": "Door Press", "空亡": "Void",
+  "填入例子：戊落乾六": "Fill in the example: Wu in Qian 6"
+};
+
+var GAN = { 甲: "木", 乙: "木", 丙: "火", 丁: "火", 戊: "土", 己: "土", 庚: "金", 辛: "金", 壬: "水", 癸: "水" };
+var GAN_EN = { 甲: "Jia", 乙: "Yi", 丙: "Bing", 丁: "Ding", 戊: "Wu", 己: "Ji", 庚: "Geng", 辛: "Xin", 壬: "Ren", 癸: "Gui" };
+var EL_EN = { 木: "Wood", 火: "Fire", 土: "Earth", 金: "Metal", 水: "Water" };
+var GONG = {
+  "乾六": { e: "金", d: "西北", t: "戌亥 19–23点", opp: "巽四", n: "Qian 6", de: "Northwest", te: "Xu and Hai, 19:00–23:00" },
+  "坎一": { e: "水", d: "正北", t: "子 23–1点", opp: "离九", n: "Kan 1", de: "North", te: "Zi, 23:00–01:00" },
+  "艮八": { e: "土", d: "东北", t: "丑寅 1–5点", opp: "坤二", n: "Gen 8", de: "Northeast", te: "Chou and Yin, 01:00–05:00" },
+  "震三": { e: "木", d: "正东", t: "卯 5–7点", opp: "兑七", n: "Zhen 3", de: "East", te: "Mao, 05:00–07:00" },
+  "巽四": { e: "木", d: "东南", t: "辰巳 7–11点", opp: "乾六", n: "Xun 4", de: "Southeast", te: "Chen and Si, 07:00–11:00" },
+  "离九": { e: "火", d: "正南", t: "午 11–13点", opp: "坎一", n: "Li 9", de: "South", te: "Wu, 11:00–13:00" },
+  "坤二": { e: "土", d: "西南", t: "未申 13–17点", opp: "艮八", n: "Kun 2", de: "Southwest", te: "Wei and Shen, 13:00–17:00" },
+  "兑七": { e: "金", d: "正西", t: "酉 17–19点", opp: "震三", n: "Dui 7", de: "West", te: "You, 17:00–19:00" }
+};
+var GEN = { 木: "火", 火: "土", 土: "金", 金: "水", 水: "木" }, KE = { 木: "土", 土: "水", 水: "火", 火: "金", 金: "木" };
+var XING = { 天辅: ["吉", "利学习、文教，容易得到指点"], 天心: ["吉", "利谋划、出主意"], 天任: ["吉", "稳重踏实，适合慢慢积累"], 天冲: ["吉", "行动力强，利出击"], 天禽: ["平", "居中宫，寄坤二宫"], 天英: ["凶", "急躁、火气大，做事易冲动"], 天芮: ["凶", "多病多虑，宜调养、少硬撑"], 天柱: ["凶", "易受阻、有口舌，做事不顺"], 天蓬: ["凶", "耗散，财进财出，需要守住"] };
+var XING_EN = {
+  天辅: ["Tian Fu", "Good for study and teaching; easy to get guidance"], 天心: ["Tian Xin", "Good for planning and offering ideas"],
+  天任: ["Tian Ren", "Steady and down-to-earth, suited to slow accumulation"], 天冲: ["Tian Chong", "Strong drive, good for taking the initiative"],
+  天禽: ["Tian Qin", "Sits in the center palace, which lends itself to Kun 2"], 天英: ["Tian Ying", "Hasty and fiery, prone to acting on impulse"],
+  天芮: ["Tian Rui", "Prone to illness and worry; take care of yourself and don’t push through"], 天柱: ["Tian Zhu", "Easily blocked and prone to quarrels; things don’t go smoothly"],
+  天蓬: ["Tian Peng", "Dispersing: money comes and goes, so hold on to it"]
+};
+var MEN = { 开门: ["吉", "金", "事业顺畅，有机会被任用"], 休门: ["吉", "水", "安稳，容易得到贵人"], 生门: ["吉", "土", "有生机，利求财"], 景门: ["平", "火", "利文书名声，也容易有口舌"], 杜门: ["平", "木", "宜守不宜进，事情易被堵住"], 伤门: ["凶", "木", "易有损耗和争执"], 死门: ["凶", "土", "事情停滞，没有进展"], 惊门: ["凶", "金", "易有惊扰和是非"] };
+var MEN_EN = {
+  开门: ["Open Door", "Career runs smoothly; a chance of being given a post"], 休门: ["Rest Door", "Calm and stable; easy to find noble helpers"],
+  生门: ["Life Door", "Full of vitality, good for seeking wealth"], 景门: ["Scenery Door", "Good for documents and reputation, but quarrels come easily"],
+  杜门: ["Delusion Door", "Better to hold than advance; things get blocked"], 伤门: ["Harm Door", "Prone to losses and conflict"],
+  死门: ["Death Door", "Things stall with no progress"], 惊门: ["Fear Door", "Prone to alarms and disputes"]
+};
+var SHEN = { 值符: ["吉", "领头有权威，贵人相助"], 太阴: ["吉", "暗中有助，利谋划"], 六合: ["吉", "利合作、人缘"], 九天: ["吉", "利进取、扩展"], 九地: ["平", "宜守宜稳，不宜冒进"], 腾蛇: ["凶", "虚惊、反复、缠绕"], 白虎: ["凶", "压力大，易有冲突"], 玄武: ["凶", "暗损欺瞒，防小人"] };
+var SHEN_EN = {
+  值符: ["Chief", "Takes the lead with authority; noble people help"], 太阴: ["Moon", "Hidden help; good for planning"],
+  六合: ["Harmony", "Good for cooperation and popularity"], 九天: ["Nine Heaven", "Good for advancing and expanding"],
+  九地: ["Nine Earth", "Better to hold steady; don’t rush ahead"], 腾蛇: ["Snake", "False alarms, back-and-forth, entanglement"],
+  白虎: ["Tiger", "Heavy pressure and conflict"], 玄武: ["Black Tortoise", "Hidden loss and deception; watch for petty people"]
+};
+var MEN_RUMU = { 生门: "求财辛苦，付出没有回报", 开门: "晋升无望，得不到重用", 休门: "单打独斗，没有贵人相助" };
+var MEN_RUMU_EN = { 生门: "wealth comes with hardship and effort goes unrewarded", 开门: "no hope of promotion and not given responsibility", 休门: "working alone, with no noble helper" };
+var GRADE_EN = { 吉: "Good", 平: "Neutral", 凶: "Bad" };
+
+function $(i) { return document.getElementById(i) }
+
+/* 显示名：内部一律用中文做键，显示时再换成当前语言 */
+function nGan(k) { return EN() ? GAN_EN[k] : k }
+function nGong(k) { return EN() ? GONG[k].n : k }
+function nXing(k) { return EN() ? XING_EN[k][0] : k + "星" }
+function nXingBare(k) { return EN() ? XING_EN[k][0] : k }
+function nMen(k) { return EN() ? MEN_EN[k][0] : k }
+function nShen(k) { return EN() ? SHEN_EN[k][0] : k }
+function nEl(e) { return EN() ? EL_EN[e] : e }
+function nDir(k) { return EN() ? GONG[k].de : GONG[k].d }
+function nTime(k) { return EN() ? GONG[k].te : GONG[k].t }
+function nGrade(j) { return EN() ? GRADE_EN[j] : j }
+
+function fill(id, list, blank, labelFn) {
+  var s = $(id), keep = s.value, h = blank ? '<option value="">' + blank + '</option>' : '';
+  list.forEach(function (x) { h += '<option value="' + x + '">' + labelFn(x) + '</option>' });
+  s.innerHTML = h;
+  s.value = keep;
 }
-function render(){
-  var g=$("gan").value,gg=$("gong").value,xs=$("xing").value,mn=$("men").value,sn=$("shen").value;
-  var me=GAN[g],P=GONG[gg],r=rel(me,P.e),h="",bad=0,ok=0;
-  function count(j){if(j==="吉")ok++;if(j==="凶")bad++}
+function fillAll() {
+  fill("gan", Object.keys(GAN), null, nGan);
+  fill("gong", Object.keys(GONG), null, nGong);
+  fill("xing", Object.keys(XING), X("（不选）", "(none)"), nXingBare);
+  fill("men", Object.keys(MEN), X("（不选）", "(none)"), nMen);
+  fill("shen", Object.keys(SHEN), X("（不选）", "(none)"), nShen);
+}
+function cls(j) { return j === "吉" ? "ok" : j === "凶" ? "bad" : "mid" }
+function tg(j) { return '<span class="tag t-' + cls(j) + '">' + nGrade(j) + '</span>' }
+function el(e) { return '<span class="e-' + e + '">' + nEl(e) + '</span>' }
+var REL_EN = { "宫同我": "Palace same as me", "宫生我": "Palace generates me", "我生宫": "I generate the palace", "我克宫": "I overcome the palace", "宫克我": "Palace overcomes me" };
+function rel(me, pal) {
+  if (me === pal) return ["宫同我", "吉", X("宫和日干同属" + me + "，得到帮扶。", "The palace and the Day Stem share the element " + nEl(me) + ", so you get support.")];
+  if (GEN[pal] === me) return ["宫生我", "吉", X(pal + "生" + me + "，日干得到滋养。", nEl(pal) + " generates " + nEl(me) + ", so the Day Stem is nourished.")];
+  if (GEN[me] === pal) return ["我生宫", "凶", X(me + "生" + pal + "，日干的力气往外泄，付出多、回收少。", nEl(me) + " generates " + nEl(pal) + ": the Day Stem’s energy drains outward, with much given and little returned.")];
+  if (KE[me] === pal) return ["我克宫", "凶", X(me + "克" + pal + "，要花很大力气去压住它，事情做得辛苦。", nEl(me) + " overcomes " + nEl(pal) + ": it takes great effort to hold it down, and things are done the hard way.")];
+  return ["宫克我", "凶", X(pal + "克" + me + "，日干受到压制，容易被限制。", nEl(pal) + " overcomes " + nEl(me) + ": the Day Stem is suppressed and easily restricted.")];
+}
+function relName(r) { return X(r[0], REL_EN[r[0]]) }
+
+function render() {
+  var g = $("gan").value, gg = $("gong").value, xs = $("xing").value, mn = $("men").value, sn = $("shen").value;
+  var me = GAN[g], P = GONG[gg], r = rel(me, P.e), h = "", bad = 0, ok = 0;
+  function count(j) { if (j === "吉") ok++; if (j === "凶") bad++ }
   // 1 天时
-  if(xs){var x=XING[xs];count(x[0]);h+='<div class="sec '+cls(x[0])+'"><h3>1　天时：'+xs+'星 '+tg(x[0])+'</h3><p>'+x[1]+'。'+(x[0]==="凶"?'天时不够顺，这时不宜硬冲，可以借别的吉星宫的力量，课上称为"移星换斗"。':x[0]==="吉"?'天时上有助力。':'')+'</p></div>'}
-  else h+='<div class="sec"><h3>1　天时：九星</h3><p class="note">没有选九星，可以在排盘页查看本命宫里的九星再选。</p></div>';
+  if (xs) {
+    var x = XING[xs];
+    count(x[0]);
+    var xtext = X(x[1], XING_EN[xs][1]);
+    var xadd = x[0] === "凶"
+      ? X('天时不够顺，这时不宜硬冲，可以借别的吉星宫的力量，课上称为"移星换斗"。', "Heaven’s timing is not smooth, so don’t push hard now; you can borrow strength from the palace of a lucky star, which the course calls “moving stars, shifting the Dipper”.")
+      : x[0] === "吉" ? X("天时上有助力。", "Heaven’s timing is on your side.") : "";
+    h += '<div class="sec ' + cls(x[0]) + '"><h3>' + X("1　天时：" + xs + "星 ", "1  Heaven’s timing: " + nXing(xs) + " star ") + tg(x[0]) + '</h3><p>' + xtext + X("。", ". ") + xadd + '</p></div>';
+  } else h += '<div class="sec"><h3>' + X("1　天时：九星", "1  Heaven’s timing: Nine Stars") + '</h3><p class="note">' + X("没有选九星，可以在排盘页查看本命宫里的九星再选。", "No Nine Star selected; check the Nine Star in your natal palace on the chart page and pick it here.") + '</p></div>';
   // 2 地利
   count(r[1]);
-  h+='<div class="sec '+cls(r[1])+'"><h3>2　地利：'+gg+'宫，五行属'+el(P.e)+' '+tg(r[1])+'</h3><p>日干'+g+'属'+el(me)+'，落在'+P.e+'宫：<b>'+r[0]+'</b>。'+r[2]+'</p><p class="note">方位'+P.d+'，时辰'+P.t+'。</p></div>';
+  h += '<div class="sec ' + cls(r[1]) + '"><h3>' + X("2　地利：" + gg + "宫，五行属", "2  Earth’s advantage: " + nGong(gg) + " palace, element ") + el(P.e) + ' ' + tg(r[1]) + '</h3><p>' +
+    X("日干" + g + "属", "Day Stem " + nGan(g) + " is ") + el(me) + X("，落在" + P.e + "宫：", " and sits in a " + nEl(P.e) + " palace: ") + '<b>' + relName(r) + '</b>' + X("。", ". ") + r[2] + '</p><p class="note">' +
+    X("方位" + P.d + "，时辰" + P.t + "。", "Direction: " + P.de + ". Hours: " + P.te + ".") + '</p></div>';
   // 3 人和
-  if(mn){var m=MEN[mn];count(m[0]);
-    var mr=KE[GONG[gg].e]===m[1]?"":"";
-    var po=$("menpo").checked?'<p>门迫：门的五行（'+m[1]+'）被宫克住，人和被压，做事容易受限。</p>':'';
-    h+='<div class="sec '+cls(m[0])+'"><h3>3　人和：'+mn+'（五行属'+el(m[1])+'）'+tg(m[0])+'</h3><p>'+m[2]+'。</p>'+po+'</div>'}
-  else h+='<div class="sec"><h3>3　人和：八门</h3><p class="note">没有选八门。</p></div>';
+  if (mn) {
+    var m = MEN[mn];
+    count(m[0]);
+    var po = $("menpo").checked ? '<p>' + X("门迫：门的五行（" + m[1] + "）被宫克住，人和被压，做事容易受限。", "Door Press: the door’s element (" + nEl(m[1]) + ") is overcome by the palace, so human harmony is suppressed and things are easily restricted.") + '</p>' : '';
+    h += '<div class="sec ' + cls(m[0]) + '"><h3>' + X("3　人和：" + mn + "（五行属", "3  Human harmony: " + nMen(mn) + " (element ") + el(m[1]) + X("）", ") ") + tg(m[0]) + '</h3><p>' + X(m[2], MEN_EN[mn][1]) + X("。", ".") + '</p>' + po + '</div>';
+  } else h += '<div class="sec"><h3>' + X("3　人和：八门", "3  Human harmony: Eight Doors") + '</h3><p class="note">' + X("没有选八门。", "No Eight Door selected.") + '</p></div>';
   // 4 神助
-  if(sn){var s=SHEN[sn];count(s[0]);h+='<div class="sec '+cls(s[0])+'"><h3>4　神助：'+sn+' '+tg(s[0])+'</h3><p>'+s[1]+'。</p></div>'}
-  else h+='<div class="sec"><h3>4　神助：八神</h3><p class="note">没有选八神。</p></div>';
+  if (sn) {
+    var s = SHEN[sn];
+    count(s[0]);
+    h += '<div class="sec ' + cls(s[0]) + '"><h3>' + X("4　神助：", "4  Spirit help: ") + nShen(sn) + ' ' + tg(s[0]) + '</h3><p>' + X(s[1], SHEN_EN[sn][1]) + X("。", ".") + '</p></div>';
+  } else h += '<div class="sec"><h3>' + X("4　神助：八神", "4  Spirit help: Eight Gods") + '</h3><p class="note">' + X("没有选八神。", "No Eight God selected.") + '</p></div>';
   // 5 日干
-  h+='<div class="sec '+cls(r[1])+'"><h3>5　我的日干：'+g+'，五行属'+el(me)+'</h3><p>你的"财"是'+el(KE[me])+'（我克者为财）。日干与本命宫的关系是<b>'+r[0]+'</b>，判为'+tg(r[1])+'。</p></div>';
+  h += '<div class="sec ' + cls(r[1]) + '"><h3>' + X("5　我的日干：" + g + "，五行属", "5  My Day Stem: " + nGan(g) + ", element ") + el(me) + '</h3><p>' +
+    X('你的"财"是', "Your “wealth” element is ") + el(KE[me]) + X("（我克者为财）。日干与本命宫的关系是", " (what I overcome is wealth). The relation between the Day Stem and the natal palace is ") + '<b>' + relName(r) + '</b>' + X("，判为", ", judged ") + tg(r[1]) + X("。", ".") + '</p></div>';
   // 特殊标记
-  var sp=[];
-  if($("rumu").checked){var ex=(mn&&MEN_RUMU[mn]?"；门入墓：<b>"+mn+"</b>，"+MEN_RUMU[mn]:"");sp.push('<b>入墓</b>：本宫入墓，常见的解释是容易迷茫，外部阻力大'+ex+'。入墓是力量被收起来，要找机会"冲墓"：墓属土，对角线相冲。本命宫的对宫是<b>'+P.opp+'</b>（方位'+GONG[P.opp].d+'，时辰'+GONG[P.opp].t+'），可以多往那个方向、在那个时辰安排要紧的事。')}
-  if($("jixing").checked)sp.push('<b>击刑</b>：容易自己与自己较劲、有内耗，做事前多想一步，别急。');
-  if($("kong").checked)sp.push('<b>空亡</b>：这一宫的力量暂时落空，事情多半要等一等，等"填实"之后再看。');
-  if(sp.length)h+='<div class="sec mid"><h3>特殊标记</h3><p>'+sp.join('</p><p>')+'</p></div>';
+  var sp = [];
+  if ($("rumu").checked) {
+    var ex = mn && MEN_RUMU[mn] ? X("；门入墓：<b>" + mn + "</b>，" + MEN_RUMU[mn], "; door in tomb: <b>" + nMen(mn) + "</b>, " + MEN_RUMU_EN[mn]) : "";
+    sp.push(X(
+      '<b>入墓</b>：本宫入墓，常见的解释是容易迷茫，外部阻力大' + ex + '。入墓是力量被收起来，要找机会"冲墓"：墓属土，对角线相冲。本命宫的对宫是<b>' + P.opp + '</b>（方位' + GONG[P.opp].d + '，时辰' + GONG[P.opp].t + '），可以多往那个方向、在那个时辰安排要紧的事。',
+      '<b>Tomb</b>: the natal palace is in tomb; the usual reading is confusion and heavy outside resistance' + ex + '. Tomb means the energy is shut away, so look for a chance to “clash the tomb”: the tomb is Earth, and the palace diagonally opposite clashes with it. The palace opposite your natal palace is <b>' + GONG[P.opp].n + '</b> (direction: ' + GONG[P.opp].de + '; hours: ' + GONG[P.opp].te + '); arrange important matters in that direction and at that time.'));
+  }
+  if ($("jixing").checked) sp.push(X("<b>击刑</b>：容易自己与自己较劲、有内耗，做事前多想一步，别急。", "<b>Punishment</b>: you tend to wrestle with yourself and burn energy inside; think one step ahead before acting and don’t rush."));
+  if ($("kong").checked) sp.push(X('<b>空亡</b>：这一宫的力量暂时落空，事情多半要等一等，等"填实"之后再看。', "<b>Void</b>: this palace’s strength is temporarily empty; things will probably have to wait until it is “filled”, then look again."));
+  if (sp.length) h += '<div class="sec mid"><h3>' + X("特殊标记", "Special marks") + '</h3><p>' + sp.join('</p><p>') + '</p></div>';
   // 解决方法
-  var good=[];Object.keys(GONG).forEach(function(k){var q=GONG[k],rr=rel(me,q.e);if(rr[1]==="吉")good.push('<tr><td>'+k+'</td><td>'+el(q.e)+'</td><td>'+rr[0]+'</td><td>'+q.d+'</td><td>'+q.t+'</td></tr>')});
-  h+='<div class="final"><h3>解决方法</h3>';
-  if(r[1]==="凶")h+='<p>本命宫与日干不太顺，这套方法的做法是<b>换宫</b>：重要的事，尽量选在对日干有利的宫所代表的方位和时辰去做。你的日干属'+me+'，宫生我、宫同我的宫有：</p><div class="wrap"><table><tr><th>宫</th><th>五行</th><th>关系</th><th>方位</th><th>时辰</th></tr>'+good.join("")+'</table></div>';
-  else h+='<p>本命宫与日干的关系是吉，可以把这一宫当作自己的主场：'+P.d+'方位、'+P.t+'的时间，做重要的事比较顺。</p>';
-  if(mn&&MEN[mn][0]==="凶")h+='<p>人和偏弱（'+mn+'）：这类事情靠自己硬冲效果不好，先找可靠的人一起做，或者另选吉门的时间再办。</p>';
-  if(sn&&SHEN[sn][0]==="凶")h+='<p>神助偏弱（'+sn+'）：重要的约定和合同多留书面记录，多核实。</p>';
-  if(xs&&XING[xs][0]==="凶")h+='<p>天时偏弱（'+xs+'星）：不宜急于出手，先做准备，等条件更好。</p>';
-  h+='<p class="note">综合：吉项 '+ok+' 个，凶项 '+bad+' 个。盘面只是参考，不等于定论。日子是靠人过出来的，排盘提示的是怎么选时间和方位，不是替你决定。</p></div>';
-  $("out").innerHTML=h;
+  var good = [];
+  Object.keys(GONG).forEach(function (k) {
+    var q = GONG[k], rr = rel(me, q.e);
+    if (rr[1] === "吉") good.push('<tr><td>' + nGong(k) + '</td><td>' + el(q.e) + '</td><td>' + relName(rr) + '</td><td>' + nDir(k) + '</td><td>' + nTime(k) + '</td></tr>');
+  });
+  h += '<div class="final"><h3>' + X("解决方法", "What to Do") + '</h3>';
+  if (r[1] === "凶") h += '<p>' + X(
+    "本命宫与日干不太顺，这套方法的做法是<b>换宫</b>：重要的事，尽量选在对日干有利的宫所代表的方位和时辰去做。你的日干属" + me + "，宫生我、宫同我的宫有：",
+    "The natal palace and the Day Stem are not in harmony. The method here is to <b>change palaces</b>: for important matters, choose the direction and hours of a palace that favors your Day Stem. Your Day Stem is " + nEl(me) + "; the palaces that generate or match you are:") +
+    '</p><div class="wrap"><table><tr><th>' + X("宫", "Palace") + '</th><th>' + X("五行", "Element") + '</th><th>' + X("关系", "Relation") + '</th><th>' + X("方位", "Direction") + '</th><th>' + X("时辰", "Hours") + '</th></tr>' + good.join("") + '</table></div>';
+  else h += '<p>' + X(
+    "本命宫与日干的关系是吉，可以把这一宫当作自己的主场：" + P.d + "方位、" + P.t + "的时间，做重要的事比较顺。",
+    "The natal palace and the Day Stem relate well, so treat this palace as your home ground: important things go more smoothly in the " + P.de + ", during " + P.te + ".") + '</p>';
+  if (mn && MEN[mn][0] === "凶") h += '<p>' + X("人和偏弱（" + mn + "）：这类事情靠自己硬冲效果不好，先找可靠的人一起做，或者另选吉门的时间再办。", "Human harmony is weak (" + nMen(mn) + "): pushing alone works poorly here; find reliable people to work with first, or pick another time under a favorable door.") + '</p>';
+  if (sn && SHEN[sn][0] === "凶") h += '<p>' + X("神助偏弱（" + sn + "）：重要的约定和合同多留书面记录，多核实。", "Spirit help is weak (" + nShen(sn) + "): keep written records of important agreements and contracts, and double-check.") + '</p>';
+  if (xs && XING[xs][0] === "凶") h += '<p>' + X("天时偏弱（" + xs + "星）：不宜急于出手，先做准备，等条件更好。", "Heaven’s timing is weak (" + nXing(xs) + " star): don’t rush to act; prepare first and wait for better conditions.") + '</p>';
+  h += '<p class="note">' + X(
+    "综合：吉项 " + ok + " 个，凶项 " + bad + " 个。盘面只是参考，不等于定论。日子是靠人过出来的，排盘提示的是怎么选时间和方位，不是替你决定。",
+    "Overall: " + ok + " favorable, " + bad + " unfavorable. The chart is only a reference, not a verdict. Life is lived by people; the chart only suggests how to choose times and directions, not to decide for you.") + '</p></div>';
+  $("out").innerHTML = h;
 }
-["gan","gong","xing","men","shen","rumu","jixing","menpo","kong"].forEach(function(i){$(i).addEventListener("change",render)});
-$("demo").addEventListener("click",function(){$("gan").value="戊";$("gong").value="乾六";$("xing").value="天辅";$("men").value="生门";$("shen").value="九天";$("rumu").checked=true;$("jixing").checked=false;$("menpo").checked=false;$("kong").checked=false;render()});
-render();
-</script>
 
-</body></html>
+/* ===== 静态文字：data-en 的整段替换；其余按 D 表逐个文字块替换 ===== */
+var SKIP = { SCRIPT: 1, STYLE: 1, SELECT: 1, OPTION: 1 };
+function textNodes(root) {
+  var out = [];
+  (function rec(n) {
+    var kids = n.childNodes || [];
+    for (var i = 0; i < kids.length; i++) {
+      var c = kids[i];
+      if (c.nodeType === 3) { if (c.nodeValue.trim()) out.push(c); }
+      else if (c.nodeType === 1) {
+        if (SKIP[c.tagName] || c.id === "out" || c.hasAttribute("data-en")) continue;
+        rec(c);
+      }
+    }
+  })(root);
+  return out;
+}
+function applyStatic() {
+  document.documentElement.lang = EN() ? "en" : "zh-CN";
+  var nodes = document.querySelectorAll("[data-en]");
+  for (var i = 0; i < nodes.length; i++) {
+    var e = nodes[i];
+    if (e.getAttribute("data-zh") === null) e.setAttribute("data-zh", e.innerHTML);
+    e.innerHTML = EN() ? e.getAttribute("data-en") : e.getAttribute("data-zh");
+  }
+  var tn = textNodes(document.querySelector("main"));
+  for (var j = 0; j < tn.length; j++) {
+    var t = tn[j];
+    if (t.__zh === undefined) t.__zh = t.nodeValue;
+    var z = t.__zh, core = z.trim();
+    if (EN() && D[core] !== undefined) {
+      var lead = z.match(/^\s*/)[0], tail = z.match(/\s*$/)[0];
+      t.nodeValue = lead + D[core] + tail;
+    } else t.nodeValue = z;
+  }
+  document.title = X("命盘解读", "Reading Your Chart");
+  $("g9").setAttribute("aria-label", X("九宫五行", "Nine Palaces and elements"));
+}
+function refresh() {
+  applyStatic();
+  fillAll();
+  render();
+}
+function setLang(v) {
+  LANG = v;
+  try { localStorage.setItem("lang", v); } catch (e) { }
+  refresh();
+}
+
+fillAll();
+$("gan").value = "戊"; $("gong").value = "乾六";
+$("lang").addEventListener("click", function () { setLang(EN() ? "zh" : "en"); });
+window.addEventListener("storage", function (e) {
+  if (e.key === "lang") { var v = (e.newValue && /^en/i.test(e.newValue)) ? "en" : "zh"; if (v !== LANG) { LANG = v; refresh(); } }
+});
+["gan", "gong", "xing", "men", "shen", "rumu", "jixing", "menpo", "kong"].forEach(function (i) { $(i).addEventListener("change", render) });
+$("demo").addEventListener("click", function () { $("gan").value = "戊"; $("gong").value = "乾六"; $("xing").value = "天辅"; $("men").value = "生门"; $("shen").value = "九天"; $("rumu").checked = true; $("jixing").checked = false; $("menpo").checked = false; $("kong").checked = false; render() });
+refresh();
+})();
+</script>
+</body>
+</html>
