@@ -91,7 +91,7 @@ html[lang="en"] .card dl { grid-template-columns: 8.4em 1fr; }
 <main class="wrap">
   <header>
     <p class="eyebrow" data-en="Pattern differentiation reference · Symptom search">辨证参考 · 症状搜索</p>
-    <h1 data-en="TCM Wellness">中医养生</h1>
+    <h1 data-en="Chinese Medicine Wellness">中医养生</h1>
     <p class="lede" data-en="Type your symptoms in the search box, separated by commas, and the matching patterns, treatment principles and differentiation points are listed below.">把症状写进搜索栏，用逗号或空格隔开，下面会列出相符的证型、治法和鉴别要点。</p>
   </header>
 
@@ -423,7 +423,7 @@ html[lang="en"] .card dl { grid-template-columns: 8.4em 1fr; }
       if (el.getAttribute("data-zh") === null) el.setAttribute("data-zh", el.innerHTML);
       el.innerHTML = EN() ? el.getAttribute("data-en") : el.getAttribute("data-zh");
     }
-    document.title = X("中医养生", "TCM Wellness");
+    document.title = X("中医养生", "Chinese Medicine Wellness");
     var q = $("q");
     q.setAttribute("placeholder", X("例如：五心烦热，盗汗，腰膝酸软", "e.g. Five-center heat, night sweats, weak and sore lower back and knees"));
     q.setAttribute("aria-label", X("症状", "Symptoms"));
