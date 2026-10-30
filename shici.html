@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>诗词笑话坊</title>
+<style>
+:root{color-scheme:light;--bg:#f6f4ee;--fg:#1f2428;--mute:#5d666e;--line:#d9d4c6;--card:#fffdf8;--accent:#0d5c63;--accent-ink:#fff;--soft:#e3efee;--bad:#a8322d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--fg:#e7e4dc;--mute:#9aa3ab;--line:#33383d;--card:#1c2024;--accent:#5cc3c9;--accent-ink:#06191b;--soft:#19393c;--bad:#e07a72;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181b;--fg:#e7e4dc;--mute:#9aa3ab;--line:#33383d;--card:#1c2024;--accent:#5cc3c9;--accent-ink:#06191b;--soft:#19393c;--bad:#e07a72;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+ padding:20px max(16px,env(safe-area-inset-right,0px)) 56px max(16px,env(safe-area-inset-left,0px))}
+main{max-width:760px;margin:0 auto}
+h1{font:700 30px/1.3 "Songti SC","STSong","SimSun",serif;margin:4px 0 0;letter-spacing:.1em}
+.sub{color:var(--mute);margin:4px 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+label{display:block;font-size:13px;color:var(--mute);margin:0 0 3px}
+select,input[type=text]{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+button{font:inherit;padding:8px 18px;border-radius:6px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer}
+button.main{background:var(--accent);color:var(--accent-ink)}
+button:disabled{opacity:.5;cursor:default}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.note{font-size:13px;color:var(--mute)}
+.warn{color:var(--bad)}
+#res{margin-top:16px}
+#rt{font:700 22px/1.4 "Songti SC","STSong","SimSun",serif;text-align:center;margin:0 0 10px;letter-spacing:.1em}
+#rx{font:20px/2 "Songti SC","STSong","SimSun",serif;text-align:center;white-space:pre-wrap;letter-spacing:.08em}
+#rx.joke{text-align:left;letter-spacing:0;font:17px/1.9 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+#re{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);white-space:pre-wrap;color:var(--mute);font-size:15px}
+.langbtn{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:10;padding:6px 12px;border-radius:16px;font-size:13px;background:var(--accent);color:var(--accent-ink)}
+html[lang="en"] body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.6}
+html[lang="en"] h1{letter-spacing:0}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<button type="button" id="lang" class="langbtn" aria-label="Language / 语言">中 / EN</button>
+<main>
+<h1 data-en="Poetry &amp; Joke Studio">诗词笑话坊</h1>
+<p class="sub" data-en="Give a topic and get a seven-character or five-character poem, a ci (词) such as Yi Qin E or Qin Yuan Chun, or a joke.">给个主题，编一首七言、五言诗，或忆秦娥、沁园春这样的词，也可以编一则笑话。</p>
+
+<div class="card">
+  <div class="grid">
+    <div><label for="form" data-en="What to write">体裁</label><select id="form"></select></div>
+    <div id="cpRow" hidden><label for="cipai" data-en="Ci pattern (词牌)">词牌</label><select id="cipai"></select></div>
+    <div><label for="style" id="stLab" data-en="Style">风格</label><select id="style"></select></div>
+  </div>
+  <div style="margin-top:12px"><label for="topic" data-en="Topic (optional, e.g. autumn, an old friend, a cat)">主题（可不填，例：秋天、故人、猫）</label><input type="text" id="topic" maxlength="30"></div>
+  <p class="note" id="hint" style="margin:8px 0 0"></p>
+  <div class="row">
+    <button class="main" id="go" data-en="Write">开始创作</button>
+    <span class="note" id="st" role="status"></span>
+  </div>
+</div>
+
+<div class="card" id="res" hidden>
+  <h2 id="rt"></h2>
+  <div id="rx"></div>
+  <div id="re" hidden></div>
+  <p class="note" id="rn" style="margin:12px 0 0"></p>
+  <div class="row">
+    <button id="again" data-en="Another one">再来一首</button>
+    <button id="copy" data-en="Copy">复制</button>
+  </div>
+</div>
+<p class="note" style="margin-top:14px" data-en="Written by AI. For poems, the program checks the number of lines and characters and asks for a rewrite if they do not match; tonal patterns are not guaranteed. You need to be logged in to tiannanhaibei to use it.">由 AI 创作。诗和词的句数、字数由程序检查，不符会自动让 AI 重写一次；平仄不保证。需要先登录天南海北才能使用。</p>
+</main>
+
+<script>
+let LANG='zh';
+try{const m=/[?&]lang=([\w-]+)/.exec(location.search),v=m?m[1]:localStorage.getItem('lang');if(v&&/^en/i.test(v))LANG='en'}catch(e){}
+const EN=()=>LANG==='en',X=(zh,en)=>LANG==='en'?en:zh;
+const $=id=>document.getElementById(id);
+
+const FORMS=[['joke','笑话','Joke'],['qijue','七言绝句','Seven-character quatrain (七言绝句)'],['qilv','七言律诗','Seven-character regulated verse (七言律诗)'],['wujue','五言绝句','Five-character quatrain (五言绝句)'],['wulv','五言律诗','Five-character regulated verse (五言律诗)'],['ci','词','Ci poem (词)']];
+// [词牌, 拼音, 字数(0=不固定检查)]
+const CIPAI=[['如梦令','Ru Meng Ling',33],['忆秦娥','Yi Qin E',46],['沁园春','Qin Yuan Chun',114],['清平乐','Qing Ping Yue',46],['卜算子','Bu Suan Zi',44],['浣溪沙','Huan Xi Sha',42],['蝶恋花','Die Lian Hua',60],['虞美人','Yu Mei Ren',56],['菩萨蛮','Pu Sa Man',44],['西江月','Xi Jiang Yue',50],['鹧鸪天','Zhe Gu Tian',55],['水调歌头','Shui Diao Ge Tou',0],['念奴娇','Nian Nu Jiao',0],['满江红','Man Jiang Hong',0],['声声慢','Sheng Sheng Man',0],['雨霖铃','Yu Lin Ling',0],['定风波','Ding Feng Bo',0],['临江仙','Lin Jiang Xian',0],['一剪梅','Yi Jian Mei',0],['江城子','Jiang Cheng Zi',0],['破阵子','Po Zhen Zi',0],['浪淘沙','Lang Tao Sha',0]];
+const ST_POEM=[['随意','Any'],['豪放','Bold and expansive'],['婉约','Delicate and graceful'],['田园','Pastoral'],['怀古','Historical reflection'],['送别','Farewell'],['思乡','Homesickness'],['咏物','Ode to an object'],['幽默（打油）','Humorous (doggerel)'],['励志','Inspiring']];
+const ST_JOKE=[['随意','Any'],['冷笑话','Dry pun'],['谐音梗','Wordplay'],['职场','Office life'],['生活','Everyday life'],['小故事','Short story']];
+
+let lastReq=null,lastRes=null,busy=false;
+
+function fillSel(sel,list,lab,keep){
+  const cur=keep!==undefined?keep:sel.value;sel.innerHTML='';
+  list.forEach(it=>{const o=document.createElement('option');o.value=it[0];o.textContent=lab(it);sel.appendChild(o)});
+  if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur;
+}
+function fillAll(){
+  fillSel($('form'),FORMS,f=>X(f[1],f[2]));
+  fillSel($('cipai'),CIPAI,c=>X(c[0]+(c[2]?'（'+c[2]+'字）':''),c[1]+' ('+c[0]+(c[2]?', '+c[2]+' chars':'')+')'));
+  fillStyle();
+}
+function fillStyle(){
+  const joke=$('form').value==='joke';
+  fillSel($('style'),joke?ST_JOKE:ST_POEM,s=>X(s[0],s[1]),$('style').dataset.k||$('style').value);
+  $('style').dataset.k='';
+}
+function onForm(){
+  const f=$('form').value;
+  $('cpRow').hidden=f!=='ci';
+  $('style').dataset.k=$('style').value;
+  fillStyle();
+  $('stLab').textContent=f==='joke'?X('类型','Type'):X('风格','Style');
+  showHint();
+}
+function showHint(){
+  const f=$('form').value;let h='';
+  if(f==='ci'){const c=CIPAI.find(c=>c[0]===$('cipai').value);h=c&&c[2]?X('此词牌共'+c[2]+'字，程序会检查每一句的字数。','This pattern has '+c[2]+' characters; the program checks each line’s length.'):X('此词牌的字数不固定检查，由 AI 按通行词谱来写。','The length of this pattern is not checked; the AI follows the common form.')}
+  else if(f==='joke'&&EN())h='';
+  $('hint').textContent=h;
+}
+function token(){
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+    if(/^sb-.+-auth-token$/.test(k)){const v=JSON.parse(localStorage.getItem(k));const t=v&&(v.access_token||(v.currentSession&&v.currentSession.access_token));if(t)return t}}}catch(e){}
+  return '';
+}
+function setSt(html){$('st').innerHTML=html||''}
+function errText(code){
+  const M={login:['请先登录天南海北，再来使用。','Please log in to tiannanhaibei first.'],server_not_configured:['服务器还没设置好（缺少密钥）。','The server is not set up yet (missing keys).'],ai_failed:['AI 这次没有生成成功，请再试一次。','The AI did not produce a result. Please try again.'],quota:['今天的免费额度用完了，请明天再来。','Today’s free quota is used up. Please come back tomorrow.'],bad_request:['请求不正确，请刷新页面再试。','Bad request. Please refresh and try again.']};
+  const m=M[code]||M.ai_failed;return X(m[0],m[1]);
+}
+async function gen(req){
+  if(busy)return;
+  if(!token()){setSt('<span class="warn">'+errText('login')+' <a href="/">'+X('去首页','Home')+'</a></span>');return}
+  busy=true;$('go').disabled=true;$('again').disabled=true;lastReq=req;
+  setSt('<span class="spin"></span>'+X('创作中，大约十几秒……','Writing, about ten seconds…'));
+  try{
+    const r=await fetch('/api/compose',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token()},body:JSON.stringify(req)});
+    let d={};try{d=await r.json()}catch(e){}
+    if(!r.ok||!d.ok){setSt('<span class="warn">'+errText(d.error||(r.status===404?'server_not_configured':'ai_failed'))+'</span>');}
+    else{lastRes=Object.assign({form:req.form},d);setSt('');render()}
+  }catch(e){setSt('<span class="warn">'+X('网络出错，请再试一次。','Network error. Please try again.')+'</span>')}
+  busy=false;$('go').disabled=false;$('again').disabled=false;
+}
+function render(){
+  const d=lastRes;if(!d)return;
+  $('res').hidden=false;
+  $('rt').textContent=d.title||'';
+  $('rx').textContent=d.text;$('rx').className=d.form==='joke'?'joke':'';
+  const showEn=EN()&&d.form!=='joke'&&d.en;
+  $('re').hidden=!showEn;$('re').textContent=showEn?d.en:'';
+  let n='';
+  if(d.checked&&d.valid===false)n=X('提示：这一首的字数没有完全符合格律，可以点“再来一首”。','Note: this one does not fully match the required line lengths. Try “Another one”.');
+  else if(d.checked&&d.valid)n=X('字数已检查，符合格律。','Line lengths checked: they match the form.');
+  $('rn').textContent=n;
+}
+function cur(){return {form:$('form').value,cipai:$('cipai').value,style:$('style').value,topic:$('topic').value.trim(),lang:LANG}}
+$('go').onclick=()=>gen(cur());
+$('again').onclick=()=>gen(lastReq?Object.assign({},lastReq,{lang:LANG}):cur());
+$('copy').onclick=async()=>{
+  const t=($('rt').textContent+'\n\n'+$('rx').textContent).trim();
+  try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){}a.remove()}
+  setSt(X('已复制。','Copied.'));setTimeout(()=>setSt(''),1500);
+};
+$('form').onchange=onForm;$('cipai').onchange=showHint;
+
+function applyStatic(){
+  document.documentElement.lang=EN()?'en':'zh-CN';
+  document.querySelectorAll('[data-en]').forEach(e=>{
+    if(e.getAttribute('data-zh')===null)e.setAttribute('data-zh',e.innerHTML);
+    e.innerHTML=EN()?e.getAttribute('data-en'):e.getAttribute('data-zh');
+  });
+  document.title=X('诗词笑话坊','Poetry & Joke Studio');
+  $('topic').setAttribute('placeholder',X('例：秋天','e.g. autumn'));
+  $('go').textContent=X('开始创作','Write');
+  fillAll();onForm();render();
+}
+function setLang(v){LANG=v;try{localStorage.setItem('lang',v)}catch(e){}applyStatic()}
+$('lang').addEventListener('click',()=>setLang(EN()?'zh':'en'));
+window.addEventListener('storage',e=>{if(e.key==='lang'){const v=(e.newValue&&/^en/i.test(e.newValue))?'en':'zh';if(v!==LANG){LANG=v;applyStatic()}}});
+applyStatic();
+</script>
+</body>
+</html>
