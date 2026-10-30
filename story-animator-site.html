@@ -1,12 +1,16 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>故事動畫機</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* 布局：单栏。上面输入故事，中间 16:9 画布，下面是控制条和场景解读列表。 */
-:root{--bg:#eef3f2;--surface:#ffffff;--ink:#14262b;--muted:#587073;--line:#ccd9d6;--accent:#0d5c63;--accent-ink:#ffffff;--soft:#dceeec;--warn:#8f6410}
+:root{color-scheme:light;--bg:#eef3f2;--surface:#ffffff;--ink:#14262b;--muted:#587073;--line:#ccd9d6;--accent:#0d5c63;--accent-ink:#ffffff;--soft:#dceeec;--warn:#8f6410}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e191b;--surface:#152326;--ink:#e3edeb;--muted:#92a6a8;--line:#28393c;--accent:#5cc3c9;--accent-ink:#06191b;--soft:#19393c;--warn:#ddb660;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#0e191b;--surface:#152326;--ink:#e3edeb;--muted:#92a6a8;--line:#28393c;--accent:#5cc3c9;--accent-ink:#06191b;--soft:#19393c;--warn:#ddb660;color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;margin:0;
  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
 main{max-width:980px;margin:0 auto}
@@ -40,61 +44,74 @@ summary{cursor:pointer;color:var(--accent);font-weight:700}
 #out video{width:100%;max-width:640px;border-radius:8px;display:block;margin-bottom:8px}
 #out a{color:var(--accent);font-weight:700}
 .hide{display:none}
+
+/* 语言切换 */
+.langbtn{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:10;padding:6px 12px;border-radius:16px;font-size:13px;background:var(--accent);color:var(--accent-ink)}
+html[lang="en"] body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.6}
+html[lang="en"] h1{letter-spacing:0}
 </style>
+</head>
+<body>
+<button type="button" id="lang" class="langbtn" aria-label="Language / 語言">中 / EN</button>
 
 <main>
-<h1>故事動畫機</h1>
-<p class="sub">寫一段小故事，自動做成有場景、有角色動作、有字幕的動畫，還能錄成視頻。</p>
+<h1 data-en="Story Animator">故事動畫機</h1>
+<p class="sub" data-en="Write a little story and it becomes an animation with scenes, character motion and subtitles, and you can record it as a video.">寫一段小故事，自動做成有場景、有角色動作、有字幕的動畫，還能錄成視頻。</p>
 
 <div class="card">
-  <label for="title">故事標題（可不填）</label>
+  <label for="title" data-en="Story title (optional)">故事標題（可不填）</label>
   <input type="text" id="title" placeholder="例：小女孩和小貓">
-  <label for="story" style="margin-top:10px">故事內容</label>
+  <label for="story" style="margin-top:10px" data-en="Story">故事內容</label>
   <textarea id="story"></textarea>
   <div class="row">
-    <span class="note">範例：</span>
-    <button class="chip" data-s="0">童話</button>
-    <button class="chip" data-s="1">海邊</button>
-    <button class="chip" data-s="2">雪夜</button>
+    <span class="note" data-en="Examples:">範例：</span>
+    <button class="chip" data-s="0" data-en="Fairy tale">童話</button>
+    <button class="chip" data-s="1" data-en="Seaside">海邊</button>
+    <button class="chip" data-s="2" data-en="Snowy night">雪夜</button>
   </div>
   <div class="row">
-    <label class="opt"><input type="radio" name="mode" value="cartoon" checked> 卡通場景（自動配畫面）</label>
-    <label class="opt"><input type="radio" name="mode" value="photo"> 我的圖片（老照片、插圖，加推拉鏡頭）</label>
+    <label class="opt"><input type="radio" name="mode" value="cartoon" checked> <span data-en="Cartoon scenes (pictures added automatically)">卡通場景（自動配畫面）</span></label>
+    <label class="opt"><input type="radio" name="mode" value="photo"> <span data-en="My images (old photos, illustrations, with a slow pan and zoom)">我的圖片（老照片、插圖，加推拉鏡頭）</span></label>
   </div>
   <div class="row hide" id="photoRow">
     <input type="file" id="files" accept="image/*" multiple style="width:auto">
-    <span class="note" id="fileNote">按故事順序選圖，一句話配一張，不夠就循環使用。</span>
+    <span class="note" id="fileNote"></span>
   </div>
   <div class="row">
-    <button class="main" id="go">生成動畫並播放</button>
+    <button class="main" id="go" data-en="Generate and play">生成動畫並播放</button>
     <button id="pause" disabled>暫停</button>
     <button id="rec" disabled>錄製視頻</button>
   </div>
   <details>
-    <summary>怎樣寫，畫面才會更豐富？</summary>
-    <p class="note">故事裡寫上<b>地點</b>（森林、海邊、山、村、城、沙漠、雪）、<b>時間</b>（清晨、黃昏、夜裡）、<b>天氣</b>（下雨、下雪、起風、大霧、打雷）、<b>角色</b>（小女孩、老爺爺、小貓、龍……）和<b>動作</b>（走、跑、飛、跳、睡、哭、笑、招手），畫面就會跟著變。人物說的話用「」或“”括起來，會出現對話泡泡。一句話就是一個鏡頭。</p>
+    <summary data-en="How to write for richer pictures?">怎樣寫，畫面才會更豐富？</summary>
+    <p class="note" data-en="Mention a <b>place</b> (forest, sea, mountain, village, city, desert, snow), a <b>time</b> (dawn, dusk, night), the <b>weather</b> (rain, snow, wind, fog, thunder), <b>characters</b> (girl, grandpa, kitten, dragon …) and <b>actions</b> (walk, run, fly, jump, sleep, cry, laugh, wave) and the picture changes with them. Put spoken words in quotation marks and a speech bubble appears. One sentence is one shot.">故事裡寫上<b>地點</b>（森林、海邊、山、村、城、沙漠、雪）、<b>時間</b>（清晨、黃昏、夜裡）、<b>天氣</b>（下雨、下雪、起風、大霧、打雷）、<b>角色</b>（小女孩、老爺爺、小貓、龍……）和<b>動作</b>（走、跑、飛、跳、睡、哭、笑、招手），畫面就會跟著變。人物說的話用「」或“”括起來，會出現對話泡泡。一句話就是一個鏡頭。</p>
   </details>
 </div>
 
 <div class="stage"><canvas id="cv" width="960" height="540"></canvas></div>
 <div class="ctl">
   <input type="range" id="seek" min="0" max="100" step="0.01" value="0" aria-label="進度">
-  <label class="opt">速度 <select id="spd"><option value="0.75">慢</option><option value="1" selected>正常</option><option value="1.5">快</option></select></label>
-  <label class="opt"><input type="checkbox" id="tts"> 朗讀</label>
-  <label class="opt"><input type="checkbox" id="mus" checked> 背景音樂</label>
+  <label class="opt"><span data-en="Speed">速度</span> <select id="spd"><option value="0.75" data-en="Slow">慢</option><option value="1" selected data-en="Normal">正常</option><option value="1.5" data-en="Fast">快</option></select></label>
+  <label class="opt"><input type="checkbox" id="tts"> <span data-en="Read aloud">朗讀</span></label>
+  <label class="opt"><input type="checkbox" id="mus" checked> <span data-en="Background music">背景音樂</span></label>
 </div>
 <p class="note" id="msg"></p>
 <div id="out"></div>
 
 <div class="card" style="margin-top:14px">
-  <b>鏡頭列表</b>
-  <p class="note" style="margin:2px 0 0">程序是這樣理解你的故事的，覺得不對，就改一改句子裡的詞。</p>
+  <b data-en="Shot list">鏡頭列表</b>
+  <p class="note" style="margin:2px 0 0" data-en="This is how the program understood your story. If it looks wrong, change the words in the sentence.">程序是這樣理解你的故事的，覺得不對，就改一改句子裡的詞。</p>
   <ol class="sc" id="list"></ol>
 </div>
-<p class="note" style="margin-top:14px">這是用程序自動畫的動畫，不是 AI 生成的真實視頻。錄出的視頻帶背景音樂，但不含朗讀聲音。視頻是 webm 格式，Chrome、Edge 可直接播放。</p>
+<p class="note" style="margin-top:14px" data-en="This is an animation drawn automatically by a program, not an AI-generated real video. The recorded video has background music but no read-aloud voice. The video is in webm format and plays directly in Chrome and Edge.">這是用程序自動畫的動畫，不是 AI 生成的真實視頻。錄出的視頻帶背景音樂，但不含朗讀聲音。視頻是 webm 格式，Chrome、Edge 可直接播放。</p>
 </main>
 
 <script>
+/* ===== 语言：读取 localStorage 的 lang（"en" 为英文，其余为中文），也支持网址 ?lang=en ===== */
+let LANG='zh';
+try{const m=/[?&]lang=([\w-]+)/.exec(location.search),v=m?m[1]:localStorage.getItem('lang');if(v&&/^en/i.test(v))LANG='en'}catch(e){}
+const EN=()=>LANG==='en',X=(zh,en)=>LANG==='en'?en:zh;
+
 const $=id=>document.getElementById(id);
 const isPhoto=()=>document.querySelector('input[name=mode]:checked').value==='photo';
 const cv=$('cv'),ctx=cv.getContext('2d');
@@ -106,49 +123,95 @@ const easeOut=t=>1-Math.pow(1-t,3),easeIO=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 
-/* ---------- 词库（简体、繁体都认） ---------- */
-const SETTINGS=[['desert',/沙漠|沙丘|戈壁/],['snow',/雪|冰|寒冬|冬天|冬日/],['sea',/海|沙灘|沙滩|船|島|岛/],['city',/城市|城|街|市場|市场|廣場|广场|樓|楼|商店|學校|学校/],['village',/村|房|屋|(?<!大)家|院子|農舍|农舍|田野|炊煙|炊烟/],['mountain',/山|峰|崖|懸崖|悬崖/],['river',/河|湖|溪|池塘|瀑布|水邊|水边/],['forest',/森林|樹林|树林|叢林|丛林|林|樹|树/],['meadow',/草地|草原|花園|花园|花|田/]];
+/* ---------- 词库（简体、繁体、英文都认） ----------
+   E(中文正则, 英文写法)：把英文词并到同一条规则里，故事里中英文混着写也行。 */
+const E=(zh,en)=>new RegExp(zh.source+'|'+en,'i');
+const SETTINGS=[
+ ['desert',E(/沙漠|沙丘|戈壁/,'\\b(?:desert|dunes?)\\b')],
+ ['snow',E(/雪|冰|寒冬|冬天|冬日/,'\\b(?:snow|snowy|snowing|snowfall|ice|icy|winter)\\b')],
+ ['sea',E(/海|沙灘|沙滩|船|島|岛/,'\\b(?:sea|ocean|beach|shore|boat|boats|ship|island)\\b')],
+ ['city',E(/城市|城|街|市場|市场|廣場|广场|樓|楼|商店|學校|学校/,'\\b(?:city|town|street|streets|market|square|school|shop|shops)\\b')],
+ ['village',E(/村|房|屋|(?<!大)家|院子|農舍|农舍|田野|炊煙|炊烟/,'\\b(?:village|house|houses|home|cottage|farm|yard|hut)\\b')],
+ ['mountain',E(/山|峰|崖|懸崖|悬崖/,'\\b(?:mountain|mountains|hill|hills|cliff|peak)\\b')],
+ ['river',E(/河|湖|溪|池塘|瀑布|水邊|水边/,'\\b(?:river|lake|stream|pond|waterfall|brook)\\b')],
+ ['forest',E(/森林|樹林|树林|叢林|丛林|林|樹|树/,'\\b(?:forest|woods|jungle|tree|trees)\\b')],
+ ['meadow',E(/草地|草原|花園|花园|花|田/,'\\b(?:meadow|grass|grassland|garden|flower|flowers|field|fields)\\b')]
+];
 const SET_NAME={desert:'沙漠',snow:'雪地',sea:'海邊',city:'城市',village:'村莊',mountain:'山野',river:'河邊',forest:'森林',meadow:'草地'};
-const TODS=[['dusk',/黃昏|黄昏|傍晚|日落|夕陽|夕阳|晚霞/],['dawn',/清晨|早晨|早上|黎明|日出|天亮|拂曉|拂晓/],['night',/夜|晚上|深夜|半夜|午夜|月|星/],['day',/中午|白天|午後|午后|下午|正午|陽光|阳光|晴|太陽|太阳/]];
+const SET_NAME_EN={desert:'Desert',snow:'Snowland',sea:'Seaside',city:'City',village:'Village',mountain:'Mountains',river:'Riverside',forest:'Forest',meadow:'Meadow'};
+const TODS=[
+ ['dusk',E(/黃昏|黄昏|傍晚|日落|夕陽|夕阳|晚霞/,'\\b(?:dusk|sunset|evening|twilight|nightfall)\\b')],
+ ['dawn',E(/清晨|早晨|早上|黎明|日出|天亮|拂曉|拂晓/,'\\b(?:dawn|morning|sunrise|daybreak)\\b')],
+ ['night',E(/夜|晚上|深夜|半夜|午夜|月|星/,'\\b(?:night|moon|moonlight|star|stars|midnight)\\b')],
+ ['day',E(/中午|白天|午後|午后|下午|正午|陽光|阳光|晴|太陽|太阳/,'\\b(?:noon|afternoon|daytime|sunny|sunshine|sun)\\b')]
+];
 const TOD_NAME={dawn:'清晨',day:'白天',dusk:'黃昏',night:'夜晚'};
-const CH=[[/小女孩|女孩|姑娘|少女|女兒|女儿/,'👧',112],[/小男孩|男孩|少年|兒子|儿子/,'👦',112],[/老爺爺|老爷爷|爺爺|爷爷|外公|外祖父|老人|老頭|老头/,'👴',116],[/老奶奶|奶奶|外婆|婆婆|老太太/,'👵',116],[/媽媽|妈妈|母親|母亲/,'👩',116],[/爸爸|父親|父亲/,'👨',116],[/國王|国王|王子/,'🤴',116],[/公主/,'👸',116],[/士兵|戰士|战士|軍人|军人/,'💂',116],[/醫生|医生/,'🧑‍⚕️',116],[/老師|老师/,'🧑‍🏫',116],[/農夫|农夫|農民|农民/,'🧑‍🌾',116],[/孩子|孩童|小孩|兒童|儿童/,'🧒',104],
-[/貓|猫/,'🐱',84],[/狗/,'🐶',84],[/鳥|鸟/,'🐦',64],[/兔/,'🐰',80],[/熊/,'🐻',96],[/狐/,'🦊',84],[/狼/,'🐺',90],[/龍|龙/,'🐉',130],[/馬(?!上)|马(?!上)/,'🐴',110],[/魚|鱼/,'🐟',76],[/牛(?!奶)/,'🐮',100],[/羊/,'🐑',90],[/豬|猪/,'🐷',90],[/雞|鸡/,'🐔',80],[/虎/,'🐯',104],[/猴/,'🐵',86],[/鼠/,'🐭',70],[/青蛙|蛙/,'🐸',70],[/蝴蝶/,'🦋',64],[/大象|象群/,'🐘',130],[/鹿/,'🦌',110]];
+const TOD_NAME_EN={dawn:'Dawn',day:'Daytime',dusk:'Dusk',night:'Night'};
+const CH=[[E(/小女孩|女孩|姑娘|少女|女兒|女儿/,'\\b(?:girl|girls|daughter|maiden)\\b'),'👧',112],[E(/小男孩|男孩|少年|兒子|儿子/,'\\b(?:boy|boys|son|lad)\\b'),'👦',112],[E(/老爺爺|老爷爷|爺爺|爷爷|外公|外祖父|老人|老頭|老头/,'\\b(?:old man|old men|grandpa|grandfather|granddad|grandad)\\b'),'👴',116],[E(/老奶奶|奶奶|外婆|婆婆|老太太/,'\\b(?:old woman|grandma|grandmother|granny|grandmom)\\b'),'👵',116],[E(/媽媽|妈妈|母親|母亲/,'\\b(?:mother|mom|mum|mama|mommy)\\b'),'👩',116],[E(/爸爸|父親|父亲/,'\\b(?:father|dad|daddy|papa)\\b'),'👨',116],[E(/國王|国王|王子/,'\\b(?:king|prince)\\b'),'🤴',116],[E(/公主/,'\\bprincess(?:es)?\\b'),'👸',116],[E(/士兵|戰士|战士|軍人|军人/,'\\b(?:soldier|soldiers)\\b'),'💂',116],[E(/醫生|医生/,'\\b(?:doctor|doctors)\\b'),'🧑‍⚕️',116],[E(/老師|老师/,'\\b(?:teacher|teachers)\\b'),'🧑‍🏫',116],[E(/農夫|农夫|農民|农民/,'\\b(?:farmer|farmers)\\b'),'🧑‍🌾',116],[E(/孩子|孩童|小孩|兒童|儿童/,'\\b(?:child|children|kid|kids)\\b'),'🧒',104],
+ [E(/貓|猫/,'\\b(?:cat|cats|kitten|kittens|kitty)\\b'),'🐱',84],[E(/狗/,'\\b(?:dog|dogs|puppy|puppies)\\b'),'🐶',84],[E(/鳥|鸟/,'\\b(?:bird|birds|sparrow|swallow)\\b'),'🐦',64],[E(/兔/,'\\b(?:rabbit|rabbits|bunny|bunnies)\\b'),'🐰',80],[E(/熊/,'\\b(?:bear|bears)\\b'),'🐻',96],[E(/狐/,'\\b(?:fox|foxes)\\b'),'🦊',84],[E(/狼/,'\\b(?:wolf|wolves)\\b'),'🐺',90],[E(/龍|龙/,'\\b(?:dragon|dragons)\\b'),'🐉',130],[E(/馬(?!上)|马(?!上)/,'\\b(?:horse|horses|pony|ponies)\\b'),'🐴',110],[E(/魚|鱼/,'\\b(?:fish|fishes)\\b'),'🐟',76],[E(/牛(?!奶)/,'\\b(?:cow|cows|cattle|ox|oxen)\\b'),'🐮',100],[E(/羊/,'\\b(?:sheep|lamb|lambs)\\b'),'🐑',90],[E(/豬|猪/,'\\b(?:pig|pigs|piglet|piglets)\\b'),'🐷',90],[E(/雞|鸡/,'\\b(?:chicken|chickens|hen|hens|rooster)\\b'),'🐔',80],[E(/虎/,'\\b(?:tiger|tigers)\\b'),'🐯',104],[E(/猴/,'\\b(?:monkey|monkeys)\\b'),'🐵',86],[E(/鼠/,'\\b(?:mouse|mice)\\b'),'🐭',70],[E(/青蛙|蛙/,'\\b(?:frog|frogs)\\b'),'🐸',70],[E(/蝴蝶/,'\\b(?:butterfly|butterflies)\\b'),'🦋',64],[E(/大象|象群/,'\\b(?:elephant|elephants)\\b'),'🐘',130],[E(/鹿/,'\\bdeer\\b'),'🦌',110]];
 const FLYERS=['🐦','🦋','🐉'];
-const ACTS=[['run',/跑|奔|追|衝|冲/],['fly',/飛|飞|翱翔/],['jump',/跳|蹦|躍|跃/],['swim',/游泳|游|潛|潜/],['sleep',/睡|躺|休息|入眠|夢|梦/],['cry',/哭|淚|泪|傷心|伤心|難過|难过|悲/],['laugh',/笑|開心|开心|高興|高兴|快樂|快乐|歡|欢/],['wave',/招手|揮手|挥手|告別|告别|再見|再见/],['walk',/走|行|步|前往|向前|出發|出发|來到|来到|進入|进入|去|回/]];
+const ACTS=[
+ ['run',E(/跑|奔|追|衝|冲/,'\\b(?:run|runs|running|ran|rush|rushed|rushing|dash|dashed|dashing|chase|chased|chasing)\\b')],
+ ['fly',E(/飛|飞|翱翔/,'\\b(?:fly|flies|flew|flying|soar|soared|soaring)\\b')],
+ ['jump',E(/跳|蹦|躍|跃/,'\\b(?:jump|jumps|jumped|jumping|hop|hopped|hopping|leap|leaps|leaped|leapt|bounce|bounced|bouncing)\\b')],
+ ['swim',E(/游泳|游|潛|潜/,'\\b(?:swim|swims|swam|swimming|dive|dived|diving)\\b')],
+ ['sleep',E(/睡|躺|休息|入眠|夢|梦/,'\\b(?:sleep|sleeps|sleeping|slept|asleep|nap|napped|dream|dreams|dreamed|dreaming|dreamt|lay down|rest|rested|resting)\\b')],
+ ['cry',E(/哭|淚|泪|傷心|伤心|難過|难过|悲/,'\\b(?:cry|cries|cried|crying|tear|tears|sad|sadly|wept|weep|weeping|sob|sobbed|sobbing)\\b')],
+ ['laugh',E(/笑|開心|开心|高興|高兴|快樂|快乐|歡|欢/,'\\b(?:laugh|laughs|laughed|laughing|smile|smiles|smiled|smiling|happy|happily|joy|joyful|cheer|cheered|cheerful|giggle|giggled|giggling)\\b')],
+ ['wave',E(/招手|揮手|挥手|告別|告别|再見|再见/,'\\b(?:waved|waving|goodbye|farewell|wave at|wave to|wave goodbye|waves at|waves to)\\b')],
+ ['walk',E(/走|行|步|前往|向前|出發|出发|來到|来到|進入|进入|去|回/,'\\b(?:walk|walks|walked|walking|stroll|strolled|strolling|went|go|goes|going|led|head|headed|heading|enter|entered|entering|arrive|arrived|arriving|travel|traveled|travelled|traveling|came|come|return|returned|returning|journey|journeyed|march|marched|marching|wander|wandered|wandering|follow|followed|following|climb|climbed|climbing)\\b')]
+];
 const ACT_NAME={run:'奔跑',fly:'飛行',jump:'跳躍',swim:'游泳',sleep:'入睡',cry:'哭泣',laugh:'歡笑',wave:'揮手',walk:'走路',idle:'站立'};
-const PROPS=[[/花/,'🌸'],[/火/,'🔥'],[/船/,'⛵'],[/彩虹/,'🌈'],[/蘋果|苹果/,'🍎'],[/書|书/,'📖'],[/信/,'✉️'],[/鑰匙|钥匙/,'🔑'],[/寶藏|宝藏|寶箱|宝箱/,'🎁'],[/心/,'❤️'],[/燈|灯/,'🏮'],[/蛋糕/,'🎂'],[/星星/,'⭐'],[/蘑菇/,'🍄'],[/帳篷|帐篷/,'⛺'],[/橋|桥/,'🌉'],[/塔/,'🗼'],[/城堡/,'🏰']];
+const ACT_NAME_EN={run:'Running',fly:'Flying',jump:'Jumping',swim:'Swimming',sleep:'Sleeping',cry:'Crying',laugh:'Laughing',wave:'Waving',walk:'Walking',idle:'Standing'};
+const PROPS=[[E(/花/,'\\b(?:flower|flowers)\\b'),'🌸'],[E(/火/,'\\b(?:fire|campfire|bonfire|stove|fireplace|flame|flames)\\b'),'🔥'],[E(/船/,'\\b(?:boat|boats|ship|ships|sailboat)\\b'),'⛵'],[E(/彩虹/,'\\b(?:rainbow|rainbows)\\b'),'🌈'],[E(/蘋果|苹果/,'\\b(?:apple|apples)\\b'),'🍎'],[E(/書|书/,'\\b(?:book|books)\\b'),'📖'],[E(/信/,'\\b(?:letter|letters|mail)\\b'),'✉️'],[E(/鑰匙|钥匙/,'\\b(?:key|keys)\\b'),'🔑'],[E(/寶藏|宝藏|寶箱|宝箱/,'\\b(?:treasure|treasures|gift|gifts|chest|present|presents)\\b'),'🎁'],[E(/心/,'\\b(?:heart|hearts)\\b'),'❤️'],[E(/燈|灯/,'\\b(?:lamp|lamps|lantern|lanterns)\\b'),'🏮'],[E(/蛋糕/,'\\b(?:cake|cakes)\\b'),'🎂'],[E(/星星/,'\\b(?:star|stars)\\b'),'⭐'],[E(/蘑菇/,'\\b(?:mushroom|mushrooms)\\b'),'🍄'],[E(/帳篷|帐篷/,'\\b(?:tent|tents)\\b'),'⛺'],[E(/橋|桥/,'\\b(?:bridge|bridges)\\b'),'🌉'],[E(/塔/,'\\b(?:tower|towers)\\b'),'🗼'],[E(/城堡/,'\\b(?:castle|castles)\\b'),'🏰']];
 const FLOAT=['❤️','⭐','🌈'];
+/* 天气词 */
+const RAIN=E(/雨/,'\\b(?:rain|rains|rainy|raining|rained|drizzle|drizzling)\\b');
+const SNOW=E(/雪/,'\\b(?:snow|snows|snowy|snowing|snowed|snowfall|snowflake|snowflakes)\\b');
+const FOG=E(/霧|雾/,'\\b(?:fog|foggy|mist|misty)\\b');
+const WIND=E(/風|风/,'\\b(?:wind|winds|windy|breeze|breezy|gust|gusts)\\b');
+const STORM=E(/雷|閃電|闪电|暴風|暴风|風暴|风暴/,'\\b(?:thunder|thunderstorm|lightning|storm|storms|stormy)\\b');
 const SAMPLES=[
  {t:'小女孩和小貓',s:'清晨，小女孩帶著小貓走進森林。她們沿著小河一路向前，天空忽然下起了小雨。「別怕，」小女孩笑著說，「雨很快就會停。」傍晚，雨停了，天邊出現一道彩虹，小貓開心地跳了起來。夜裡，星星出來了，小女孩和小貓靠著篝火睡著了。'},
  {t:'海邊的老人',s:'黃昏的海邊，老爺爺獨自坐在沙灘上。海浪輕輕拍著岸，一艘小船慢慢駛向遠方。「該回家了。」老爺爺站起來，朝著夕陽招了招手。夜幕降臨，月亮升起，老爺爺走回了小屋，窗裡亮起一盞燈。'},
  {t:'雪夜送信',s:'雪夜，一個小男孩在小山村的路上跑著，他要把一封信送到外婆家。大雪紛飛，風越來越大。他終於看見了遠處的房子，外婆在門口揮手。屋裡的火爐燒得很旺，小男孩笑了。'}];
+const SAMPLES_EN=[
+ {t:'The Girl and the Kitten',s:'At dawn, a little girl led her kitten into the forest. They followed the little river all the way, and suddenly it began to rain softly. "Don’t be afraid," the little girl said with a smile, "the rain will stop soon." At dusk the rain stopped and a rainbow appeared at the edge of the sky, and the kitten jumped for joy. At night the stars came out, and the little girl and the kitten fell asleep by the campfire.'},
+ {t:'The Old Man by the Sea',s:'At dusk by the sea, the old man sat alone on the beach. The waves gently touched the shore, and a small boat slowly drifted into the distance. "Time to go home," said the old man. He stood up and waved at the sunset. Night fell and the moon rose, and the old man walked back to his little house, where a lamp glowed in the window.'},
+ {t:'A Letter on a Snowy Night',s:'On a snowy night, a little boy ran along the road of a small mountain village, to deliver a letter to his grandmother’s house. The snow fell heavily and the wind grew stronger. At last he saw a house in the distance, and his grandmother was waving at the door. Inside, the stove burned warmly, and the little boy smiled.'}];
 
 /* ---------- 解析故事 ---------- */
 function splitSentences(text){
-  const PH={'。':'\u0001','！':'\u0002','？':'\u0003','!':'\u0002','?':'\u0003'},RE={'\u0001':'。','\u0002':'！','\u0003':'？'};
-  text=text.replace(/\r/g,'').replace(/[“「『][^”」』]*[”」』]/g,m=>m.replace(/[。！？!?]/g,c=>PH[c]));
+  const PH={'。':'\u0001','！':'\u0002','？':'\u0003','!':'\u0002','?':'\u0003','.':'\u0004'},RE={'\u0001':'。','\u0002':'！','\u0003':'？','\u0004':'.'};
+  text=text.replace(/\r/g,'');
+  // 英文：句末标点加引号收尾，后面又是大写开头，就在这里断句
+  text=text.replace(/([.!?]["”])[ \t]+(?=[A-Z])/g,'$1\n');
+  // 引号里面的标点先保护起来，不在这里断句（中文、英文引号都算）
+  text=text.replace(/[“「『][^”」』]*[”」』]|"[^"\n]*"/g,m=>m.replace(/[。！？!?.]/g,c=>PH[c]));
+  // 英文句号：后面是空白或结尾，而且前面不是数字，就当作断句，换行
+  text=text.replace(/([^\d\s])\.(?=\s|$)/g,'$1.\n');
   const parts=text.match(/[^。！？!?；;\n]+[。！？!?；;]*/g)||[];
   const out=[];
-  for(let p of parts){p=p.replace(/[\u0001\u0002\u0003]/g,c=>RE[c]).trim();if(!p)continue;
-    if(out.length&&p.replace(/[。！？!?；;，,\s]/g,'').length<3)out[out.length-1]+=p;else out.push(p)}
+  for(let p of parts){p=p.replace(/[\u0001\u0002\u0003\u0004]/g,c=>RE[c]).trim();if(!p)continue;
+    if(out.length&&p.replace(/[。！？!?；;，,.\s]/g,'').length<3)out[out.length-1]+=p;else out.push(p)}
   return out;
 }
 function analyze(text,prev){
   const sc={text,setting:prev.setting,tod:prev.tod,chars:prev.chars,rain:0,snow:0,fog:0,wind:0,storm:0,action:'idle',props:[],bubble:null};
   for(const [k,re] of SETTINGS)if(re.test(text)){sc.setting=k;break}
   for(const [k,re] of TODS)if(re.test(text)){sc.tod=k;break}
-  if(/雨/.test(text))sc.rain=1;
-  if(/雪/.test(text)||sc.setting==='snow'&&!/雨/.test(text))sc.snow=1;
-  if(/霧|雾/.test(text))sc.fog=1;
-  if(/風|风/.test(text))sc.wind=1;
-  if(/雷|閃電|闪电|暴風|暴风|風暴|风暴/.test(text)){sc.storm=1;sc.rain=1}
+  if(RAIN.test(text))sc.rain=1;
+  if(SNOW.test(text)||sc.setting==='snow'&&!RAIN.test(text))sc.snow=1;
+  if(FOG.test(text))sc.fog=1;
+  if(WIND.test(text))sc.wind=1;
+  if(STORM.test(text)){sc.storm=1;sc.rain=1}
   const found=[];
   CH.forEach(([re,e,s])=>{const m=text.match(re);if(m)found.push({i:m.index,e,s})});
   found.sort((a,b)=>a.i-b.i);
   if(found.length)sc.chars=found.slice(0,3).map(f=>({e:f.e,s:f.s}));
   for(const [k,re] of ACTS)if(re.test(text)){sc.action=k;break}
   PROPS.forEach(([re,e])=>{if(re.test(text)&&sc.props.indexOf(e)<0)sc.props.push(e)});
-  const b=text.match(/[“「『]([^”」』]{1,40})[”」』]/);
+  const b=text.match(/[“「『"]([^”」』"]{1,40})[”」』"]/);
   if(b)sc.bubble=b[1].replace(/[，,。！？!?]+$/,'');
   return sc;
 }
@@ -172,13 +235,14 @@ function buildScenes(){
   let t=0;out.forEach(s=>{s.start=t;t+=s.dur});
   return out;
 }
+const nSet=k=>X(SET_NAME[k],SET_NAME_EN[k]),nTod=k=>X(TOD_NAME[k],TOD_NAME_EN[k]),nAct=k=>X(ACT_NAME[k],ACT_NAME_EN[k]);
 function renderList(){
   const L=$('list');L.innerHTML='';
   scenes.filter(s=>s.kind==='scene').forEach(s=>{
     const li=document.createElement('li');
     const tag=x=>'<span class="tag">'+x+'</span>';
-    li.innerHTML=tag(SET_NAME[s.setting])+tag(TOD_NAME[s.tod])+tag(s.chars.map(c=>c.e).join(''))+tag(ACT_NAME[s.action])+
-      (s.rain?tag('下雨'):'')+(s.snow?tag('下雪'):'')+(s.fog?tag('起霧'):'')+(s.wind?tag('起風'):'')+(s.storm?tag('打雷'):'')+
+    li.innerHTML=tag(nSet(s.setting))+tag(nTod(s.tod))+tag(s.chars.map(c=>c.e).join(''))+tag(nAct(s.action))+
+      (s.rain?tag(X('下雨','Rain')):'')+(s.snow?tag(X('下雪','Snow')):'')+(s.fog?tag(X('起霧','Fog')):'')+(s.wind?tag(X('起風','Windy')):'')+(s.storm?tag(X('打雷','Thunder')):'')+
       s.text.replace(/</g,'&lt;');
     L.appendChild(li);
   });
@@ -314,7 +378,8 @@ function drawChars(sc,t,u){
 }
 function bubble(x,y,text,a){
   if(a<=0)return;
-  const t=text.length>16?text.slice(0,16)+'…':text;
+  const lim=/[一-鿿]/.test(text)?16:30;
+  const t=text.length>lim?text.slice(0,lim)+'…':text;
   ctx.save();ctx.globalAlpha=a;ctx.font='bold 26px '+SANS;const w=ctx.measureText(t).width+34,h=46;
   const bx=clamp(x-w/2,12,W-w-12),by=clamp(y-h-14,10,GY-40);
   ctx.fillStyle='#fff';ctx.strokeStyle='#223';ctx.lineWidth=2.5;
@@ -339,7 +404,7 @@ function caption(text,t,dur){
 }
 function tagChip(sc,t){
   const a=clamp(t/.6,0,1)*clamp((2.4-t)/.6,0,1);if(a<=0)return;
-  const s=SET_NAME[sc.setting]+' · '+TOD_NAME[sc.tod];
+  const s=nSet(sc.setting)+' · '+nTod(sc.tod);
   ctx.save();ctx.globalAlpha=a;ctx.font='bold 20px '+SANS;const w=ctx.measureText(s).width+28;
   ctx.fillStyle='rgba(8,18,22,.55)';ctx.beginPath();ctx.roundRect(24,22,w,36,10);ctx.fill();ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(s,38,41);ctx.restore();
 }
@@ -358,10 +423,11 @@ function photoScene(sc,t,u){
 /* 一帧 */
 function drawFrame(sc,t){
   if(sc.kind==='title'||sc.kind==='end'){
+    const txt=sc.kind==='end'?X('完','The End'):sc.text;
     const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#10343a');g.addColorStop(1,'#0b1f33');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
     const R=mulberry(7);ctx.fillStyle='#fff';for(let i=0;i<60;i++){ctx.globalAlpha=.3+.7*Math.abs(Math.sin(t*2+i));ctx.beginPath();ctx.arc(R()*W,R()*H,1+R()*1.5,0,7);ctx.fill()}ctx.globalAlpha=1;
     const a=clamp(t/.8,0,1);ctx.globalAlpha=a;ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
-    const fs=sc.kind==='end'?130:Math.min(86,Math.floor(W*.8/Math.max(1,sc.text.length)));ctx.font='bold '+fs+'px '+SANS;ctx.fillText(sc.text,W/2,H/2+(1-a)*20);ctx.globalAlpha=1;
+    const fs=sc.kind==='end'?(EN()?96:130):Math.min(86,Math.floor(W*.8/Math.max(1,txt.length*(/[一-鿿]/.test(txt)?1:.62))));ctx.font='bold '+fs+'px '+SANS;ctx.fillText(txt,W/2,H/2+(1-a)*20);ctx.globalAlpha=1;
   }else{
     const u=clamp(t/sc.dur,0,1);
     ctx.save();
@@ -380,6 +446,19 @@ function drawFrame(sc,t){
 
 /* ---------- 播放 ---------- */
 let scenes=[],T=0,total=0,playing=false,lastTs=0,curIdx=-1,recorder=null,recChunks=[],recording=false;
+/* 按钮文字、提示：记下当前状态，切换语言时能跟着换 */
+const PAUSE_T={pause:['暫停','Pause'],resume:['繼續','Resume'],replay:['重播','Replay']};
+const REC_T={rec:['錄製視頻','Record video'],recing:['錄製中…','Recording…']};
+const MSG_T={story:['請先寫一段故事。','Please write a short story first.'],photo:['「我的圖片」模式需要先選圖片。','“My images” mode needs images chosen first.'],norec:['這個瀏覽器不支持錄製，請用電腦上的 Chrome 或 Edge。','This browser can’t record. Please use Chrome or Edge on a computer.'],recdone:['錄製完成。','Recording finished.'],recing:['正在錄製，請等動畫播完，不要切換標籤頁。','Recording. Wait for the animation to finish and don’t switch tabs.']};
+let pauseKey='pause',recKey='rec',msgKey='',outUrl='',outExt='webm';
+function setPause(k){pauseKey=k;$('pause').textContent=X(PAUSE_T[k][0],PAUSE_T[k][1])}
+function setRec(k){recKey=k;$('rec').textContent=X(REC_T[k][0],REC_T[k][1])}
+function setMsg(k){msgKey=k;$('msg').textContent=k?X(MSG_T[k][0],MSG_T[k][1]):''}
+function setFileNote(){const n=images.length;$('fileNote').textContent=n?X('已選 '+n+' 張圖片。',n+(n>1?' images':' image')+' selected.'):X('按故事順序選圖，一句話配一張，不夠就循環使用。','Choose images in story order, one per sentence; they repeat if there are not enough.')}
+function showOut(){
+  if(!outUrl){$('out').innerHTML='';return}
+  $('out').innerHTML='<video controls src="'+outUrl+'"></video><a href="'+outUrl+'" download="story.'+outExt+'">'+X('下載視頻','Download video')+'</a> <span class="note">'+X('（放到 tiannanhaibei.com 後，這裡可直接下載；在預覽頁面下載可能無效，可在視頻上按右鍵另存。）','(Once this is on tiannanhaibei.com the download works directly here; in a preview page it may not work, so right-click the video and choose Save as.)')+'</span>';
+}
 function sceneAt(tm){for(let i=scenes.length-1;i>=0;i--)if(tm>=scenes[i].start)return i;return 0}
 function drawAt(tm){
   const i=sceneAt(tm),sc=scenes[i];
@@ -394,10 +473,10 @@ function tick(ts){
   drawAt(T);requestAnimationFrame(tick);
 }
 function play(from){
-  playing=true;if(from!==undefined)T=from;lastTs=performance.now();$('pause').textContent='暫停';$('pause').disabled=false;requestAnimationFrame(tick);
+  playing=true;if(from!==undefined)T=from;lastTs=performance.now();setPause('pause');$('pause').disabled=false;requestAnimationFrame(tick);
 }
 function finish(){
-  playing=false;$('pause').textContent='重播';
+  playing=false;setPause('replay');
   if(window.speechSynthesis)speechSynthesis.cancel();
   stopMusic();
   if(recording&&recorder){recorder.stop()}
@@ -424,23 +503,23 @@ function stopMusic(){if(mTimer){clearInterval(mTimer);mTimer=null}}
 
 /* ---------- 按钮 ---------- */
 function generate(){
-  if(!$('story').value.trim()){$('msg').textContent='請先寫一段故事。';return false}
-  if(isPhoto()&&!images.length){$('msg').textContent='「我的圖片」模式需要先選圖片。';return false}
-  $('msg').textContent='';
+  if(!$('story').value.trim()){setMsg('story');return false}
+  if(isPhoto()&&!images.length){setMsg('photo');return false}
+  setMsg('');
   scenes=buildScenes();total=scenes.length?scenes[scenes.length-1].start+scenes[scenes.length-1].dur:0;
-  $('seek').max=total;curIdx=-1;renderList();$('rec').disabled=false;$('out').innerHTML='';
+  $('seek').max=total;curIdx=-1;renderList();$('rec').disabled=false;outUrl='';showOut();
   return scenes.length>0;
 }
 $('go').onclick=()=>{if(!generate())return;if(window.speechSynthesis)speechSynthesis.cancel();startMusic();play(0)};
 $('pause').onclick=()=>{
   if(!scenes.length)return;
-  if(playing){playing=false;$('pause').textContent='繼續';if(window.speechSynthesis)speechSynthesis.pause();stopMusic()}
+  if(playing){playing=false;setPause('resume');if(window.speechSynthesis)speechSynthesis.pause();stopMusic()}
   else{if(T>=total-.01){T=0;curIdx=-1;startMusic();play(0)}else{if(window.speechSynthesis)speechSynthesis.resume();startMusic();play()}}
 };
 $('seek').oninput=e=>{if(!scenes.length)return;T=+e.target.value;curIdx=-1;if(!playing)drawAt(T)};
 $('rec').onclick=()=>{
   if(!generate())return;
-  if(!window.MediaRecorder||!cv.captureStream){$('msg').textContent='這個瀏覽器不支持錄製，請用電腦上的 Chrome 或 Edge。';return}
+  if(!window.MediaRecorder||!cv.captureStream){setMsg('norec');return}
   if(window.speechSynthesis)speechSynthesis.cancel();
   recording=true;recChunks=[];
   startMusic();
@@ -451,23 +530,62 @@ $('rec').onclick=()=>{
   recorder=new MediaRecorder(stream,mt?{mimeType:mt,videoBitsPerSecond:5e6}:{});
   recorder.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data)};
   recorder.onstop=()=>{
-    recording=false;const blob=new Blob(recChunks,{type:recorder.mimeType||'video/webm'}),url=URL.createObjectURL(blob);
-    const ext=/mp4/.test(blob.type)?'mp4':'webm';
-    $('out').innerHTML='<video controls src="'+url+'"></video><a href="'+url+'" download="story.'+ext+'">下載視頻</a> <span class="note">（放到 tiannanhaibei.com 後，這裡可直接下載；在預覽頁面下載可能無效，可在視頻上按右鍵另存。）</span>';
-    $('rec').disabled=false;$('rec').textContent='錄製視頻';$('msg').textContent='錄製完成。';
+    recording=false;const blob=new Blob(recChunks,{type:recorder.mimeType||'video/webm'});
+    outUrl=URL.createObjectURL(blob);outExt=/mp4/.test(blob.type)?'mp4':'webm';showOut();
+    $('rec').disabled=false;setRec('rec');setMsg('recdone');
   };
-  $('rec').disabled=true;$('rec').textContent='錄製中…';$('msg').textContent='正在錄製，請等動畫播完，不要切換標籤頁。';
+  $('rec').disabled=true;setRec('recing');setMsg('recing');
   recorder.start(250);play(0);
 };
-document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const s=SAMPLES[+b.dataset.s];$('title').value=s.t;$('story').value=s.s});
+document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const s=(EN()?SAMPLES_EN:SAMPLES)[+b.dataset.s];$('title').value=s.t;$('story').value=s.s});
 document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{$('photoRow').classList.toggle('hide',!isPhoto())});
 $('files').onchange=e=>{
   images=[];[...e.target.files].forEach(f=>{const im=new Image();im.src=URL.createObjectURL(f);images.push(im)});
-  $('fileNote').textContent='已選 '+images.length+' 張圖片。';
+  setFileNote();
 };
-$('title').value=SAMPLES[0].t;$('story').value=SAMPLES[0].s;
-// 打开时先显示一帧预览
-(function(){generate();T=2.2;drawAt(T);$('pause').disabled=true;$('pause').textContent='暫停'})();
-</script>
 
-</body></html>
+/* ---------- 语言切换 ---------- */
+function applyStatic(){
+  document.documentElement.lang=EN()?'en':'zh-Hant';
+  document.querySelectorAll('[data-en]').forEach(e=>{
+    if(e.getAttribute('data-zh')===null)e.setAttribute('data-zh',e.innerHTML);
+    e.innerHTML=EN()?e.getAttribute('data-en'):e.getAttribute('data-zh');
+  });
+  document.title=X('故事動畫機','Story Animator');
+  $('title').setAttribute('placeholder',X('例：小女孩和小貓','e.g. The Girl and the Kitten'));
+  $('seek').setAttribute('aria-label',X('進度','Progress'));
+  setPause(pauseKey);setRec(recKey);setMsg(msgKey);setFileNote();showOut();
+}
+// 标题和故事如果还是范例，就换成当前语言的同一个范例；用户自己改过的不动
+function swapSample(){
+  const t=$('title').value,s=$('story').value;
+  for(let k=0;k<SAMPLES.length;k++){
+    const hit=[SAMPLES[k],SAMPLES_EN[k]].some(p=>p.t===t&&p.s===s);
+    if(hit){const n=(EN()?SAMPLES_EN:SAMPLES)[k];$('title').value=n.t;$('story').value=n.s;return true}
+  }
+  return false;
+}
+function refresh(){
+  const swapped=swapSample();
+  applyStatic();
+  if(scenes.length){
+    // 范例换了语言，要重新解析；否则只刷新列表和当前这一帧
+    if(swapped){const wasPlaying=playing;playing=false;if(window.speechSynthesis)speechSynthesis.cancel();stopMusic();generate();T=2.2;curIdx=-1;drawAt(T);$('pause').disabled=true;setPause('pause')}
+    else{renderList();curIdx=-1;if(!playing)drawAt(Math.min(T,total-.001))}
+  }
+}
+function setLang(v){
+  LANG=v;
+  try{localStorage.setItem('lang',v)}catch(e){}
+  refresh();
+}
+$('lang').addEventListener('click',()=>setLang(EN()?'zh':'en'));
+window.addEventListener('storage',e=>{if(e.key==='lang'){const v=(e.newValue&&/^en/i.test(e.newValue))?'en':'zh';if(v!==LANG){LANG=v;refresh()}}});
+
+{const s=(EN()?SAMPLES_EN:SAMPLES)[0];$('title').value=s.t;$('story').value=s.s}
+applyStatic();
+// 打开时先显示一帧预览
+(function(){generate();T=2.2;drawAt(T);$('pause').disabled=true;setPause('pause')})();
+</script>
+</body>
+</html>
