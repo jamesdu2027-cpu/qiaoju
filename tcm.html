@@ -1,10 +1,13 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>中医养生</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap">
 <style>
-/* Layout: one narrow column. A search field leads, recognised symptoms sit under it, matching syndromes (证型) come next. */
 :root {
+  color-scheme: light;
   --bg: #EDF2F0;
   --surface: #FAFCFB;
   --ink: #14262B;
@@ -31,7 +34,8 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); line-height: 1.7; }
+[hidden] { display: none !important; }
+body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font: 14px var(--f-body); line-height: 1.7; }
 .wrap {
   max-width: 720px; margin: 0 auto; padding-block: 28px 56px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -50,7 +54,7 @@ h2 { margin: 30px 0 10px; font-family: var(--f-head); font-weight: 900; font-siz
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
 .chip { color: var(--ink); background: var(--surface); border: 1px solid var(--line); padding: 5px 12px; }
 .chip[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
-.ex { color: var(--accent); background: none; border: 1px dashed var(--accent); padding: 4px 10px; font-size: 14px; }
+.ex { color: var(--accent); background: none; border: 1px dashed var(--accent); padding: 4px 10px; font-size: 14px; text-align: left; }
 .unk { margin: 10px 0 0; font-size: 14px; color: var(--warn); }
 .card { margin: 0 0 12px; padding: 14px 14px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
 .card.hit { border-color: var(--accent); }
@@ -67,210 +71,277 @@ h2 { margin: 30px 0 10px; font-family: var(--f-head); font-weight: 900; font-siz
 .empty { padding: 18px 14px; border: 1px dashed var(--line); border-radius: 4px; color: var(--muted); }
 .safe { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); max-width: 40em; }
 .safe b { color: var(--ink); }
+.exs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 语言切换 */
+.langbtn { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px)); z-index: 10; font: inherit; cursor: pointer; border-radius: 16px; padding: 6px 12px; font-size: 13px; font-weight: 700; color: var(--bg); background: var(--accent); border: 1px solid var(--accent); }
+
+/* English layout adjustments */
+html[lang="en"] body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; }
+html[lang="en"] h1, html[lang="en"] h2, html[lang="en"] .card h3 { font-family: Georgia, 'Times New Roman', serif; letter-spacing: 0; }
+html[lang="en"] h1 { font-weight: 700; }
+html[lang="en"] .card h3 { font-size: 21px; }
+html[lang="en"] .eyebrow, html[lang="en"] .card dt { letter-spacing: .03em; }
+html[lang="en"] .card dl { grid-template-columns: 8.4em 1fr; }
 </style>
+</head>
+<body>
+<button type="button" id="lang" class="langbtn" aria-label="Language / 语言">中 / EN</button>
 
 <main class="wrap">
   <header>
-    <p class="eyebrow">辨证参考 · 症状搜索</p>
-    <h1>中医养生</h1>
-    <p class="lede">把症状写进搜索栏，用逗号或空格隔开，下面会列出相符的证型、治法和鉴别要点。</p>
+    <p class="eyebrow" data-en="Pattern differentiation reference · Symptom search">辨证参考 · 症状搜索</p>
+    <h1 data-en="TCM Wellness">中医养生</h1>
+    <p class="lede" data-en="Type your symptoms in the search box, separated by commas, and the matching patterns, treatment principles and differentiation points are listed below.">把症状写进搜索栏，用逗号或空格隔开，下面会列出相符的证型、治法和鉴别要点。</p>
   </header>
 
   <form class="search" id="form" role="search">
     <input id="q" type="search" autocomplete="off" placeholder="例如：五心烦热，盗汗，腰膝酸软" aria-label="症状" value="五心烦热，盗汗，腰膝酸软">
-    <button type="submit">辨证</button>
+    <button type="submit" data-en="Match">辨证</button>
   </form>
-  <p class="hint">输入框里现在是示例症状，改成你要查的就行。点下面的症状词也可以。</p>
-  <ul class="chips" id="chips" aria-label="症状库"></ul>
+  <p class="hint" data-en="The box holds example symptoms; replace them with the ones you want to look up. You can also tap the symptom tags below.">输入框里现在是示例症状，改成你要查的就行。点下面的症状词也可以。</p>
+  <ul class="chips" id="chips"></ul>
   <p class="unk" id="unk" hidden></p>
 
-  <h2>相符的证型</h2>
+  <h2 data-en="Matching patterns">相符的证型</h2>
   <div id="out"></div>
 
-  <h2>试试这几组</h2>
-  <p style="margin:0 0 8px;color:var(--muted);font-size:14px">症状相近，多一个或少一个，结论就不同。</p>
-  <div style="display:flex;flex-wrap:wrap;gap:8px">
-    <button class="ex" type="button" data-q="五心烦热，盗汗，腰膝酸软">五心烦热，盗汗，腰膝酸软</button>
-    <button class="ex" type="button" data-q="五心烦热，盗汗，咳嗽，吐痰">五心烦热，盗汗，咳嗽，吐痰</button>
-    <button class="ex" type="button" data-q="有气无力，声音低微">有气无力，声音低微</button>
-    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽">有气无力，声音低微，咳嗽</button>
-    <button class="ex" type="button" data-q="有气无力，声音低微，腰膝酸软">有气无力，声音低微，腰膝酸软</button>
-    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽，腰膝酸软">有气无力，声音低微，咳嗽，腰膝酸软</button>
-    <button class="ex" type="button" data-q="心悸，失眠，健忘，面色无华">心悸，失眠，健忘，面色无华</button>
-    <button class="ex" type="button" data-q="心悸，失眠，五心烦热，盗汗">心悸，失眠，五心烦热，盗汗</button>
-    <button class="ex" type="button" data-q="情志抑郁，胁肋胀痛，善太息">情志抑郁，胁肋胀痛，善太息</button>
-    <button class="ex" type="button" data-q="头痛，目赤，急躁易怒，口苦">头痛，目赤，急躁易怒，口苦</button>
-    <button class="ex" type="button" data-q="食欲不振，腹胀，大便稀溏，有气无力">食欲不振，腹胀，大便稀溏，有气无力</button>
-    <button class="ex" type="button" data-q="食欲不振，大便稀溏，腹部冷痛，畏寒肢冷">食欲不振，大便稀溏，腹部冷痛，畏寒肢冷</button>
+  <h2 data-en="Try these groups">试试这几组</h2>
+  <p style="margin:0 0 8px;color:var(--muted);font-size:14px" data-en="The symptoms are similar, but one more or one fewer changes the conclusion.">症状相近，多一个或少一个，结论就不同。</p>
+  <div class="exs">
+    <button class="ex" type="button" data-q="五心烦热，盗汗，腰膝酸软"></button>
+    <button class="ex" type="button" data-q="五心烦热，盗汗，咳嗽，吐痰"></button>
+    <button class="ex" type="button" data-q="有气无力，声音低微"></button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽"></button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，腰膝酸软"></button>
+    <button class="ex" type="button" data-q="有气无力，声音低微，咳嗽，腰膝酸软"></button>
+    <button class="ex" type="button" data-q="心悸，失眠，健忘，面色无华"></button>
+    <button class="ex" type="button" data-q="心悸，失眠，五心烦热，盗汗"></button>
+    <button class="ex" type="button" data-q="情志抑郁，胁肋胀痛，善太息"></button>
+    <button class="ex" type="button" data-q="头痛，目赤，急躁易怒，口苦"></button>
+    <button class="ex" type="button" data-q="食欲不振，腹胀，大便稀溏，有气无力"></button>
+    <button class="ex" type="button" data-q="食欲不振，大便稀溏，腹部冷痛，畏寒肢冷"></button>
   </div>
 
-  <p class="safe"><b>请注意：</b>这里只是按症状给出的辨证参考，不能代替医生面诊。辨证要四诊合参，舌象和脉象同样重要。咳嗽超过两周，并伴有盗汗、午后低热、消瘦或咯血时，要先去医院排除肺结核；长期尿频、尿急或血尿，也要去检查。出现胸痛、呼吸困难、持续高热时，请尽快就医。已经在服药的慢性病患者，不要自行停药或换药。</p>
+  <p class="safe" data-en="<b>Please note:</b> This is only a pattern-differentiation reference based on symptoms and cannot replace seeing a doctor. Proper differentiation combines all four diagnostic methods, and tongue and pulse matter just as much. A cough lasting more than two weeks together with night sweats, afternoon low fever, weight loss or coughing blood needs a hospital visit first to rule out tuberculosis; long-term frequent or urgent urination or blood in the urine also needs checking. For chest pain, difficulty breathing or a persistent high fever, seek medical care promptly. If you already take medicine for a chronic condition, do not stop or change it on your own."><b>请注意：</b>这里只是按症状给出的辨证参考，不能代替医生面诊。辨证要四诊合参，舌象和脉象同样重要。咳嗽超过两周，并伴有盗汗、午后低热、消瘦或咯血时，要先去医院排除肺结核；长期尿频、尿急或血尿，也要去检查。出现胸痛、呼吸困难、持续高热时，请尽快就医。已经在服药的慢性病患者，不要自行停药或换药。</p>
 </main>
 
 <script>
 (function () {
+  /* ===== 语言：读取 localStorage 的 lang（"en" 为英文，其余为中文），也支持网址 ?lang=en ===== */
+  var LANG = "zh";
+  try {
+    var qm = /[?&]lang=([\w-]+)/.exec(location.search);
+    var lv = qm ? qm[1] : localStorage.getItem("lang");
+    if (lv && /^en/i.test(lv)) LANG = "en";
+  } catch (e) { }
+  function EN() { return LANG === "en"; }
+  function X(zh, en) { return LANG === "en" ? en : zh; }
+
   /* ========== 症状库与证型库：要增加内容，只改这两段 ==========
-     SYMPTOMS：name 是标准写法，alias 是别的说法。
+     SYMPTOMS：name 是标准写法，alias 是别的说法；en 是英文名，ealias 是英文的别的说法。
+                中文和英文都可以搜索，不受页面语言限制。英文名和别名里不要写逗号。
      SYNDROMES：must 是必须同时具备的症状，not 是出现了就排除本证的症状，
-                treat 是治法，diff 是与相近证型的鉴别要点。 */
+                treat 是治法，diff 是与相近证型的鉴别要点；en/treatEn/levelEn/diffEn 是对应的英文。 */
   var SYMPTOMS = [
-    { name: "五心烦热", alias: ["手足心热", "五心煩熱", "手足心发热", "手心脚心热"] },
-    { name: "盗汗", alias: ["盜汗", "夜间出汗", "睡中出汗", "睡着出汗"] },
-    { name: "腰膝酸软", alias: ["腰膝酸軟", "腰酸膝软", "腰膝痠軟", "腰酸腿软"] },
-    { name: "咳嗽", alias: ["咳"] },
-    { name: "吐痰", alias: ["咳痰", "咯痰", "痰多", "有痰", "痰"] },
-    { name: "有气无力", alias: ["有氣無力", "浑身无力", "全身无力", "没力气"] },
-    { name: "声音低微", alias: ["聲音低微", "声低", "说话声音小", "说话声低", "声低气怯"] },
-    { name: "心悸", alias: ["心慌", "心跳快", "心跳不稳"] },
-    { name: "失眠", alias: ["睡不着", "睡不好", "难入睡", "入睡困难"] },
-    { name: "健忘", alias: ["记忆力差", "记性差", "忘事"] },
-    { name: "气短", alias: ["少气", "短气"] },
-    { name: "自汗", alias: ["白天出汗", "动则汗出", "稍动就出汗"] },
-    { name: "胸闷", alias: ["胸口闷", "胸部憋闷"] },
-    { name: "胸部刺痛", alias: ["胸痛", "胸口刺痛", "心前区痛"] },
-    { name: "唇甲青紫", alias: ["嘴唇发紫", "口唇青紫", "指甲发紫"] },
-    { name: "畏寒肢冷", alias: ["怕冷", "手脚冰凉", "手脚发冷", "畏寒"] },
-    { name: "面色无华", alias: ["面色淡白", "面色苍白", "脸色苍白"] },
-    { name: "心烦", alias: ["心中烦热", "烦躁不安"] },
-    { name: "口舌生疮", alias: ["口腔溃疡", "口疮", "舌上生疮"] },
-    { name: "面赤", alias: ["面红", "脸红"] },
-    { name: "小便黄赤", alias: ["小便黄", "尿黄", "尿赤"] },
-    { name: "头晕", alias: ["眩晕", "头昏"] },
-    { name: "头痛", alias: ["头疼"] },
-    { name: "耳鸣", alias: ["耳朵鸣", "耳内鸣响"] },
-    { name: "目赤", alias: ["眼红", "眼睛红"] },
-    { name: "口苦", alias: ["嘴苦"] },
-    { name: "急躁易怒", alias: ["易怒", "脾气急", "爱发火", "烦躁易怒"] },
-    { name: "情志抑郁", alias: ["心情抑郁", "情绪低落", "郁闷", "心情不好"] },
-    { name: "善太息", alias: ["爱叹气", "叹气", "长叹气"] },
-    { name: "胁肋胀痛", alias: ["两胁胀痛", "胁痛", "肋痛", "胁胀"] },
-    { name: "两目干涩", alias: ["眼睛干涩", "眼干", "目涩"] },
-    { name: "肢体麻木", alias: ["手脚麻木", "手麻", "肢麻"] },
-    { name: "身目发黄", alias: ["黄疸", "皮肤发黄", "眼睛发黄"] },
-    { name: "食欲不振", alias: ["不想吃饭", "纳呆", "没胃口", "食少", "纳差"] },
-    { name: "腹胀", alias: ["饭后腹胀", "肚子胀"] },
-    { name: "大便稀溏", alias: ["便溏", "拉肚子", "大便稀", "大便不成形"] },
-    { name: "腹部冷痛", alias: ["腹痛喜温", "肚子冷痛", "腹冷痛"] },
-    { name: "面色萎黄", alias: ["脸色发黄", "面黄"] },
-    { name: "头身困重", alias: ["身体沉重", "身重", "头重"] },
-    { name: "脘腹坠胀", alias: ["腹部坠胀", "小腹坠胀", "脱肛"] },
-    { name: "慢性出血", alias: ["皮下出血", "紫癜", "便血", "月经过多", "容易出血", "牙龈出血"] },
-    { name: "脘腹痞闷", alias: ["胃脘胀闷", "胃胀", "痞满"] },
-    { name: "饥不欲食", alias: ["饿了不想吃", "饥而不食"] },
-    { name: "口干咽燥", alias: ["口干", "咽干", "口燥咽干"] },
-    { name: "大便干结", alias: ["便秘", "大便干", "便干"] },
-    { name: "胃脘隐痛", alias: ["胃隐痛", "胃脘隐隐作痛"] },
-    { name: "胃脘灼痛", alias: ["胃灼痛", "胃烧痛"] },
-    { name: "口渴", alias: ["口渴喜冷饮"] },
-    { name: "口臭", alias: ["口气重"] }
+    { name: "五心烦热", alias: ["手足心热", "五心煩熱", "手足心发热", "手心脚心热"], en: "Five-center heat", ealias: ["hot palms and soles", "heat in palms and soles", "feverish palms and soles", "five center heat", "hot palms soles and chest"] },
+    { name: "盗汗", alias: ["盜汗", "夜间出汗", "睡中出汗", "睡着出汗"], en: "Night sweats", ealias: ["night sweat", "sweating during sleep", "sweating while asleep"] },
+    { name: "腰膝酸软", alias: ["腰膝酸軟", "腰酸膝软", "腰膝痠軟", "腰酸腿软"], en: "Weak and sore lower back and knees", ealias: ["weak knees and sore back", "sore lower back and weak knees", "low back and knee weakness", "weak lower back and knees", "sore back and weak legs", "lower back soreness"] },
+    { name: "咳嗽", alias: ["咳"], en: "Cough", ealias: [] },
+    { name: "吐痰", alias: ["咳痰", "咯痰", "痰多", "有痰", "痰"], en: "Phlegm", ealias: ["sputum", "expectoration", "spitting phlegm", "mucus"] },
+    { name: "有气无力", alias: ["有氣無力", "浑身无力", "全身无力", "没力气"], en: "Fatigue", ealias: ["lack of strength", "no energy", "weak and tired", "tiredness", "exhaustion", "low energy"] },
+    { name: "声音低微", alias: ["聲音低微", "声低", "说话声音小", "说话声低", "声低气怯"], en: "Weak voice", ealias: ["low voice", "faint voice", "soft voice", "quiet voice", "speaks softly"] },
+    { name: "心悸", alias: ["心慌", "心跳快", "心跳不稳"], en: "Palpitations", ealias: ["heart racing", "racing heart", "fluttering heart", "heart pounding"] },
+    { name: "失眠", alias: ["睡不着", "睡不好", "难入睡", "入睡困难"], en: "Insomnia", ealias: ["trouble sleeping", "difficulty sleeping", "cannot sleep", "can't sleep", "difficulty falling asleep", "poor sleep", "sleeplessness"] },
+    { name: "健忘", alias: ["记忆力差", "记性差", "忘事"], en: "Forgetfulness", ealias: ["poor memory", "bad memory", "memory loss", "memory problems"] },
+    { name: "气短", alias: ["少气", "短气"], en: "Shortness of breath", ealias: ["short of breath", "breathlessness", "shallow breathing"] },
+    { name: "自汗", alias: ["白天出汗", "动则汗出", "稍动就出汗"], en: "Spontaneous sweating", ealias: ["daytime sweating", "sweats easily", "sweating on slight exertion", "sweating with little effort"] },
+    { name: "胸闷", alias: ["胸口闷", "胸部憋闷"], en: "Chest tightness", ealias: ["chest oppression", "stuffy chest", "chest stuffiness"] },
+    { name: "胸部刺痛", alias: ["胸痛", "胸口刺痛", "心前区痛"], en: "Stabbing chest pain", ealias: ["chest pain", "pain in the chest"] },
+    { name: "唇甲青紫", alias: ["嘴唇发紫", "口唇青紫", "指甲发紫"], en: "Purple lips and nails", ealias: ["bluish lips and nails", "cyanosis", "purple lips", "bluish-purple lips", "purple nails"] },
+    { name: "畏寒肢冷", alias: ["怕冷", "手脚冰凉", "手脚发冷", "畏寒"], en: "Cold limbs and aversion to cold", ealias: ["cold hands and feet", "feeling cold", "fear of cold", "aversion to cold", "cold extremities"] },
+    { name: "面色无华", alias: ["面色淡白", "面色苍白", "脸色苍白"], en: "Pale lusterless complexion", ealias: ["pale complexion", "pale face", "lusterless complexion", "pale lusterless face"] },
+    { name: "心烦", alias: ["心中烦热", "烦躁不安"], skip: ["五心烦热", "五心煩熱"], en: "Vexation", ealias: ["restlessness", "agitation", "feeling vexed", "restless"] },
+    { name: "口舌生疮", alias: ["口腔溃疡", "口疮", "舌上生疮"], en: "Mouth sores", ealias: ["mouth ulcers", "oral ulcers", "canker sores", "tongue sores"] },
+    { name: "面赤", alias: ["面红", "脸红"], en: "Red face", ealias: ["flushed face", "red complexion", "facial flushing"] },
+    { name: "小便黄赤", alias: ["小便黄", "尿黄", "尿赤"], en: "Dark yellow urine", ealias: ["yellow urine", "dark urine", "reddish urine", "deep yellow urine"] },
+    { name: "头晕", alias: ["眩晕", "头昏"], en: "Dizziness", ealias: ["dizzy", "vertigo", "lightheadedness", "light-headed"] },
+    { name: "头痛", alias: ["头疼"], en: "Headache", ealias: ["head pain", "headaches"] },
+    { name: "耳鸣", alias: ["耳朵鸣", "耳内鸣响"], en: "Tinnitus", ealias: ["ringing in the ears", "ear ringing", "ringing in ears"] },
+    { name: "目赤", alias: ["眼红", "眼睛红"], en: "Red eyes", ealias: ["bloodshot eyes", "red and sore eyes", "eye redness"] },
+    { name: "口苦", alias: ["嘴苦"], en: "Bitter taste in the mouth", ealias: ["bitter mouth", "bitter taste"] },
+    { name: "急躁易怒", alias: ["易怒", "脾气急", "爱发火", "烦躁易怒"], en: "Irritability", ealias: ["irritable", "quick temper", "easily angered", "short temper", "hot temper", "irascible"] },
+    { name: "情志抑郁", alias: ["心情抑郁", "情绪低落", "郁闷", "心情不好"], en: "Depressed mood", ealias: ["low mood", "depression", "emotional depression", "feeling down", "melancholy"] },
+    { name: "善太息", alias: ["爱叹气", "叹气", "长叹气"], en: "Frequent sighing", ealias: ["sighing", "sigh a lot", "long sighs", "deep sighs"] },
+    { name: "胁肋胀痛", alias: ["两胁胀痛", "胁痛", "肋痛", "胁胀"], en: "Distending pain in the flanks", ealias: ["flank pain", "rib-side pain", "pain in the ribs", "hypochondriac pain", "flank distension"] },
+    { name: "两目干涩", alias: ["眼睛干涩", "眼干", "目涩"], en: "Dry eyes", ealias: ["dry and rough eyes", "eye dryness", "gritty eyes"] },
+    { name: "肢体麻木", alias: ["手脚麻木", "手麻", "肢麻"], en: "Numb limbs", ealias: ["numbness", "numb hands and feet", "numbness in the limbs"] },
+    { name: "身目发黄", alias: ["黄疸", "皮肤发黄", "眼睛发黄"], en: "Yellow skin and eyes", ealias: ["jaundice", "yellowing of skin and eyes", "yellow eyes", "yellow skin"] },
+    { name: "食欲不振", alias: ["不想吃饭", "纳呆", "没胃口", "食少", "纳差"], en: "Poor appetite", ealias: ["loss of appetite", "no appetite", "reduced appetite", "not hungry", "lack of appetite"] },
+    { name: "腹胀", alias: ["饭后腹胀", "肚子胀"], en: "Abdominal bloating", ealias: ["bloating", "distension after meals", "bloated stomach", "abdominal distension", "fullness after eating"] },
+    { name: "大便稀溏", alias: ["便溏", "拉肚子", "大便稀", "大便不成形"], en: "Loose stools", ealias: ["loose stool", "diarrhea", "watery stools", "unformed stools", "soft stools"] },
+    { name: "腹部冷痛", alias: ["腹痛喜温", "肚子冷痛", "腹冷痛"], en: "Cold abdominal pain", ealias: ["abdominal pain relieved by warmth", "abdominal pain better with warmth", "cold stomach pain", "cold pain in the abdomen"] },
+    { name: "面色萎黄", alias: ["脸色发黄", "面黄"], en: "Sallow complexion", ealias: ["sallow face", "yellowish complexion", "sallow skin"] },
+    { name: "头身困重", alias: ["身体沉重", "身重", "头重"], en: "Heavy head and body", ealias: ["heavy body", "heavy limbs", "heaviness in the body", "body heaviness", "heavy-headed"] },
+    { name: "脘腹坠胀", alias: ["腹部坠胀", "小腹坠胀", "脱肛"], en: "Abdominal sinking and distension", ealias: ["bearing-down feeling in the abdomen", "prolapse", "organ prolapse", "anal prolapse", "sinking feeling in the abdomen"] },
+    { name: "慢性出血", alias: ["皮下出血", "紫癜", "便血", "月经过多", "容易出血", "牙龈出血"], en: "Chronic bleeding", ealias: ["easy bruising", "blood in stool", "heavy periods", "heavy menstrual bleeding", "bleeding gums", "purpura", "bleeding under the skin", "easy bleeding"] },
+    { name: "脘腹痞闷", alias: ["胃脘胀闷", "胃胀", "痞满"], en: "Epigastric stuffiness", ealias: ["epigastric fullness", "stuffiness in the stomach area", "stomach stuffiness", "stomach fullness"] },
+    { name: "饥不欲食", alias: ["饿了不想吃", "饥而不食"], en: "Hungry but no desire to eat", ealias: ["hunger without desire to eat", "hungry but cannot eat"] },
+    { name: "口干咽燥", alias: ["口干", "咽干", "口燥咽干"], en: "Dry mouth and throat", ealias: ["dry mouth", "dry throat", "parched throat"] },
+    { name: "大便干结", alias: ["便秘", "大便干", "便干"], en: "Dry stools", ealias: ["constipation", "hard stools", "dry stool", "hard stool"] },
+    { name: "胃脘隐痛", alias: ["胃隐痛", "胃脘隐隐作痛"], en: "Dull stomach pain", ealias: ["dull epigastric pain", "dull aching stomach pain", "dull ache in the stomach", "mild stomach pain"] },
+    { name: "胃脘灼痛", alias: ["胃灼痛", "胃烧痛"], en: "Burning stomach pain", ealias: ["burning epigastric pain", "stomach burning", "burning pain in the stomach"] },
+    { name: "口渴", alias: ["口渴喜冷饮"], en: "Thirst", ealias: ["thirsty", "excessive thirst", "thirst for cold drinks"] },
+    { name: "口臭", alias: ["口气重"], en: "Bad breath", ealias: ["halitosis", "foul breath"] }
   ];
   var SYNDROMES = [
     {
-      name: "肾阴虚",
+      name: "肾阴虚", en: "Kidney yin deficiency",
       must: ["五心烦热", "盗汗", "腰膝酸软"],
       not: [],
-      treat: "滋阴补肾",
-      diff: "腰膝酸软是辨别的关键。若没有腰膝酸软，而见咳嗽吐痰，则考虑肺阴虚。"
+      treat: "滋阴补肾", treatEn: "Nourish yin and tonify the kidney",
+      diff: "腰膝酸软是辨别的关键。若没有腰膝酸软，而见咳嗽吐痰，则考虑肺阴虚。",
+      diffEn: "A weak, sore lower back and knees is the key sign. Without it, and with cough and phlegm instead, think of lung yin deficiency."
     },
     {
-      name: "肺阴虚",
+      name: "肺阴虚", en: "Lung yin deficiency",
       must: ["五心烦热", "盗汗", "咳嗽", "吐痰"],
       not: ["腰膝酸软"],
-      treat: "滋阴润肺",
-      diff: "同样有五心烦热、盗汗，区别在于没有腰膝酸软，而见咳嗽吐痰。若有腰膝酸软，则考虑肾阴虚。"
+      treat: "滋阴润肺", treatEn: "Nourish yin and moisten the lung",
+      diff: "同样有五心烦热、盗汗，区别在于没有腰膝酸软，而见咳嗽吐痰。若有腰膝酸软，则考虑肾阴虚。",
+      diffEn: "Same five-center heat and night sweats, but no weak, sore lower back and knees; cough and phlegm instead. With a weak, sore lower back and knees, think of kidney yin deficiency."
     },
     {
-      name: "气虚",
+      name: "气虚", en: "Qi deficiency",
       must: ["有气无力", "声音低微"],
       not: [],
-      treat: "补气",
-      diff: "有气无力、声音低微是气虚的基本表现。再加咳嗽，则为肺气虚；没有咳嗽而见腰膝酸软，则为肾气虚；咳嗽和腰膝酸软同时有，则是肺肾气虚，病情较重。"
+      treat: "补气", treatEn: "Tonify qi",
+      diff: "有气无力、声音低微是气虚的基本表现。再加咳嗽，则为肺气虚；没有咳嗽而见腰膝酸软，则为肾气虚；咳嗽和腰膝酸软同时有，则是肺肾气虚，病情较重。",
+      diffEn: "Fatigue and a weak voice are the basic signs of qi deficiency. Add cough and it is lung qi deficiency; without cough but with a weak, sore lower back and knees, kidney qi deficiency; both together is lung–kidney qi deficiency, which is more serious."
     },
     {
-      name: "肺气虚",
+      name: "肺气虚", en: "Lung qi deficiency",
       must: ["有气无力", "声音低微", "咳嗽"],
       not: ["腰膝酸软"],
-      treat: "补益肺气",
-      diff: "在气虚（有气无力、声音低微）的基础上，加上咳嗽，而没有腰膝酸软。若同时有腰膝酸软，则是肺肾气虚，病情较重。"
+      treat: "补益肺气", treatEn: "Tonify lung qi",
+      diff: "在气虚（有气无力、声音低微）的基础上，加上咳嗽，而没有腰膝酸软。若同时有腰膝酸软，则是肺肾气虚，病情较重。",
+      diffEn: "On top of qi deficiency (fatigue, weak voice), cough is present, without a weak, sore lower back and knees. With both, it is lung–kidney qi deficiency, which is more serious."
     },
     {
-      name: "肾气虚",
+      name: "肾气虚", en: "Kidney qi deficiency",
       must: ["有气无力", "声音低微", "腰膝酸软"],
       not: ["咳嗽"],
-      treat: "补益肾气",
-      diff: "在气虚的基础上，没有咳嗽而见腰膝酸软。若同时有咳嗽，则是肺肾气虚，病情较重。"
+      treat: "补益肾气", treatEn: "Tonify kidney qi",
+      diff: "在气虚的基础上，没有咳嗽而见腰膝酸软。若同时有咳嗽，则是肺肾气虚，病情较重。",
+      diffEn: "On top of qi deficiency, a weak, sore lower back and knees without cough. With cough as well, it is lung–kidney qi deficiency, which is more serious."
     },
     {
-      name: "肺肾气虚",
+      name: "肺肾气虚", en: "Lung–kidney qi deficiency",
       must: ["有气无力", "声音低微", "咳嗽", "腰膝酸软"],
       not: [],
-      treat: "补益肺肾之气",
-      level: "较重，肺和肾同时气虚，建议尽早请医生面诊。",
-      diff: "在气虚的基础上，咳嗽和腰膝酸软同时出现。只有咳嗽是肺气虚，只有腰膝酸软是肾气虚，两者兼有则病情更重。"
+      treat: "补益肺肾之气", treatEn: "Tonify lung and kidney qi",
+      level: "较重，肺和肾同时气虚，建议尽早请医生面诊。", levelEn: "More serious: lung and kidney are both deficient in qi. See a doctor in person soon.",
+      diff: "在气虚的基础上，咳嗽和腰膝酸软同时出现。只有咳嗽是肺气虚，只有腰膝酸软是肾气虚，两者兼有则病情更重。",
+      diffEn: "On top of qi deficiency, cough and a weak, sore lower back and knees appear together. Cough alone is lung qi deficiency and a weak lower back and knees alone is kidney qi deficiency; having both means a more serious condition."
     },
     /* ===== 心 ===== */
-    { name: "心气虚", must: ["心悸", "气短", "自汗", "有气无力"], not: ["畏寒肢冷"], treat: "补益心气",
-      diff: "心悸、气短、自汗，活动后加重。若兼畏寒肢冷、胸闷，则是心阳虚；若兼失眠、健忘、面色无华，则是心血虚。" },
-    { name: "心阳虚", must: ["心悸", "气短", "畏寒肢冷", "胸闷"], not: [], treat: "温补心阳",
-      diff: "在心气虚的基础上，又见畏寒肢冷、胸闷。没有怕冷，只是气短自汗，是心气虚。" },
-    { name: "心血虚", must: ["心悸", "失眠", "健忘", "面色无华"], not: ["五心烦热"], treat: "补血养心",
-      diff: "心悸、失眠、健忘，面色无华，没有虚热表现。若同时五心烦热、盗汗，则是心阴虚。" },
-    { name: "心阴虚", must: ["心悸", "失眠", "五心烦热", "盗汗"], not: ["腰膝酸软"], treat: "滋阴养心",
-      diff: "心悸、失眠，加上五心烦热、盗汗。若同时有腰膝酸软，则要考虑心肾不交。" },
-    { name: "心肾不交", must: ["失眠", "心烦", "五心烦热", "腰膝酸软"], not: [], treat: "交通心肾，滋阴降火",
-      diff: "心烦失眠的同时有五心烦热、腰膝酸软，是心火在上、肾水不足。只有心悸失眠、没有腰膝酸软，多是心阴虚。" },
-    { name: "心火亢盛", must: ["心烦", "失眠", "口舌生疮", "面赤"], not: [], treat: "清心泻火",
-      diff: "心烦失眠，兼口舌生疮、面赤，是实火。虚热则有五心烦热、盗汗，那是阴虚。" },
-    { name: "心血瘀阻", must: ["心悸", "胸部刺痛", "唇甲青紫"], not: [], treat: "活血化瘀，通络止痛",
-      level: "胸痛发作时不要拖，请尽快去医院。",
-      diff: "心悸，胸部刺痛，唇甲青紫。痛的特点是刺痛、位置固定。" },
+    { name: "心气虚", en: "Heart qi deficiency", must: ["心悸", "气短", "自汗", "有气无力"], not: ["畏寒肢冷"], treat: "补益心气", treatEn: "Tonify heart qi",
+      diff: "心悸、气短、自汗，活动后加重。若兼畏寒肢冷、胸闷，则是心阳虚；若兼失眠、健忘、面色无华，则是心血虚。",
+      diffEn: "Palpitations, shortness of breath and spontaneous sweating that get worse with activity. With cold limbs and chest tightness added, it is heart yang deficiency; with insomnia, forgetfulness and a pale lusterless complexion, it is heart blood deficiency." },
+    { name: "心阳虚", en: "Heart yang deficiency", must: ["心悸", "气短", "畏寒肢冷", "胸闷"], not: [], treat: "温补心阳", treatEn: "Warm and tonify heart yang",
+      diff: "在心气虚的基础上，又见畏寒肢冷、胸闷。没有怕冷，只是气短自汗，是心气虚。",
+      diffEn: "On top of heart qi deficiency, cold limbs and chest tightness appear. Without the cold, just shortness of breath and sweating, it is heart qi deficiency." },
+    { name: "心血虚", en: "Heart blood deficiency", must: ["心悸", "失眠", "健忘", "面色无华"], not: ["五心烦热"], treat: "补血养心", treatEn: "Nourish blood and the heart",
+      diff: "心悸、失眠、健忘，面色无华，没有虚热表现。若同时五心烦热、盗汗，则是心阴虚。",
+      diffEn: "Palpitations, insomnia, forgetfulness and a pale lusterless complexion, with no signs of deficiency heat. With five-center heat and night sweats as well, it is heart yin deficiency." },
+    { name: "心阴虚", en: "Heart yin deficiency", must: ["心悸", "失眠", "五心烦热", "盗汗"], not: ["腰膝酸软"], treat: "滋阴养心", treatEn: "Nourish yin and the heart",
+      diff: "心悸、失眠，加上五心烦热、盗汗。若同时有腰膝酸软，则要考虑心肾不交。",
+      diffEn: "Palpitations and insomnia, plus five-center heat and night sweats. With a weak, sore lower back and knees as well, consider heart–kidney disharmony." },
+    { name: "心肾不交", en: "Heart–kidney disharmony", must: ["失眠", "心烦", "五心烦热", "腰膝酸软"], not: [], treat: "交通心肾，滋阴降火", treatEn: "Restore communication between heart and kidney, nourish yin and lower fire",
+      diff: "心烦失眠的同时有五心烦热、腰膝酸软，是心火在上、肾水不足。只有心悸失眠、没有腰膝酸软，多是心阴虚。",
+      diffEn: "Vexation and insomnia together with five-center heat and a weak, sore lower back and knees: heart fire above and not enough kidney water below. Palpitations and insomnia without the weak lower back and knees are usually heart yin deficiency." },
+    { name: "心火亢盛", en: "Blazing heart fire", must: ["心烦", "失眠", "口舌生疮", "面赤"], not: [], treat: "清心泻火", treatEn: "Clear heart fire",
+      diff: "心烦失眠，兼口舌生疮、面赤，是实火。虚热则有五心烦热、盗汗，那是阴虚。",
+      diffEn: "Vexation and insomnia with mouth sores and a red face are excess fire. Deficiency heat shows as five-center heat and night sweats, which is yin deficiency." },
+    { name: "心血瘀阻", en: "Heart blood stasis", must: ["心悸", "胸部刺痛", "唇甲青紫"], not: [], treat: "活血化瘀，通络止痛", treatEn: "Invigorate blood, remove stasis, unblock the channels and relieve pain",
+      level: "胸痛发作时不要拖，请尽快去医院。", levelEn: "Don't wait it out when the chest pain comes: go to a hospital promptly.",
+      diff: "心悸，胸部刺痛，唇甲青紫。痛的特点是刺痛、位置固定。",
+      diffEn: "Palpitations, stabbing chest pain and purple lips and nails. The pain is stabbing and stays in one place." },
     /* ===== 肝 ===== */
-    { name: "肝气郁结", must: ["情志抑郁", "胁肋胀痛", "善太息"], not: [], treat: "疏肝解郁，理气",
-      diff: "情绪抑郁、爱叹气、胁肋胀痛。若变得急躁易怒、头痛目赤、口苦，则是郁而化火，为肝火上炎。" },
-    { name: "肝火上炎", must: ["头痛", "目赤", "急躁易怒", "口苦"], not: [], treat: "清肝泻火",
-      diff: "头痛、目赤、急躁易怒、口苦，是实火。若头晕、腰膝酸软、头重脚轻，则是肝阳上亢。" },
-    { name: "肝阳上亢", must: ["头晕", "头痛", "急躁易怒", "腰膝酸软"], not: ["目赤"], treat: "平肝潜阳，滋养肝肾",
-      diff: "上盛下虚：头晕头痛、急躁易怒是上盛，腰膝酸软是下虚。目赤口苦明显的，多是肝火上炎。" },
-    { name: "肝血虚", must: ["头晕", "两目干涩", "肢体麻木", "面色无华"], not: ["五心烦热"], treat: "补血养肝",
-      diff: "头晕、眼睛干涩、手脚麻木、面色无华，没有虚热。若有五心烦热、盗汗，则是肝阴虚。" },
-    { name: "肝阴虚", must: ["头晕", "两目干涩", "五心烦热", "盗汗"], not: ["腰膝酸软"], treat: "滋阴养肝",
-      diff: "头晕、眼干，加上五心烦热、盗汗。若同时有腰膝酸软、耳鸣，则是肝肾阴虚。" },
-    { name: "肝肾阴虚", must: ["头晕", "耳鸣", "两目干涩", "腰膝酸软", "五心烦热"], not: [], treat: "滋补肝肾",
-      diff: "肝阴虚和肾阴虚同时存在：头晕、耳鸣、眼干，加上腰膝酸软、五心烦热。" },
-    { name: "肝胆湿热", must: ["胁肋胀痛", "口苦", "身目发黄", "小便黄赤"], not: [], treat: "清利肝胆湿热",
-      level: "出现身目发黄，请尽快去医院。",
-      diff: "胁肋胀痛、口苦，加上身目发黄、小便黄赤。只有胁肋胀痛而情绪抑郁的，多是肝气郁结。" },
+    { name: "肝气郁结", en: "Liver qi stagnation", must: ["情志抑郁", "胁肋胀痛", "善太息"], not: [], treat: "疏肝解郁，理气", treatEn: "Soothe the liver, relieve stagnation and regulate qi",
+      diff: "情绪抑郁、爱叹气、胁肋胀痛。若变得急躁易怒、头痛目赤、口苦，则是郁而化火，为肝火上炎。",
+      diffEn: "Depressed mood, frequent sighing and distending pain in the flanks. If it turns irritable with headache, red eyes and a bitter taste, the stagnation has turned to fire: liver fire flaming upward." },
+    { name: "肝火上炎", en: "Liver fire flaming upward", must: ["头痛", "目赤", "急躁易怒", "口苦"], not: [], treat: "清肝泻火", treatEn: "Clear the liver and drain fire",
+      diff: "头痛、目赤、急躁易怒、口苦，是实火。若头晕、腰膝酸软、头重脚轻，则是肝阳上亢。",
+      diffEn: "Headache, red eyes, irritability and a bitter taste are excess fire. With dizziness, a weak, sore lower back and knees and a top-heavy feeling, it is liver yang rising." },
+    { name: "肝阳上亢", en: "Liver yang rising", must: ["头晕", "头痛", "急躁易怒", "腰膝酸软"], not: ["目赤"], treat: "平肝潜阳，滋养肝肾", treatEn: "Calm the liver, subdue yang and nourish liver and kidney",
+      diff: "上盛下虚：头晕头痛、急躁易怒是上盛，腰膝酸软是下虚。目赤口苦明显的，多是肝火上炎。",
+      diffEn: "Excess above and deficiency below: dizziness, headache and irritability are the excess above; a weak, sore lower back and knees is the deficiency below. If red eyes and a bitter taste are prominent, it is more likely liver fire flaming upward." },
+    { name: "肝血虚", en: "Liver blood deficiency", must: ["头晕", "两目干涩", "肢体麻木", "面色无华"], not: ["五心烦热"], treat: "补血养肝", treatEn: "Nourish blood and the liver",
+      diff: "头晕、眼睛干涩、手脚麻木、面色无华，没有虚热。若有五心烦热、盗汗，则是肝阴虚。",
+      diffEn: "Dizziness, dry eyes, numb limbs and a pale lusterless complexion, with no deficiency heat. With five-center heat and night sweats, it is liver yin deficiency." },
+    { name: "肝阴虚", en: "Liver yin deficiency", must: ["头晕", "两目干涩", "五心烦热", "盗汗"], not: ["腰膝酸软"], treat: "滋阴养肝", treatEn: "Nourish yin and the liver",
+      diff: "头晕、眼干，加上五心烦热、盗汗。若同时有腰膝酸软、耳鸣，则是肝肾阴虚。",
+      diffEn: "Dizziness and dry eyes, plus five-center heat and night sweats. With a weak, sore lower back and knees and tinnitus as well, it is liver–kidney yin deficiency." },
+    { name: "肝肾阴虚", en: "Liver–kidney yin deficiency", must: ["头晕", "耳鸣", "两目干涩", "腰膝酸软", "五心烦热"], not: [], treat: "滋补肝肾", treatEn: "Nourish the liver and kidney",
+      diff: "肝阴虚和肾阴虚同时存在：头晕、耳鸣、眼干，加上腰膝酸软、五心烦热。",
+      diffEn: "Liver yin deficiency and kidney yin deficiency together: dizziness, tinnitus and dry eyes, plus a weak, sore lower back and knees and five-center heat." },
+    { name: "肝胆湿热", en: "Liver–gallbladder damp-heat", must: ["胁肋胀痛", "口苦", "身目发黄", "小便黄赤"], not: [], treat: "清利肝胆湿热", treatEn: "Clear damp-heat from the liver and gallbladder",
+      level: "出现身目发黄，请尽快去医院。", levelEn: "With yellow skin and eyes, go to a hospital promptly.",
+      diff: "胁肋胀痛、口苦，加上身目发黄、小便黄赤。只有胁肋胀痛而情绪抑郁的，多是肝气郁结。",
+      diffEn: "Distending pain in the flanks and a bitter taste, plus yellow skin and eyes and dark yellow urine. Flank pain with a depressed mood alone is usually liver qi stagnation." },
     /* ===== 脾胃 ===== */
-    { name: "脾气虚", must: ["食欲不振", "腹胀", "大便稀溏", "有气无力"], not: ["畏寒肢冷"], treat: "健脾益气",
-      diff: "食欲不振、饭后腹胀、大便稀溏、乏力。若兼畏寒肢冷、腹部冷痛，则是脾阳虚；若兼脘腹坠胀，则是中气下陷。" },
-    { name: "脾阳虚", must: ["食欲不振", "大便稀溏", "腹部冷痛", "畏寒肢冷"], not: [], treat: "温中健脾",
-      diff: "在脾气虚的基础上，腹部冷痛、喜温喜按、畏寒肢冷。" },
-    { name: "中气下陷", must: ["脘腹坠胀", "气短", "有气无力", "大便稀溏"], not: [], treat: "补中益气，升阳举陷",
-      diff: "脘腹坠胀，气短乏力，久泻或有脱肛、内脏下垂的感觉，是脾气虚的进一步发展。" },
-    { name: "脾不统血", must: ["食欲不振", "有气无力", "慢性出血"], not: [], treat: "益气健脾，摄血",
-      level: "有出血情况，请先请医生面诊，不要只靠自己调理。",
-      diff: "脾气虚，加上皮下出血、便血、月经过多等慢性出血，是脾气虚不能统摄血液。" },
-    { name: "脾虚生痰", must: ["吐痰", "食欲不振", "大便稀溏", "头身困重"], not: ["口渴"], treat: "健脾燥湿化痰",
-      diff: "痰多，食欲不振，大便稀溏，身体困重。所谓脾为生痰之源，治痰要先健脾。" },
-    { name: "寒湿困脾", must: ["脘腹痞闷", "食欲不振", "头身困重", "大便稀溏"], not: ["小便黄赤"], treat: "温化寒湿，健脾",
-      diff: "脘腹痞闷、身体困重、大便稀溏，属实证（湿困）。脾阳虚属虚证，以腹冷痛、畏寒为主。若小便黄赤、身目发黄，则是湿热。" },
-    { name: "湿热蕴脾", must: ["脘腹痞闷", "食欲不振", "头身困重", "小便黄赤"], not: [], treat: "清热利湿",
-      diff: "和寒湿困脾的区别是有热象：小便黄赤。若同时身目发黄，要及时就医。" },
-    { name: "胃阴虚", must: ["饥不欲食", "口干咽燥", "大便干结", "胃脘隐痛"], not: [], treat: "养阴益胃",
-      diff: "胃脘隐隐作痛，饿了又不想吃，口干咽燥，大便干。属阴虚，不是实热。" },
-    { name: "胃火炽盛", must: ["胃脘灼痛", "口渴", "口臭", "大便干结"], not: [], treat: "清胃泻火",
-      diff: "胃脘灼痛、口渴、口臭、便干，是实火。胃阴虚则隐痛、饥不欲食。" }
+    { name: "脾气虚", en: "Spleen qi deficiency", must: ["食欲不振", "腹胀", "大便稀溏", "有气无力"], not: ["畏寒肢冷"], treat: "健脾益气", treatEn: "Strengthen the spleen and tonify qi",
+      diff: "食欲不振、饭后腹胀、大便稀溏、乏力。若兼畏寒肢冷、腹部冷痛，则是脾阳虚；若兼脘腹坠胀，则是中气下陷。",
+      diffEn: "Poor appetite, bloating after meals, loose stools and fatigue. With cold limbs and cold abdominal pain it is spleen yang deficiency; with abdominal sinking it is sunken middle qi." },
+    { name: "脾阳虚", en: "Spleen yang deficiency", must: ["食欲不振", "大便稀溏", "腹部冷痛", "畏寒肢冷"], not: [], treat: "温中健脾", treatEn: "Warm the middle and strengthen the spleen",
+      diff: "在脾气虚的基础上，腹部冷痛、喜温喜按、畏寒肢冷。",
+      diffEn: "On top of spleen qi deficiency: cold abdominal pain that likes warmth and pressure, and cold limbs." },
+    { name: "中气下陷", en: "Sunken middle qi", must: ["脘腹坠胀", "气短", "有气无力", "大便稀溏"], not: [], treat: "补中益气，升阳举陷", treatEn: "Tonify middle qi and lift yang to raise what has sunk",
+      diff: "脘腹坠胀，气短乏力，久泻或有脱肛、内脏下垂的感觉，是脾气虚的进一步发展。",
+      diffEn: "Abdominal sinking, shortness of breath and fatigue, with long-lasting loose stools or a feeling of prolapse. It is a further development of spleen qi deficiency." },
+    { name: "脾不统血", en: "Spleen failing to control blood", must: ["食欲不振", "有气无力", "慢性出血"], not: [], treat: "益气健脾，摄血", treatEn: "Tonify qi, strengthen the spleen and keep blood in the vessels",
+      level: "有出血情况，请先请医生面诊，不要只靠自己调理。", levelEn: "There is bleeding: see a doctor in person first rather than relying on self-care.",
+      diff: "脾气虚，加上皮下出血、便血、月经过多等慢性出血，是脾气虚不能统摄血液。",
+      diffEn: "Spleen qi deficiency plus chronic bleeding such as bruising under the skin, blood in the stool or heavy periods: the deficient spleen qi cannot hold blood in." },
+    { name: "脾虚生痰", en: "Spleen deficiency generating phlegm", must: ["吐痰", "食欲不振", "大便稀溏", "头身困重"], not: ["口渴"], treat: "健脾燥湿化痰", treatEn: "Strengthen the spleen, dry dampness and resolve phlegm",
+      diff: "痰多，食欲不振，大便稀溏，身体困重。所谓脾为生痰之源，治痰要先健脾。",
+      diffEn: "Plenty of phlegm, poor appetite, loose stools and a heavy body. The spleen is called the source of phlegm, so treating phlegm starts with strengthening the spleen." },
+    { name: "寒湿困脾", en: "Cold-damp encumbering the spleen", must: ["脘腹痞闷", "食欲不振", "头身困重", "大便稀溏"], not: ["小便黄赤"], treat: "温化寒湿，健脾", treatEn: "Warm and transform cold-damp, and strengthen the spleen",
+      diff: "脘腹痞闷、身体困重、大便稀溏，属实证（湿困）。脾阳虚属虚证，以腹冷痛、畏寒为主。若小便黄赤、身目发黄，则是湿热。",
+      diffEn: "Epigastric stuffiness, a heavy body and loose stools are an excess pattern (damp encumbrance). Spleen yang deficiency is a deficiency pattern, mainly cold abdominal pain and aversion to cold. With dark yellow urine and yellow skin and eyes, it is damp-heat." },
+    { name: "湿热蕴脾", en: "Damp-heat in the spleen", must: ["脘腹痞闷", "食欲不振", "头身困重", "小便黄赤"], not: [], treat: "清热利湿", treatEn: "Clear heat and drain dampness",
+      diff: "和寒湿困脾的区别是有热象：小便黄赤。若同时身目发黄，要及时就医。",
+      diffEn: "The difference from cold-damp encumbering the spleen is heat: dark yellow urine. If yellow skin and eyes appear too, seek care promptly." },
+    { name: "胃阴虚", en: "Stomach yin deficiency", must: ["饥不欲食", "口干咽燥", "大便干结", "胃脘隐痛"], not: [], treat: "养阴益胃", treatEn: "Nourish yin and the stomach",
+      diff: "胃脘隐隐作痛，饿了又不想吃，口干咽燥，大便干。属阴虚，不是实热。",
+      diffEn: "Dull stomach pain, hungry but no desire to eat, dry mouth and throat, dry stools. It is yin deficiency, not excess heat." },
+    { name: "胃火炽盛", en: "Blazing stomach fire", must: ["胃脘灼痛", "口渴", "口臭", "大便干结"], not: [], treat: "清胃泻火", treatEn: "Clear the stomach and drain fire",
+      diff: "胃脘灼痛、口渴、口臭、便干，是实火。胃阴虚则隐痛、饥不欲食。",
+      diffEn: "Burning stomach pain, thirst, bad breath and dry stools are excess fire. Stomach yin deficiency shows as dull pain and being hungry without wanting food." }
   ];
+
+  var SYM_BY = {};
+  SYMPTOMS.forEach(function (s) { SYM_BY[s.name] = s; });
+  function SN(zh) { return EN() ? SYM_BY[zh].en : zh; }
+  function sep() { return EN() ? ", " : "，"; }
 
   function names() { return SYMPTOMS.map(function (s) { return s.name; }); }
 
   function parse(text) {
     var sel = {}, rest = [];
-    text.split(/[,，、;；\s]+/).filter(Boolean).forEach(function (frag) {
-      var hit = false;
+    var pieces = [];
+    text.split(/[,，、;；]+/).forEach(function (p) {
+      if (/[一-鿿]/.test(p)) { p.split(/\s+/).forEach(function (q) { pieces.push(q); }); } else { pieces.push(p); }
+    });
+    pieces.map(function (p) { return p.trim(); }).filter(Boolean).forEach(function (frag) {
+      var hit = false, low = frag.toLowerCase();
       SYMPTOMS.forEach(function (s) {
-        var keys = [s.name].concat(s.alias || []);
-        if (keys.some(function (k) { return frag.indexOf(k) >= 0; })) { sel[s.name] = true; hit = true; }
+        var keys = [s.name].concat(s.alias || [], [s.en], s.ealias || []);
+        // skip：先把另一个症状的词（如“五心烦热”里含有“心烦”）从文字里挖掉，避免误认
+        var text = low;
+        (s.skip || []).forEach(function (w) { text = text.split(w).join(" "); });
+        if (keys.some(function (k) { return text.indexOf(k.toLowerCase()) >= 0; })) { sel[s.name] = true; hit = true; }
       });
       if (!hit) rest.push(frag);
     });
@@ -291,44 +362,89 @@ h2 { margin: 30px 0 10px; font-family: var(--f-head); font-weight: 900; font-siz
   }
 
   if (typeof document === "undefined") {
-    if (typeof module !== "undefined") module.exports = { parse: parse, match: match, SYNDROMES: SYNDROMES };
+    if (typeof module !== "undefined") module.exports = { parse: parse, match: match, SYNDROMES: SYNDROMES, SYMPTOMS: SYMPTOMS };
     return;
   }
 
   var $ = function (id) { return document.getElementById(id); };
 
+  // 把选中的症状按当前语言写回输入框的格式
+  function ser(r) {
+    return names().filter(function (x) { return r.sel[x]; }).map(SN).concat(r.rest).join(sep());
+  }
+
   function render() {
     var r = parse($("q").value);
     $("chips").innerHTML = names().map(function (n) {
-      return '<li><button type="button" class="chip" data-s="' + n + '" aria-pressed="' + (r.sel[n] ? "true" : "false") + '">' + n + '</button></li>';
+      return '<li><button type="button" class="chip" data-s="' + n + '" aria-pressed="' + (r.sel[n] ? "true" : "false") + '">' + SN(n) + '</button></li>';
     }).join("");
     var unk = $("unk");
-    if (r.rest.length) { unk.hidden = false; unk.textContent = "症状库里暂时没有：" + r.rest.join("、") + "。"; } else { unk.hidden = true; }
+    if (r.rest.length) {
+      unk.hidden = false;
+      unk.textContent = X("症状库里暂时没有：" + r.rest.join("、") + "。", "Not yet in the symptom library: " + r.rest.join(", ") + ".");
+    } else { unk.hidden = true; }
 
     var res = match(r.sel), out = $("out");
     if (!Object.keys(r.sel).length) {
-      out.innerHTML = '<div class="empty">还没有识别到症状。请在上面的搜索栏输入，或点一个症状词。</div>';
+      out.innerHTML = '<div class="empty">' + X("还没有识别到症状。请在上面的搜索栏输入，或点一个症状词。", "No symptoms recognized yet. Type in the search box above, or tap a symptom tag.") + '</div>';
       return;
     }
     if (!res.length) {
-      out.innerHTML = '<div class="empty">这几个症状没有对上库里的任何证型。可以再补充几个症状，或者交给医生面诊辨证。</div>';
+      out.innerHTML = '<div class="empty">' + X("这几个症状没有对上库里的任何证型。可以再补充几个症状，或者交给医生面诊辨证。", "These symptoms did not match any pattern in the library. Add a few more symptoms, or have a doctor differentiate in person.") + '</div>';
       return;
     }
     out.innerHTML = res.map(function (m) {
       var sy = m.sy;
-      var basis = sy.must.map(function (s) { return m.have.indexOf(s) >= 0 ? '<span class="ok">' + s + ' ✓</span>' : '<span class="miss">' + s + ' 未见</span>'; }).join("　");
-      var rows = '<dt>依据</dt><dd>' + basis + '</dd>';
-      if (m.block.length) rows += '<dt>排除</dt><dd class="no">出现了' + m.block.join("、") + '，不按' + sy.name + '论。</dd>';
-      rows += '<dt>治法</dt><dd>' + sy.treat + '</dd>';
-      if (sy.level) rows += '<dt>程度</dt><dd class="no">' + sy.level + '</dd>';
-      rows += '<dt>鉴别</dt><dd>' + sy.diff + '</dd>';
-      var status = m.block.length ? '' : (m.full ? '<span class="pill">相符</span>' : '<span class="pill part">部分相符</span>');
-      return '<article class="card' + (m.full && !m.block.length ? ' hit' : '') + '"><header><h3>' + sy.name + '</h3>' + status + '</header><dl>' + rows + '</dl></article>';
+      var basis = sy.must.map(function (s) {
+        return m.have.indexOf(s) >= 0
+          ? '<span class="ok">' + SN(s) + ' ✓</span>'
+          : '<span class="miss">' + SN(s) + X(" 未见", " not seen") + '</span>';
+      }).join(X("　", " · "));
+      var rows = '<dt>' + X("依据", "Basis") + '</dt><dd>' + basis + '</dd>';
+      if (m.block.length) rows += '<dt>' + X("排除", "Exclusion") + '</dt><dd class="no">' + X(
+        "出现了" + m.block.join("、") + "，不按" + sy.name + "论。",
+        m.block.map(SN).join(", ") + " present, so not treated as " + sy.en + ".") + '</dd>';
+      rows += '<dt>' + X("治法", "Treatment") + '</dt><dd>' + X(sy.treat, sy.treatEn) + '</dd>';
+      if (sy.level) rows += '<dt>' + X("程度", "Severity") + '</dt><dd class="no">' + X(sy.level, sy.levelEn) + '</dd>';
+      rows += '<dt>' + X("鉴别", "Differentiation") + '</dt><dd>' + X(sy.diff, sy.diffEn) + '</dd>';
+      var status = m.block.length ? '' : (m.full ? '<span class="pill">' + X("相符", "Match") + '</span>' : '<span class="pill part">' + X("部分相符", "Partial match") + '</span>');
+      return '<article class="card' + (m.full && !m.block.length ? ' hit' : '') + '"><header><h3>' + X(sy.name, sy.en) + '</h3>' + status + '</header><dl>' + rows + '</dl></article>';
     }).join("");
   }
 
   function setText(t) { $("q").value = t; render(); }
 
+  /* ===== 静态文字：每个带 data-en 的元素，保存中文原文，按语言切换 ===== */
+  function applyStatic() {
+    document.documentElement.lang = EN() ? "en" : "zh-CN";
+    var nodes = document.querySelectorAll("[data-en]");
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (el.getAttribute("data-zh") === null) el.setAttribute("data-zh", el.innerHTML);
+      el.innerHTML = EN() ? el.getAttribute("data-en") : el.getAttribute("data-zh");
+    }
+    document.title = X("中医养生", "TCM Wellness");
+    var q = $("q");
+    q.setAttribute("placeholder", X("例如：五心烦热，盗汗，腰膝酸软", "e.g. Five-center heat, night sweats, weak and sore lower back and knees"));
+    q.setAttribute("aria-label", X("症状", "Symptoms"));
+    var exs = document.querySelectorAll("button.ex");
+    for (var j = 0; j < exs.length; j++) exs[j].textContent = ser(parse(exs[j].getAttribute("data-q")));
+  }
+  // 切换语言时，输入框里的症状也换成当前语言
+  function refresh() {
+    applyStatic();
+    setText(ser(parse($("q").value)));
+  }
+  function setLang(v) {
+    LANG = v;
+    try { localStorage.setItem("lang", v); } catch (e) { }
+    refresh();
+  }
+
+  $("lang").addEventListener("click", function () { setLang(EN() ? "zh" : "en"); });
+  window.addEventListener("storage", function (e) {
+    if (e.key === "lang") { var v = (e.newValue && /^en/i.test(e.newValue)) ? "en" : "zh"; if (v !== LANG) { LANG = v; refresh(); } }
+  });
   $("q").addEventListener("input", render);
   $("form").addEventListener("submit", function (e) { e.preventDefault(); render(); });
   $("chips").addEventListener("click", function (e) {
@@ -336,15 +452,14 @@ h2 { margin: 30px 0 10px; font-family: var(--f-head); font-weight: 900; font-siz
     if (!b) return;
     var r = parse($("q").value), n = b.getAttribute("data-s");
     if (r.sel[n]) delete r.sel[n]; else r.sel[n] = true;
-    var keep = names().filter(function (x) { return r.sel[x]; }).concat(r.rest);
-    setText(keep.join("，"));
+    setText(ser(r));
   });
   document.addEventListener("click", function (e) {
     var b = e.target.closest("button[data-q]");
-    if (b) setText(b.getAttribute("data-q"));
+    if (b) setText(ser(parse(b.getAttribute("data-q"))));
   });
-  render();
+  refresh();
 })();
 </script>
-
-</body></html>
+</body>
+</html>
