@@ -73,16 +73,24 @@ async function callAI(env, messages) {
     const d = await r.json();
     return (d.content || []).map(c => c.text || '').join('');
   }
-  // Cloudflare Workers AI（免费额度）
-  try {
-    const msgs = [{ role: 'system', content: SYSTEM }, ...messages.map((m, i) => i === 0 ? { role: 'user', content: m.content + ' /no_think' } : m)];
-    const d = await env.AI.run(env.AI_MODEL || CF_MODEL, { messages: msgs, max_tokens: 1800 });
-    const t = typeof d === 'string' ? d : (d.response ?? (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) ?? '');
-    return String(t).replace(/<think>[\s\S]*?<\/think>/g, '');
-  } catch (e) {
-    if (/neuron|limit|quota|429|4006/i.test(String(e && e.message))) throw new Error('quota');
-    throw new Error('ai_failed');
+  // Cloudflare Workers AI（免费额度）：依次尝试几个模型，哪个能用就用哪个
+  const msgs = [{ role: 'system', content: SYSTEM }, ...messages.map((m, i) => i === 0 ? { role: 'user', content: m.content + ' /no_think' } : m)];
+  const models = [env.AI_MODEL, CF_MODEL, '@cf/meta/llama-3.3-70b-instruct-fp8-fast'].filter(Boolean);
+  const errs = [];
+  for (const m of models) {
+    try {
+      const d = await env.AI.run(m, { messages: msgs, max_tokens: 3000 });
+      const t = typeof d === 'string' ? d : (d.response ?? (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) ?? '');
+      const out = (typeof t === 'string' ? t : JSON.stringify(t)).replace(/<think>[\s\S]*?<\/think>/g, '');
+      if (out.trim()) return out;
+      errs.push(m + ': empty');
+    } catch (e) {
+      const msg = String(e && e.message || e);
+      if (/neuron|limit|quota|429|4006/i.test(msg)) throw new Error('quota');
+      errs.push(m + ': ' + msg.slice(0, 160));
+    }
   }
+  const err = new Error('ai_failed'); err.detail = errs.join(' | '); throw err;
 }
 
 function parseOut(raw) {
@@ -133,10 +141,10 @@ export async function onRequestPost({ request, env }) {
       const out2 = parseOut(raw);
       if (out2) out = out2;
     }
-    if (!out) return J({ error: 'ai_failed' }, 502);
+    if (!out) return J({ error: 'ai_failed', detail: 'unparsable: ' + String(raw).slice(0, 200) }, 502);
     return J({ ok: true, title: out.title, text: out.text, en: out.en, checked: !!exp, valid: exp ? same(segLens(out.text), exp) : null });
   } catch (e) {
-    return J({ error: String(e.message || 'ai_failed') }, 502);
+    return J({ error: String(e.message || 'ai_failed'), detail: e.detail || '' }, 502);
   }
 }
 
