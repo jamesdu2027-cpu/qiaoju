@@ -56,7 +56,16 @@ html[lang="en"] h1{letter-spacing:0}
   <div class="mood">
     <label for="mood" data-en="Write how you feel (e.g. “Late autumn, I miss my mother and want to visit her grave”) and it will compose to match">写下你的心情（比如“晚秋想念母亲，想去墓地看她，草长高了遮住了小路”），程序会按心情编曲</label>
     <textarea id="mood" maxlength="300"></textarea>
-    <div class="row" style="margin-top:8px"><button class="main" id="moodGo" data-en="Compose from my feeling">按心情编曲</button><span id="moodMsg" class="note"></span></div>
+    <div class="row" style="margin-top:8px">
+      <select id="songLen" style="width:auto"><option value="3" data-en="About 3 min">约 3 分钟</option><option value="4" data-en="About 4 min">约 4 分钟</option><option value="5" selected data-en="About 5 min">约 5 分钟</option></select>
+      <button class="main" id="songGo" data-en="Create full song">生成完整歌曲</button>
+      <button id="songPlay">播放整曲</button>
+      <button id="songWav" data-en="Song WAV">整曲 WAV</button>
+      <button id="songMidi" data-en="Song MIDI">整曲 MIDI</button>
+    </div>
+    <p class="note" style="margin:8px 0 0" data-en="A full song has an intro, verses, choruses, a bridge, a key-change final chorus and an outro. It uses the feeling text above, or the style below if the box is empty.">完整歌曲有前奏、主歌、副歌、过渡段、转调的最后副歌和尾声。有心情文字就按心情编，文字框空着就按下面选的风格编。</p>
+    <p class="note" id="songNow" style="margin:6px 0 0"></p><p class="note" id="songMap" style="margin:4px 0 0"></p>
+    <div class="row" style="margin-top:8px"><button id="moodGo" data-en="Short sketch from my feeling">只按心情编一小段</button><span id="moodMsg" class="note"></span></div>
   </div>
   <div class="grid">
     <div><label for="style" data-en="Style (for Auto-compose)">风格（用于自动编曲）</label><select id="style"></select></div>
@@ -119,7 +128,8 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const int7=()=>(S.scale==='minor'||S.scale==='pentMin'||S.scale==='blues')?MIN:MAJ;
 function rowSemis(scale){const b=BASES[scale||S.scale],o=[];for(let k=0;k<2;k++)b.forEach(x=>o.push(x+12*k));o.push(24);return o}
 const noteName=m=>NOTE[((m%12)+12)%12]+(Math.floor(m/12)-1);
-const stepDur=()=>60/S.bpm/2;
+let TM=1;
+const stepDur=()=>60/S.bpm/2*TM;
 const hz=m=>440*Math.pow(2,(m-69)/12);
 const ROMAN_MAJ=['I','ii','iii','IV','V','vi','vii°'],ROMAN_MIN=['i','ii°','III','iv','v','VI','VII'];
 function chordName(d){
@@ -164,9 +174,9 @@ function lead(ctx,dest,t,m,dur,inst){
     end=t+dur+.15;os=[o,o2,lfo];
   }else if(inst==='violin'||inst==='erhu'){
     const er=inst==='erhu';
-    const mk=det=>{const o=ctx.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(er?f*.97:f,t);if(er)o.frequency.linearRampToValueAtTime(f,t+.07);o.detune.value=det;return o};
+    const mk=det=>{const o=ctx.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(er?f*.95:f,t);if(er)o.frequency.linearRampToValueAtTime(f,t+.1);o.detune.value=det;return o};
     const o1=mk(-4),o2=mk(4),lfo=ctx.createOscillator(),lg=ctx.createGain();
-    lfo.frequency.value=er?5.8:5.3;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(er?16:9,t+.25);
+    lfo.frequency.value=er?5.4:5.3;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(er?24:9,t+(er?.35:.25));
     lfo.connect(lg);lg.connect(o1.detune);lg.connect(o2.detune);
     if(er){
       [[800,2.5,1],[2300,3,.7]].forEach(([fr,q,v])=>{const b=ctx.createBiquadFilter();b.type='bandpass';b.frequency.value=fr;b.Q.value=q;const gg=ctx.createGain();gg.gain.value=v;o1.connect(b);o2.connect(b);b.connect(gg);gg.connect(g)});
@@ -176,6 +186,7 @@ function lead(ctx,dest,t,m,dur,inst){
     const pk=er?.36:.14;
     g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(pk,t+(er?.06:.09));g.gain.setValueAtTime(pk*.9,t+Math.max(.1,dur-.06));g.gain.linearRampToValueAtTime(.0001,t+dur+.14);
     end=t+dur+.17;os=[o1,o2,lfo];
+    if(er){const ns=ctx.createBufferSource();ns.buffer=noise(ctx);ns.loop=true;const nb=ctx.createBiquadFilter();nb.type='bandpass';nb.frequency.value=Math.min(f*5,4500);nb.Q.value=1.5;const ng=ctx.createGain();ng.gain.value=.05;ns.connect(nb);nb.connect(ng);ng.connect(g);os.push(ns)}
   }else if(inst==='panpipe'){
     const o=osc('sine',f,1),o2=osc('triangle',f*2,.08);
     const ns=ctx.createBufferSource();ns.buffer=noise(ctx);ns.loop=true;
@@ -252,11 +263,15 @@ const STY={
   guofeng:{scale:'pentMin',bpm:88,inst:'pluck',bass:'none',pad:true,prog:[[1,6,3,7],[1,7,6,7],[1,4,1,5]],drum:'light'}
 };
 const DR={pop:{k:[0,4],s:[2,6],h:[0,1,2,3,4,5,6,7]},soft:{k:[0,4],s:[6],h:[2,6]},four:{k:[0,2,4,6],s:[4],h:[1,3,5,7]},light:{k:[0],s:[],h:[2,6]},country:{k:[0,4],s:[2,6],h:[]},jazz:{k:[],s:[],h:[0,2,3,4,6,7]}};
-function setDrums(p,fill){
-  S.drum={k:blank(),s:blank(),h:blank()};
-  for(let b=0;b<4;b++)['k','s','h'].forEach(key=>p[key].forEach(x=>{S.drum[key][b*8+x]=1}));
-  if(fill)[5,6,7].forEach(x=>{S.drum.s[24+x]=1});
+function mkDrum(p,level,fill){
+  const d={k:blank(),s:blank(),h:blank()};
+  if(!level)return d;
+  const q=level===1?{k:p.k.filter(x=>x===0),s:[],h:p.h.filter(x=>x%4===2)}:p;
+  for(let b=0;b<4;b++)['k','s','h'].forEach(key=>q[key].forEach(x=>{d[key][b*8+x]=1}));
+  if(fill)[5,6,7].forEach(x=>{d.s[24+x]=1});
+  return d;
 }
+function setDrums(p,fill){S.drum=mkDrum(p,2,fill)}
 function nearestChordRow(r,pcs){
   const rows=rowSemis();let best=0,bd=99,bj=99;
   rows.forEach((s,j)=>{const m=s%12;let d=99;pcs.forEach(p=>{const x=Math.abs(m-p);d=Math.min(d,x,12-x)});const jd=Math.abs(j-r);if(d<bd||(d===bd&&jd<bj)){bd=d;bj=jd;best=j}});
@@ -269,7 +284,7 @@ function genMelody(prog,style){
   const TS=[[2,2,4],[4,2,2],[3,1,4],[2,2,2,2],[2,1,1,2,2],[4,4]];
   const T=slow?TS:TF,A=pick(T),B=pick(T);
   const rh=[A,A,B,pick(TS)];
-  let r=Math.floor(n/2),prevRow=-1,prevEnd=-1;
+  let r=(MOODOPT&&MOODOPT.start!=null)?MOODOPT.start:Math.floor(n/2),prevRow=-1,prevEnd=-1;
   for(let b=0;b<4;b++){
     const pcs=chordPcs(prog[b]);let s=b*8;
     rh[b].forEach((len,i)=>{
@@ -321,7 +336,7 @@ function moodCompose(text){
   MOODOPT={sparse:P.sparse||0,desc:!!P.desc};
   genMelody(prog,P.bpm<90?'sad':'pop');MOODOPT=null;
   evDirty=true;syncUI();buildGrid();
-  return {key,name:P.n,found:sc.length>0};
+  return {key,name:P.n,found:sc.length>0,P};
 }
 function autoCompose(){
   const st=$('style').value,P=STY[st];
@@ -331,6 +346,73 @@ function autoCompose(){
   setDrums(P?DR[P.drum]:DR.pop,P?P.fill:true);
   genMelody(prog,st);
   evDirty=true;syncUI();buildGrid();
+  return {P,st};
+}
+/* ===== 整首歌曲：前奏、主歌、副歌、过渡段、转调副歌、尾声 ===== */
+const SNK=['root','scale','bpm','inst','bass','pad','strum','swing','seventh','comp','mel','chords','drum'];
+const snap=()=>{const o={};SNK.forEach(k=>o[k]=S[k]);return o};
+const restore=o=>{SNK.forEach(k=>{S[k]=o[k]});evDirty=true};
+const applyBlock=b=>{S.root=b.root;S.mel=b.mel;S.chords=b.chords;S.drum=b.drum;S.pad=b.pad;S.bass=b.bass;S.strum=b.strum;S.comp=b.comp;S.inst=b.inst;evDirty=true};
+const SECN={intro:['前奏','Intro'],verse:['主歌','Verse'],chorus:['副歌','Chorus'],bridge:['过渡段','Bridge'],final:['转调副歌','Key-change chorus'],outro:['尾声','Outro']};
+let SONG=null,SONGON=false,SNAP=null,secBus=null,songEnd=false;
+function buildSong(P,target){
+  const keep=snap();
+  const base={root:S.root,inst:S.inst,bass:S.bass,pad:S.pad,strum:S.strum,comp:S.comp};
+  const sparse=P.sparse||0,desc=!!P.desc,slow=S.bpm<90,hasDr=P.drum!=='none';
+  const n=rowSemis().length;
+  const progs=P.prog,pA=pick(progs),others=progs.filter(x=>x!==pA),pB=others.length?pick(others):pA;
+  const brP=int7()===MAJ?[4,5,6,5]:[6,7,1,5];
+  const gen=(prog,start)=>{MOODOPT={sparse,desc,start:Math.floor(n*start)};genMelody(prog,slow?'sad':'pop');MOODOPT=null;return S.mel};
+  const splice=(a,b,from)=>{const o=zeros(n);for(let r=0;r<n;r++)for(let t=0;t<N;t++)o[r][t]=t<from?a[r][t]:b[r][t];return o};
+  const clip=(m,f,t2)=>{const o=zeros(n);for(let r=0;r<n;r++)for(let t=f;t<t2;t++)o[r][t]=m[r][t];return o};
+  const A=gen(pA,.3),A2=splice(A,gen(pA,.3),16);
+  const B=gen(pB,.72),B2=splice(B,gen(pB,.72),16);
+  const C=gen(brP,.5),C2=splice(C,gen(brP,.5),16);
+  const intro=clip(A,16,32);
+  const outro=clip(A,0,16);const tr=nearestChordRow(Math.floor(n*.3),[0]);for(let t=24;t<32;t++)outro[tr][t]=1;
+  const dr=(lvl,fill)=>hasDr?mkDrum(DR[P.drum],lvl,fill):mkDrum(DR.none,0,false);
+  const chBass=base.bass==='none'?'root':base.bass;
+  const blocks=[];let secId=0;
+  const add=(key,list)=>{secId++;list.forEach(o=>blocks.push(Object.assign({root:base.root,inst:base.inst,bass:base.bass,pad:base.pad,strum:base.strum,comp:base.comp,v0:1,v1:1,tm0:1,tm1:1,sec:key,secId},o)))};
+  const verse=sw=>add('verse',[{mel:sw?A2:A,chords:pA,drum:dr(1),v0:.7,v1:.72},{mel:sw?A:A2,chords:pA,drum:dr(1),v0:.72,v1:.76}]);
+  const chorus=(key,rt)=>add(key,[{mel:B,chords:pB,drum:dr(2,false),bass:chBass,root:rt,v0:.95,v1:1},{mel:B2,chords:pB,drum:dr(2,hasDr),bass:chBass,root:rt,v0:1,v1:key==='final'?1.08:1}]);
+  const blockSec=960/S.bpm;
+  const baseBlocks=14,pairs=clamp(Math.round((target-baseBlocks*blockSec)/(4*blockSec)),0,8);
+  add('intro',[{mel:intro,chords:pA,drum:dr(0),bass:'none',strum:false,comp:false,v0:.5,v1:.8}]);
+  verse(false);chorus('chorus',base.root);
+  for(let i=0;i<pairs;i++){verse(i%2===0);chorus('chorus',base.root)}
+  verse(true);chorus('chorus',base.root);
+  const alt=base.inst==='piano'?'flute':'piano';
+  add('bridge',[{mel:C,chords:brP,drum:dr(0),bass:'none',strum:false,comp:false,inst:alt,v0:.5,v1:.7},{mel:C2,chords:brP,drum:dr(0),bass:'none',strum:false,comp:false,inst:alt,v0:.7,v1:.95}]);
+  chorus('final',base.root+2);
+  add('outro',[{mel:outro,chords:[pA[0],pA[1],pA[2],1],drum:dr(0),bass:'none',strum:false,comp:false,v0:.85,v1:.4,tm0:1,tm1:1.35}]);
+  restore(keep);
+  // 段落时间表
+  let t=0;const map=[];let last=-1;
+  blocks.forEach(b=>{if(b.secId!==last){map.push({t,sec:b.sec});last=b.secId}
+    for(let s=0;s<N;s++)t+=60/S.bpm/2*(b.tm0+(b.tm1-b.tm0)*s/N)});
+  return {blocks,map,total:t};
+}
+const fmtT=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
+function showSongMap(){
+  const el=$('songMap');if(!SONG){el.textContent='';return}
+  el.textContent=X('全曲约 ','Length about ')+fmtT(SONG.total)+X('　','  ')+SONG.map.map(m=>fmtT(m.t)+' '+X(SECN[m.sec][0],SECN[m.sec][1])).join(' · ');
+}
+function songGo(){
+  if(playing)stop();
+  const txt=$('mood').value.trim();let P;
+  if(txt){moodRes=moodCompose(txt);showMood();P=moodRes.P}
+  else{const r=autoCompose();P=r.P||{prog:int7()===MAJ?PROG_MAJ:PROG_MIN,drum:'pop',fill:true}}
+  SONG=buildSong(P,(+$('songLen').value||5)*60);showSongMap();setMsg(null);play(true);
+}
+async function renderSongWav(){
+  const sn=snap(),sr=32000,C=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const ctx=new C(2,Math.ceil((SONG.total+3.5)*sr),sr),m=makeMaster(ctx);let t=.05;
+  SONG.blocks.forEach(b=>{applyBlock(b);const g=ctx.createGain();g.connect(m);g.gain.setValueAtTime(b.v0,t);
+    for(let s=0;s<N;s++){TM=b.tm0+(b.tm1-b.tm0)*s/N;playStep(ctx,g,s,t);t+=stepDur()}
+    g.gain.linearRampToValueAtTime(b.v1,t)});
+  TM=1;restore(sn);
+  return wavBytes(await ctx.startRendering());
 }
 function changeScale(ns){
   const oldRows=rowSemis(),old=S.mel;S.scale=ns;
@@ -341,21 +423,30 @@ function changeScale(ns){
 
 /* ===== 导出 ===== */
 function vlq(n){const b=[n&127];while(n>>=7)b.unshift((n&127)|128);return b}
-function midiBytes(){
+function midiBytes(blocks){
+  const sn=snap(),list=blocks||[null];
   const tpq=480,st=tpq/2,ev=[];let o=0;
   const add=(t,b)=>ev.push({t,b,o:o++});
-  const us=Math.round(60000000/S.bpm),tickOf=n=>n*st+((S.swing&&n%2)?Math.round(st/3):0);
-  add(0,[0xFF,0x51,3,(us>>16)&255,(us>>8)&255,us&255]);
-  add(0,[0xC0,{pluck:107,flute:73,piano:0,synth:81,violin:40,erhu:110,panpipe:75,sax:65}[S.inst]]);add(0,[0xC1,89]);add(0,[0xC2,33]);add(0,[0xC3,25]);add(0,[0xC4,0]);
+  const PR={pluck:107,flute:73,piano:0,synth:81,violin:40,erhu:110,panpipe:75,sax:65};
+  add(0,[0xC1,89]);add(0,[0xC2,33]);add(0,[0xC3,25]);add(0,[0xC4,0]);
   const note=(ch,m,t0,t1,v)=>{add(t0,[0x90|ch,m,v]);add(t1,[0x80|ch,m,0])};
-  melEvents().forEach(n=>note(0,n.midi,tickOf(n.step),tickOf(n.step+n.len),90));
-  for(let b=0;b<4;b++){
-    if(S.pad)chordMidis(S.chords[b]).forEach(m=>note(1,m,b*8*st,(b*8+8)*st,55));
-    bassHits(b).forEach(h=>note(2,h.m,tickOf(b*8+h.s),tickOf(b*8+h.s+h.l),90));
-    if(S.comp)compSteps(b).forEach(x=>chordMidis(S.chords[b]).slice(1).forEach(m=>note(4,m,tickOf(b*8+x),tickOf(b*8+x)+st*2,70)));
-    if(S.strum)[2,6].forEach(x=>{const cm=chordMidis(S.chords[b]);[...cm,cm[0]+12].forEach(m=>note(3,m,(b*8+x)*st,(b*8+x+2)*st,70))});
-  }
-  [['k',36],['s',38],['h',42]].forEach(([k,m])=>S.drum[k].forEach((v,s)=>{if(v)note(9,m,tickOf(s),tickOf(s)+st/2,100)}));
+  list.forEach((blk,bi)=>{
+    if(blk)applyBlock(blk);
+    const off=bi*N*st,vs=blk?Math.min(1,(blk.v0+blk.v1)/2):1,V=x=>Math.max(1,Math.min(127,Math.round(x*vs)));
+    const tickOf=n=>off+n*st+((S.swing&&n%2)?Math.round(st/3):0);
+    const us=Math.round(60000000/(S.bpm/(blk?blk.tm0:1)));
+    add(off,[0xFF,0x51,3,(us>>16)&255,(us>>8)&255,us&255]);
+    add(off,[0xC0,PR[S.inst]]);
+    melEvents().forEach(n=>note(0,n.midi,tickOf(n.step),tickOf(n.step+n.len),V(90)));
+    for(let b=0;b<4;b++){
+      if(S.pad)chordMidis(S.chords[b]).forEach(m=>note(1,m,off+b*8*st,off+(b*8+8)*st,V(55)));
+      bassHits(b).forEach(h=>note(2,h.m,tickOf(b*8+h.s),tickOf(b*8+h.s+h.l),V(90)));
+      if(S.comp)compSteps(b).forEach(x=>chordMidis(S.chords[b]).slice(1).forEach(m=>note(4,m,tickOf(b*8+x),tickOf(b*8+x)+st*2,V(70))));
+      if(S.strum)[2,6].forEach(x=>{const cm=chordMidis(S.chords[b]);[...cm,cm[0]+12].forEach(m=>note(3,m,off+(b*8+x)*st,off+(b*8+x+2)*st,V(70)))});
+    }
+    [['k',36],['s',38],['h',42]].forEach(([k,m])=>S.drum[k].forEach((v,s)=>{if(v)note(9,m,tickOf(s),tickOf(s)+st/2,V(100))}));
+  });
+  if(blocks)restore(sn);
   ev.sort((a,b)=>a.t-b.t||(((a.b[0]&0xF0)===0x80?0:1)-((b.b[0]&0xF0)===0x80?0:1))||a.o-b.o);
   const tr=[];let last=0;ev.forEach(e=>{tr.push(...vlq(e.t-last),...e.b);last=e.t});
   tr.push(...vlq(0),0xFF,0x2F,0);
@@ -411,7 +502,7 @@ const MSG={
   linkno:['无法自动复制，请手动复制地址栏里的网址。','Could not copy automatically. Please copy the address from the address bar.'],
   busy:['正在生成文件……','Rendering…'],empty:['还没有音符：先点格子，或者点“自动编曲”。','No notes yet: click the grid or press “Auto-compose”.'],
   noaudio:['这个浏览器不支持声音，请换 Chrome 或 Edge。','This browser does not support audio. Please use Chrome or Edge.'],
-  done:['已生成。','Done.'],fail:['生成失败，请再试一次。','Failed. Please try again.']
+  nosong:['先点“生成完整歌曲”。','Press “Create full song” first.'],done:['已生成。','Done.'],fail:['生成失败，请再试一次。','Failed. Please try again.']
 };
 function setMsg(k){msgK=k;$('msg').textContent=k?X(MSG[k][0],MSG[k][1]):''}
 function fillSel(sel,list,lab){const cur=sel.value;sel.innerHTML='';list.forEach(it=>{const o=document.createElement('option');o.value=it[0];o.textContent=lab(it);sel.appendChild(o)});if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur}
@@ -468,18 +559,34 @@ window.addEventListener('pointercancel',()=>{paint=null});
 /* 播放 */
 let playing=false,timer=null,nextT=0,cur=0,visQ=[],bus=null,raf=0,phStep=-1;
 function setPH(s){if(phStep>=0)cols[phStep].forEach(c=>c.classList.remove('ph'));phStep=s;if(s>=0)cols[s].forEach(c=>c.classList.add('ph'))}
-function setPlayBtn(){$('play').textContent=playing?X('停止','Stop'):X('播放','Play')}
-function sched(){const sd=stepDur();while(nextT<AC.currentTime+.12){playStep(AC,bus,cur,nextT);visQ.push({s:cur,t:nextT});cur=(cur+1)%N;nextT+=sd}}
+function setPlayBtn(){$('play').textContent=playing?X('停止','Stop'):X('播放','Play');$('songPlay').textContent=playing?X('停止','Stop'):X('播放整曲','Play song')}
+function beginBlock(b,t){
+  applyBlock(b);buildGrid();syncUI();
+  const sd0=60/S.bpm/2*b.tm0;
+  secBus=AC.createGain();secBus.gain.setValueAtTime(b.v0,t);secBus.gain.linearRampToValueAtTime(b.v1,t+N*sd0);secBus.connect(bus);
+  $('songNow').textContent=X('正在播放：','Now playing: ')+X(SECN[b.sec][0],SECN[b.sec][1]);
+}
+function sched(){
+  if(SONGON&&SONG.bi>=SONG.blocks.length&&cur===0&&AC.currentTime>nextT+2.5){stop();return}
+  while(nextT<AC.currentTime+.12){
+    if(SONGON){
+      if(cur===0){if(SONG.bi>=SONG.blocks.length)break;SONG.cb=SONG.blocks[SONG.bi++];beginBlock(SONG.cb,nextT)}
+      TM=SONG.cb.tm0+(SONG.cb.tm1-SONG.cb.tm0)*cur/N;
+    }
+    const sd=stepDur();playStep(AC,SONGON?secBus:bus,cur,nextT);visQ.push({s:cur,t:nextT});cur=(cur+1)%N;nextT+=sd}
+}
 function vis(){if(!playing)return;while(visQ.length&&visQ[0].t<=AC.currentTime)setPH(visQ.shift().s);raf=requestAnimationFrame(vis)}
-function play(){
+function play(song){
   if(!ensureAC()){setMsg('noaudio');return}
-  bus=AC.createGain();bus.connect(master);playing=true;cur=0;nextT=AC.currentTime+.08;visQ=[];
+  SONGON=!!(song&&SONG);if(SONGON){SONG.bi=0;SNAP=snap()}
+  bus=AC.createGain();bus.connect(master);playing=true;cur=0;TM=1;nextT=AC.currentTime+.08;visQ=[];
   timer=setInterval(sched,25);raf=requestAnimationFrame(vis);setPlayBtn();
 }
 function stop(){
   clearInterval(timer);playing=false;cancelAnimationFrame(raf);
   if(bus){const b=bus;b.gain.setTargetAtTime(0,AC.currentTime,.03);setTimeout(()=>{try{b.disconnect()}catch(e){}},400);bus=null}
-  setPH(-1);setPlayBtn();
+  if(SONGON){SONGON=false;if(SNAP){restore(SNAP);SNAP=null;syncUI();buildGrid()}$('songNow').textContent=''}
+  TM=1;setPH(-1);setPlayBtn();
 }
 const hasNotes=()=>melEvents().length>0||S.drum.k.some(Boolean)||S.drum.s.some(Boolean);
 
@@ -487,6 +594,10 @@ $('play').onclick=()=>{playing?stop():play()};
 let moodRes=null;
 function showMood(){$('moodMsg').textContent=moodRes?(moodRes.found?X('听出的心情：','Feeling: ')+X(moodRes.name[0],moodRes.name[1]):X('没读出明显的情绪，用了宁静的风格。可以多写几句。','No clear feeling found, so I used a calm style. Try writing a bit more.')):''}
 $('moodGo').onclick=()=>{const t=$('mood').value.trim();if(!t){$('moodMsg').textContent=X('先写几句话。','Write a few words first.');return}moodRes=moodCompose(t);showMood();setMsg(null);if(!playing)play()};
+$('songGo').onclick=songGo;
+$('songPlay').onclick=()=>{if(playing){stop();return}if(!SONG){songGo();return}play(true)};
+$('songWav').onclick=async()=>{if(!SONG){setMsg('nosong');return}setMsg('busy');$('songWav').disabled=true;try{download(await renderSongWav(),'song.wav','audio/wav');setMsg('done')}catch(e){setMsg('fail')}$('songWav').disabled=false};
+$('songMidi').onclick=()=>{if(!SONG){setMsg('nosong');return}download(midiBytes(SONG.blocks),'song.mid','audio/midi');setMsg('done')};
 $('auto').onclick=()=>{autoCompose();setMsg(null);if(!playing)play()};
 $('clear').onclick=()=>{S.mel=zeros(rowSemis().length);evDirty=true;buildGrid()};
 $('root').onchange=e=>{S.root=+e.target.value;evDirty=true;buildGrid()};
@@ -527,7 +638,7 @@ function applyStatic(){
   });
   document.title=X('音乐编曲坊','Music Composer');
   document.querySelectorAll('.lab[data-en]').forEach(l=>{l.textContent=X(l.dataset.zh,l.dataset.en)});
-  fillAll();syncUI();setPlayBtn();setMsg(msgK);if(typeof showMood==='function'&&moodRes)showMood();
+  fillAll();syncUI();setPlayBtn();setMsg(msgK);if(typeof showMood==='function'&&moodRes)showMood();if(typeof showSongMap==='function')showSongMap();
   $('chords').querySelectorAll('select').forEach((s,i)=>s.setAttribute('aria-label',X('第 '+(i+1)+' 小节和弦','Chord for bar '+(i+1))));
 }
 function setLang(v){LANG=v;try{localStorage.setItem('lang',v)}catch(e){}applyStatic()}
