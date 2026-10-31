@@ -19,6 +19,8 @@ label{display:block;font-size:13px;color:var(--mute);margin:0 0 3px}
 select{width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
 input[type=range]{width:100%;accent-color:var(--accent)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.mood{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.mood textarea{width:100%;min-height:64px;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);resize:vertical;box-sizing:border-box}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
 .opt{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--fg);margin:0}
 button{font:inherit;padding:7px 16px;border-radius:6px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer}
@@ -51,6 +53,11 @@ html[lang="en"] h1{letter-spacing:0}
 <p class="sub" data-en="Click the grid to write a melody, or let it compose for you. Play it, export WAV or MIDI, and share it with a link.">点格子写旋律，或让它自动编曲。可以播放、导出 WAV 和 MIDI，还能生成分享链接发给朋友。</p>
 
 <div class="card">
+  <div class="mood">
+    <label for="mood" data-en="Write how you feel (e.g. “Late autumn, I miss my mother and want to visit her grave”) and it will compose to match">写下你的心情（比如“晚秋想念母亲，想去墓地看她，草长高了遮住了小路”），程序会按心情编曲</label>
+    <textarea id="mood" maxlength="300"></textarea>
+    <div class="row" style="margin-top:8px"><button class="main" id="moodGo" data-en="Compose from my feeling">按心情编曲</button><span id="moodMsg" class="note"></span></div>
+  </div>
   <div class="grid">
     <div><label for="style" data-en="Style (for Auto-compose)">风格（用于自动编曲）</label><select id="style"></select></div>
     <div><label for="root" data-en="Key">调</label><select id="root"></select></div>
@@ -270,13 +277,51 @@ function genMelody(prog,style){
       if(last)r=nearestChordRow(r,[0]);
       else if(first)r=nearestChordRow(r,pcs);
       else if(s%4===0&&Math.random()<.6)r=nearestChordRow(r,pcs);
-      else r=clamp(r+pick([-2,-1,-1,0,1,1,2]),0,n-1);
-      if(!first&&!last&&len<=2&&Math.random()<.1){s+=len;return}
+      else r=clamp(r+pick((MOODOPT&&MOODOPT.desc)?[-2,-1,-1,-1,0,1]:[-2,-1,-1,0,1,1,2]),0,n-1);
+      if(!first&&!last&&len<=2&&Math.random()<(.1+(MOODOPT?MOODOPT.sparse:0))){s+=len;return}
       if(r===prevRow&&prevEnd===s)r=(r+1<n)?r+1:r-1;
       for(let k=0;k<len;k++)S.mel[r][s+k]=1;
       prevRow=r;prevEnd=s+len;s+=len;
     });
   }
+}
+/* ===== 按心情编曲：读文字里的情绪词，选音阶/速度/乐器/节奏 ===== */
+DR.none={k:[],s:[],h:[]};
+const MOODS={
+  grief:{n:['怀念与思念','Longing and remembrance'],re:/思念|想念|怀念|母亲|妈妈|娘|父亲|爸爸|墓|坟|去世|逝|泪|哭|离别|故人|亲人|miss|mother|mom|grave|tears|cry|remember|lost|passed/gi,
+    scale:'pentMin',bpm:64,inst:'erhu',bass:'none',pad:true,drum:'none',sparse:.28,desc:true,prog:[[1,6,3,7],[1,7,6,5],[1,4,1,5]]},
+  autumn:{n:['秋意与萧瑟','Autumn and wistfulness'],re:/秋|落叶|黄昏|暮|凋|荒|草长|风|寒|autumn|fall leaves|dusk|wither|wind/gi,
+    scale:'minor',bpm:70,inst:'flute',bass:'root',pad:true,drum:'none',sparse:.22,desc:true,prog:PROG_MIN},
+  lonely:{n:['孤独','Loneliness'],re:/孤独|寂寞|孤单|一个人|没有朋友|隔绝|空|lonely|alone|empty|isolated/gi,
+    scale:'pentMin',bpm:60,inst:'panpipe',bass:'none',pad:true,drum:'none',sparse:.35,desc:true,prog:[[1,6,3,7],[1,7,6,7],[1,4,1,5]]},
+  calm:{n:['宁静','Calm'],re:/宁静|平静|安静|安宁|田园|湖|山|月|夜|祈祷|平安|calm|quiet|peace|serene|lake|moon|pray/gi,
+    scale:'pentMaj',bpm:72,inst:'piano',bass:'root',pad:true,drum:'none',sparse:.2,prog:[[1,4,1,5],[1,6,4,5],[1,5,6,4]]},
+  joy:{n:['喜悦','Joy'],re:/高兴|开心|快乐|喜|欢|笑|庆|幸福|太好了|happy|joy|glad|fun|celebrat|smile|wonderful/gi,
+    scale:'major',bpm:128,inst:'synth',bass:'eighth',pad:true,drum:'four',fill:true,sparse:0,prog:[[1,4,5,1],[1,5,6,4],[1,6,4,5]]},
+  love:{n:['温柔的爱','Tender love'],re:/爱|恋|情|温暖|想你|牵挂|love|tender|warm|darling|sweet/gi,
+    scale:'major',bpm:84,inst:'piano',bass:'root',pad:true,drum:'soft',sparse:.1,prog:[[1,6,4,5],[1,5,6,4],[6,4,1,5]]},
+  hope:{n:['希望','Hope'],re:/希望|黎明|明天|重新|光|春|信心|勇气|hope|dawn|tomorrow|light|spring|courage|new/gi,
+    scale:'major',bpm:100,inst:'violin',bass:'root',pad:true,drum:'light',sparse:.05,prog:[[1,5,6,4],[4,1,5,6],[1,4,5,1]]},
+  fierce:{n:['激昂','Fierce'],re:/愤怒|生气|激昂|战|斗|不甘|冲|怒|angry|fight|rage|storm|fierce|battle/gi,
+    scale:'minor',bpm:140,inst:'synth',bass:'eighth',pad:true,drum:'pop',fill:true,sparse:0,prog:[[1,6,3,7],[1,7,6,5],[1,4,5,1]]}
+};
+const INST_WORDS=[[/二胡|erhu/i,'erhu'],[/钢琴|piano/i,'piano'],[/笛|flute/i,'flute'],[/箫|panpipe/i,'panpipe'],[/小提琴|violin/i,'violin'],[/萨克斯|sax/i,'sax'],[/古筝|筝|zither|guzheng/i,'pluck']];
+let MOODOPT=null;
+function moodCompose(text){
+  const sc=[];
+  for(const k in MOODS){const m=text.match(MOODS[k].re);if(m)sc.push([k,m.length])}
+  sc.sort((a,b)=>b[1]-a[1]);
+  const key=sc.length?sc[0][0]:'calm',P=MOODS[key];
+  S.scale=P.scale;S.bpm=P.bpm;S.inst=P.inst;S.bass=P.bass;S.pad=P.pad;S.strum=false;S.swing=false;S.seventh=false;S.comp=false;
+  for(const [re,i] of INST_WORDS)if(re.test(text)){S.inst=i;break}
+  // 秋天+思念同时出现：更慢、更疏
+  if(sc.length>1&&(key==='grief'||key==='autumn')){S.bpm=Math.max(60,S.bpm-4)}
+  const prog=pick(P.prog);S.chords=prog.slice();
+  setDrums(DR[P.drum],!!P.fill);
+  MOODOPT={sparse:P.sparse||0,desc:!!P.desc};
+  genMelody(prog,P.bpm<90?'sad':'pop');MOODOPT=null;
+  evDirty=true;syncUI();buildGrid();
+  return {key,name:P.n,found:sc.length>0};
 }
 function autoCompose(){
   const st=$('style').value,P=STY[st];
@@ -439,6 +484,9 @@ function stop(){
 const hasNotes=()=>melEvents().length>0||S.drum.k.some(Boolean)||S.drum.s.some(Boolean);
 
 $('play').onclick=()=>{playing?stop():play()};
+let moodRes=null;
+function showMood(){$('moodMsg').textContent=moodRes?(moodRes.found?X('听出的心情：','Feeling: ')+X(moodRes.name[0],moodRes.name[1]):X('没读出明显的情绪，用了宁静的风格。可以多写几句。','No clear feeling found, so I used a calm style. Try writing a bit more.')):''}
+$('moodGo').onclick=()=>{const t=$('mood').value.trim();if(!t){$('moodMsg').textContent=X('先写几句话。','Write a few words first.');return}moodRes=moodCompose(t);showMood();setMsg(null);if(!playing)play()};
 $('auto').onclick=()=>{autoCompose();setMsg(null);if(!playing)play()};
 $('clear').onclick=()=>{S.mel=zeros(rowSemis().length);evDirty=true;buildGrid()};
 $('root').onchange=e=>{S.root=+e.target.value;evDirty=true;buildGrid()};
@@ -479,7 +527,7 @@ function applyStatic(){
   });
   document.title=X('音乐编曲坊','Music Composer');
   document.querySelectorAll('.lab[data-en]').forEach(l=>{l.textContent=X(l.dataset.zh,l.dataset.en)});
-  fillAll();syncUI();setPlayBtn();setMsg(msgK);
+  fillAll();syncUI();setPlayBtn();setMsg(msgK);if(typeof showMood==='function'&&moodRes)showMood();
   $('chords').querySelectorAll('select').forEach((s,i)=>s.setAttribute('aria-label',X('第 '+(i+1)+' 小节和弦','Chord for bar '+(i+1))));
 }
 function setLang(v){LANG=v;try{localStorage.setItem('lang',v)}catch(e){}applyStatic()}
