@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>中西料理</title>
+<style>
+:root{color-scheme:light;--bg:#f7f3ea;--fg:#2a211b;--mute:#6b6157;--line:#e2d9c8;--card:#fffdf8;--accent:#a6392a;--accent-ink:#fff;--chip:#f0e8d8;--cn:#a6392a;--we:#1f5f7a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171412;--fg:#ece5da;--mute:#a79d90;--line:#3a332c;--card:#1f1b18;--accent:#e0705f;--accent-ink:#1a0d0a;--chip:#2b2520;--cn:#e0705f;--we:#6fb6d3;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171412;--fg:#ece5da;--mute:#a79d90;--line:#3a332c;--card:#1f1b18;--accent:#e0705f;--accent-ink:#1a0d0a;--chip:#2b2520;--cn:#e0705f;--we:#6fb6d3;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:20px max(16px,env(safe-area-inset-right,0px)) 72px max(16px,env(safe-area-inset-left,0px))}
+main{max-width:980px;margin:0 auto}
+h1{font:700 30px/1.3 "Songti SC","STSong","SimSun",serif;margin:4px 0 0;letter-spacing:.1em}
+h2{font:700 24px/1.3 "Songti SC","STSong","SimSun",serif;margin:0}
+.sub{color:var(--mute);margin:4px 0 16px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.tab{font:inherit;padding:7px 16px;border-radius:20px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+input[type=search]{flex:1;min-width:160px;font:inherit;padding:7px 12px;border:1px solid var(--line);border-radius:20px;background:var(--card);color:var(--fg)}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.rc{text-align:left;font:inherit;background:var(--card);color:var(--fg);border:1px solid var(--line);border-left:5px solid var(--cn);border-radius:8px;padding:12px 14px;cursor:pointer;display:block;width:100%}
+.rc.we{border-left-color:var(--we)}
+.rc b{display:block;font-size:18px}
+.rc span.o{display:block;color:var(--mute);font-size:13px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--chip);border-radius:12px;padding:1px 10px;font-size:12px;color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px}
+button{font:inherit;padding:6px 14px;border-radius:6px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer}
+button.main{background:var(--accent);color:var(--accent-ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.srv{display:inline-flex;align-items:center;gap:10px;margin:10px 0}
+.srv button{padding:2px 12px;font-size:18px}
+h3{font-size:16px;margin:18px 0 6px}
+ul.ing{list-style:none;margin:0;padding:0}
+ul.ing li{padding:5px 0;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:12px}
+ul.ing li span.q{color:var(--accent);font-weight:700;white-space:nowrap}
+ol.st{padding-left:22px;margin:0}
+ol.st li{margin:0 0 8px}
+.tip{background:var(--chip);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:15px}
+.note{font-size:13px;color:var(--mute)}
+.langbtn{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:10;padding:6px 12px;border-radius:16px;font-size:13px;background:var(--accent);color:var(--accent-ink)}
+html[lang="en"] body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.6}
+html[lang="en"] h1,html[lang="en"] h2{letter-spacing:0}
+@media print{.bar,.langbtn,.noprint{display:none!important}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<button type="button" id="lang" class="langbtn" aria-label="Language / 语言">中 / EN</button>
+<main>
+<h1 id="h1">中西料理</h1>
+<p class="sub" id="sub"></p>
+<div class="bar" id="bar">
+  <button class="tab" data-c="all" aria-pressed="true"></button>
+  <button class="tab" data-c="cn" aria-pressed="false"></button>
+  <button class="tab" data-c="sc" aria-pressed="false"></button>
+  <button class="tab" data-c="gd" aria-pressed="false"></button>
+  <button class="tab" data-c="hn" aria-pressed="false"></button>
+  <button class="tab" data-c="we" aria-pressed="false"></button>
+  <input type="search" id="q" maxlength="40">
+</div>
+<div id="list" class="list"></div>
+<div id="detail" hidden></div>
+<p class="note" id="foot" style="margin-top:22px"></p>
+</main>
+
+<script>
+let LANG='zh';
+try{const m=/[?&]lang=([\w-]+)/.exec(location.search),v=m?m[1]:localStorage.getItem('lang');if(v&&/^en/i.test(v))LANG='en'}catch(e){}
+const EN=()=>LANG==='en';
+const X=(z,e)=>EN()?e:z;
+const $=id=>document.getElementById(id);
+
+/* 单位：[中文, 英文单数, 英文复数] */
+const U={g:['克','g','g'],ml:['毫升','ml','ml'],tbsp:['大勺','tbsp','tbsp'],tsp:['小勺','tsp','tsp'],pc:['个','','' ],stalk:['根','stalk','stalks'],clove:['瓣','clove','cloves'],slice:['片','slice','slices'],sprig:['枝','sprig','sprigs'],piece:['块','piece','pieces'],head:['头','head','heads'],leaf:['片','leaf','leaves'],'':['','','']};
+
+/* i: [中文名, 英文名, 数量(0=适量), 单位]  st: [[中文,英文],…]  t=分钟 d=难度1-3 s=份数 */
+const R=[
+{id:'cn1',c:'cn',zh:'番茄炒蛋',en:'Tomato & Egg Stir-fry',t:15,d:1,s:2,
+ i:[['鸡蛋','Eggs',3,'pc'],['番茄（中等大）','Tomatoes (medium)',2,'pc'],['葱','Scallion',1,'stalk'],['糖','Sugar',1,'tsp'],['食用油','Cooking oil',2,'tbsp'],['盐','Salt',0,'']],
+ st:[['鸡蛋加一小撮盐打散；番茄切成块，葱切葱花。','Beat the eggs with a pinch of salt. Cut the tomatoes into wedges and slice the scallion.'],
+     ['锅烧热，倒入1大勺油，倒入蛋液，待蛋液凝固成大块后立即盛出。','Heat a wok, add 1 tbsp of oil and pour in the eggs. When they set into soft curds, remove them right away.'],
+     ['锅中再加1大勺油，下番茄翻炒约3分钟，炒到出汁、变软。','Add the other 1 tbsp of oil and stir-fry the tomatoes for about 3 minutes, until juicy and soft.'],
+     ['加糖和盐调味，倒回鸡蛋，翻拌均匀，撒上葱花出锅。','Season with the sugar and salt, return the eggs, toss together and finish with the scallion.']],
+ tip:['番茄顶部划十字，用开水烫一下就容易去皮。喜欢汤汁多，可以加两勺水。','Score a cross in the tomato tops and blanch them in boiling water to peel easily. Add 2 tbsp of water for a saucier dish.']},
+{id:'cn2',c:'cn',r:'sc',zh:'宫保鸡丁',en:'Kung Pao Chicken',t:30,d:2,s:2,
+ i:[['鸡腿肉或鸡胸肉','Chicken thigh or breast',300,'g'],['生抽（腌肉用）','Light soy sauce (marinade)',1,'tbsp'],['料酒（腌肉用）','Shaoxing wine (marinade)',1,'tbsp'],['淀粉（腌肉用）','Cornstarch (marinade)',1,'tsp'],['干辣椒','Dried chilies',6,'pc'],['花椒','Sichuan peppercorns',1,'tsp'],['炒熟的花生米','Roasted peanuts',50,'g'],['葱','Scallions',2,'stalk'],['姜','Ginger',3,'slice'],['蒜','Garlic',3,'clove'],['生抽（调汁用）','Light soy sauce (sauce)',1,'tbsp'],['香醋','Black vinegar',1.5,'tbsp'],['糖','Sugar',1,'tbsp'],['淀粉（调汁用）','Cornstarch (sauce)',1,'tsp'],['水','Water',2,'tbsp'],['食用油','Cooking oil',2,'tbsp']],
+ st:[['鸡肉切成1.5厘米见方的丁，加腌肉用的生抽、料酒和淀粉拌匀，腌15分钟。','Cut the chicken into 1.5 cm cubes and mix with the marinade ingredients. Rest for 15 minutes.'],
+     ['把调汁的生抽、香醋、糖、淀粉和水在小碗里调匀。葱切段，姜蒜切片。','Stir the sauce ingredients together in a small bowl. Cut the scallions into sections and slice the ginger and garlic.'],
+     ['锅里放油烧热，下鸡丁炒到变色、表面微黄，盛出。','Heat the oil and stir-fry the chicken until golden and cooked through. Set aside.'],
+     ['转小火，下干辣椒和花椒炒约20秒出香味（不要炒糊），再下葱白、姜、蒜炒香。','Lower the heat. Fry the chilies and peppercorns for about 20 seconds until fragrant (don’t let them burn), then add the scallion whites, ginger and garlic.'],
+     ['倒回鸡丁，淋入调好的汁，大火翻炒到汁变浓亮，最后加花生米拌匀。','Return the chicken, pour in the sauce and toss over high heat until glossy and thick. Stir in the peanuts last.']],
+ tip:['花生米最后放才能保持脆。不吃辣可以只放2个干辣椒，并去掉籽。','Add the peanuts at the very end to keep them crunchy. For less heat, use 2 chilies and remove the seeds.']},
+{id:'cn3',c:'cn',r:'sc',zh:'麻婆豆腐',en:'Mapo Tofu',t:25,d:2,s:2,
+ i:[['嫩豆腐','Soft tofu',400,'g'],['牛肉末或猪肉末','Ground beef or pork',100,'g'],['豆瓣酱','Doubanjiang (chili bean paste)',1.5,'tbsp'],['蒜','Garlic',3,'clove'],['姜末','Minced ginger',1,'tsp'],['高汤或水','Stock or water',150,'ml'],['淀粉','Cornstarch',1,'tbsp'],['水（调淀粉用）','Water (for the slurry)',2,'tbsp'],['花椒粉','Ground Sichuan pepper',0.5,'tsp'],['葱','Scallion',1,'stalk'],['食用油','Cooking oil',2,'tbsp'],['盐','Salt',0,'']],
+ st:[['豆腐切2厘米方块，放入加了盐的热水里泡5分钟，捞出沥干。淀粉加水调成淀粉水。','Cut the tofu into 2 cm cubes and soak in hot salted water for 5 minutes, then drain. Mix the cornstarch and water into a slurry.'],
+     ['锅中放油，下肉末炒到干香微焦，加豆瓣酱，小火炒到油变红。','Heat the oil and brown the meat until crisp. Add the doubanjiang and fry on low heat until the oil turns red.'],
+     ['加蒜末、姜末炒香，倒入高汤烧开。','Add the garlic and ginger, then pour in the stock and bring it to a boil.'],
+     ['轻轻放入豆腐，小火煮5分钟，用锅铲背轻推，不要用力搅，以免豆腐碎。','Slide in the tofu and simmer for 5 minutes. Push gently with the back of a spatula rather than stirring, so the tofu stays whole.'],
+     ['淀粉水分2～3次淋入，勾成浓稠的芡。出锅前撒花椒粉和葱花。','Drizzle in the slurry in 2–3 additions until the sauce thickens. Finish with the ground Sichuan pepper and scallion.']],
+ tip:['豆瓣酱本身有咸味，最后再尝味道，再决定是否加盐。','Doubanjiang is already salty, so taste at the end before adding any salt.']},
+{id:'cn4',c:'cn',zh:'红烧肉',en:'Red-Braised Pork Belly',t:100,d:2,s:4,
+ i:[['五花肉','Pork belly',500,'g'],['冰糖','Rock sugar',30,'g'],['生抽','Light soy sauce',2,'tbsp'],['老抽','Dark soy sauce',1,'tbsp'],['料酒','Shaoxing wine',2,'tbsp'],['姜','Ginger',4,'slice'],['葱','Scallions',2,'stalk'],['八角','Star anise',2,'pc'],['桂皮','Cinnamon stick',1,'piece'],['热水','Hot water',500,'ml'],['食用油','Cooking oil',1,'tbsp'],['盐','Salt',0,'']],
+ st:[['五花肉切成3厘米见方的块。冷水下锅，加2片姜和1勺料酒，煮开后撇去浮沫，煮3分钟，捞出洗净。','Cut the pork into 3 cm cubes. Start it in cold water with 2 slices of ginger and 1 tbsp of wine, boil for 3 minutes, skim off the scum, then drain and rinse.'],
+     ['锅里放1勺油和冰糖，小火慢慢炒到糖化成琥珀色。','Melt the rock sugar with the oil over low heat until it turns amber.'],
+     ['下肉块翻炒2分钟，让每块都裹上糖色。','Add the pork and toss for 2 minutes until every piece is coated.'],
+     ['加剩下的姜、葱、八角、桂皮、料酒、生抽和老抽，倒入热水，水量要几乎没过肉。','Add the remaining ginger, scallions, spices, wine and both soy sauces. Pour in hot water to almost cover the meat.'],
+     ['大火烧开，盖上盖子转小火炖60分钟，至肉软烂。','Bring to a boil, cover and simmer on low heat for 60 minutes, until tender.'],
+     ['开盖转大火收汁，不停翻动，收到汤汁浓稠亮红，尝味后按需加盐。','Uncover and reduce over high heat, stirring, until the sauce is thick and glossy. Taste and add salt if needed.']],
+ tip:['一定要用热水，用冷水肉会变柴。想更下饭，可以加几个煮好的鸡蛋一起收汁。','Always use hot water; cold water makes the meat tough. Add a few boiled eggs for the last step if you like.']},
+{id:'cn5',c:'cn',zh:'蛋炒饭',en:'Egg Fried Rice',t:10,d:1,s:2,
+ i:[['隔夜米饭','Cold cooked rice (day-old)',300,'g'],['鸡蛋','Eggs',2,'pc'],['葱','Scallions',2,'stalk'],['火腿丁或青豆（可选）','Diced ham or peas (optional)',50,'g'],['生抽','Light soy sauce',1,'tsp'],['食用油','Cooking oil',2,'tbsp'],['盐','Salt',0,'']],
+ st:[['把米饭用手或勺子弄散，鸡蛋打散，葱切葱花。','Break up the rice with your hands or a spoon. Beat the eggs and chop the scallions.'],
+     ['大火烧热锅，倒油，倒入蛋液，用锅铲快速划散成蛋碎。','Heat a wok over high heat, add the oil and pour in the eggs. Scramble quickly into small pieces.'],
+     ['马上下米饭（和火腿或青豆），用锅铲压散翻炒约3分钟，炒到米粒能在锅里跳动。','Add the rice (and ham or peas) right away. Press and toss for about 3 minutes until the grains bounce in the pan.'],
+     ['沿锅边淋生抽，加盐调味，撒葱花翻匀，出锅。','Drizzle soy sauce around the edge of the pan, season with salt, toss in the scallions and serve.']],
+ tip:['新煮的米饭水分多，会炒成糊。如果只有新米饭，摊开晾凉或放冰箱冷藏半小时。','Fresh rice is too wet and turns mushy. If that’s all you have, spread it out to cool or chill it for 30 minutes.']},
+{id:'cn6',c:'cn',zh:'清蒸鱼',en:'Steamed Fish with Ginger & Scallion',t:25,d:2,s:3,
+ i:[['整条鲈鱼或其他白肉鱼（已处理）','Whole sea bass or other white fish (cleaned)',500,'g'],['姜（片）','Ginger (sliced)',5,'slice'],['葱','Scallions',3,'stalk'],['料酒','Shaoxing wine',1,'tbsp'],['蒸鱼豉油','Steamed-fish soy sauce',2,'tbsp'],['食用油','Cooking oil',2,'tbsp'],['香菜（可选）','Cilantro (optional)',0,'']],
+ st:[['鱼两面各划几刀，抹上料酒，鱼身下和肚子里垫姜片和一段葱。葱切细丝，另几片姜切丝备用。','Score both sides of the fish, rub with the wine, and tuck ginger slices and a piece of scallion under and inside it. Cut the remaining scallion and a few ginger slices into fine shreds.'],
+     ['蒸锅水烧开后，放入鱼，大火蒸8～10分钟（500克左右的鱼）。','Once the steamer water is boiling, steam the fish over high heat for 8–10 minutes (for a 500 g fish).'],
+     ['用筷子戳最厚处，肉能轻松分开即熟。倒掉盘中的汁水，去掉蒸的葱姜。','Check the thickest part with a chopstick; the flesh should flake easily. Pour away the liquid and discard the steamed ginger and scallion.'],
+     ['铺上葱丝、姜丝，淋上蒸鱼豉油。','Top with the shredded scallion and ginger and pour the soy sauce over.'],
+     ['把油烧到冒烟，趁热浇在葱丝上（会滋啦作响），撒香菜。','Heat the oil until just smoking and pour it over the scallions (it will sizzle). Garnish with cilantro.']],
+ tip:['蒸的时间不要过长，鱼肉会变老。浇热油时小心溅出。','Don’t over-steam or the fish turns dry. Be careful of splashes when pouring the hot oil.']},
+{id:'cn7',c:'cn',zh:'酸辣土豆丝',en:'Hot & Sour Shredded Potato',t:15,d:1,s:2,
+ i:[['土豆（中等大）','Potatoes (medium)',2,'pc'],['干辣椒','Dried chilies',3,'pc'],['蒜','Garlic',2,'clove'],['白醋或米醋','White or rice vinegar',1.5,'tbsp'],['食用油','Cooking oil',2,'tbsp'],['盐','Salt',0,'']],
+ st:[['土豆去皮切成细丝，放进清水里泡，换水冲洗2～3次，洗掉淀粉，沥干。','Peel and cut the potatoes into thin matchsticks. Soak in cold water and rinse 2–3 times to remove the starch, then drain well.'],
+     ['干辣椒剪段，蒜切片。','Snip the chilies into pieces and slice the garlic.'],
+     ['热锅倒油，下辣椒和蒜炒香。','Heat the oil and fry the chilies and garlic until fragrant.'],
+     ['倒入土豆丝，大火快炒2～3分钟，保持有脆感。','Add the potatoes and stir-fry over high heat for 2–3 minutes, keeping them crisp.'],
+     ['沿锅边淋醋，加盐，翻匀即出锅。','Drizzle the vinegar around the edge of the pan, add salt, toss and serve.']],
+ tip:['洗掉淀粉、大火快炒是脆的关键。','Rinsing off the starch and cooking over high heat are the keys to a crisp texture.']},
+{id:'cn8',c:'cn',zh:'猪肉白菜饺子',en:'Pork & Napa Cabbage Dumplings',t:100,d:3,s:4,
+ i:[['面粉','All-purpose flour',300,'g'],['水（和面）','Water (for the dough)',150,'ml'],['猪肉末','Ground pork',250,'g'],['大白菜','Napa cabbage',300,'g'],['盐（腌白菜）','Salt (for the cabbage)',1,'tsp'],['盐（调馅）','Salt (for the filling)',1,'tsp'],['生抽','Light soy sauce',1,'tbsp'],['料酒','Shaoxing wine',1,'tbsp'],['姜末','Grated ginger',1,'tbsp'],['葱','Scallions',2,'stalk'],['香油','Sesame oil',1,'tbsp']],
+ st:[['面粉加水揉成光滑的面团，盖上湿布醒30分钟。','Knead the flour and water into a smooth dough, cover with a damp cloth and rest for 30 minutes.'],
+     ['白菜切碎，拌1小勺盐腌10分钟，用手或纱布挤干水分。','Finely chop the cabbage, toss with 1 tsp of salt for 10 minutes, then squeeze out the water.'],
+     ['肉末加生抽、料酒、姜末、葱花、1小勺盐和香油，顺一个方向搅拌到发黏，再拌入白菜。','Mix the pork with the soy sauce, wine, ginger, scallions, 1 tsp salt and sesame oil. Stir in one direction until sticky, then fold in the cabbage.'],
+     ['面团搓条，切成约40个小剂子，擀成圆皮，包入馅料，捏紧封口。','Roll the dough into a rope, cut into about 40 pieces, roll each into a round wrapper, fill and pinch shut.'],
+     ['水烧开，下饺子，轻轻推散。煮到饺子浮起，再煮2分钟，捞出。','Boil a large pot of water, add the dumplings and stir gently. When they float, cook 2 more minutes and drain.'],
+     ['蘸生抽加醋或蒜蓉辣椒酱吃。','Serve with soy sauce and vinegar, or garlic chili sauce.']],
+ tip:['包好的饺子放在撒了面粉的盘子上，可以冷冻，煮的时候不用解冻，多煮2～3分钟。','Freeze uncooked dumplings on a floured tray. Cook them from frozen, adding 2–3 minutes.']},
+
+{id:'sc1',c:'cn',r:'sc',zh:'回锅肉',en:'Twice-Cooked Pork',t:40,d:2,s:2,
+ i:[['带皮五花肉','Pork belly (skin on)',250,'g'],['蒜苗（或青蒜）','Garlic sprouts (or leeks)',3,'stalk'],['郫县豆瓣酱','Pixian doubanjiang',1,'tbsp'],['甜面酱','Sweet bean sauce',1,'tsp'],['生抽','Light soy sauce',1,'tsp'],['料酒（煮肉用）','Shaoxing wine (for boiling)',1,'tbsp'],['姜（煮肉用）','Ginger (for boiling)',3,'slice'],['葱（煮肉用）','Scallion (for boiling)',1,'stalk'],['食用油','Cooking oil',1,'tbsp']],
+ st:[['整块五花肉冷水下锅，加姜片、葱段、料酒，煮开后小火煮约20分钟，煮到筷子能戳透。','Start the whole pork belly in cold water with the ginger, scallion and wine. Bring to a boil and simmer for about 20 minutes, until a chopstick goes through easily.'],
+     ['捞出晾凉（放冰箱冷藏更好切），切成约2毫米的薄片。蒜苗斜切段，蒜白和蒜绿分开放。','Remove and cool completely (chilling makes it easier to slice), then cut into slices about 2 mm thick. Slice the garlic sprouts on the diagonal, keeping the white and green parts separate.'],
+     ['锅里放少许油，下肉片，中火煸炒到肉片卷起、出油，边缘微焦。','Heat a little oil and fry the pork slices over medium heat until they curl, release fat and the edges turn slightly golden.'],
+     ['把肉推到一边，下豆瓣酱和甜面酱炒出红油，再和肉翻匀，加生抽。','Push the meat aside, fry the doubanjiang and sweet bean sauce until the oil turns red, then toss with the meat and add the soy sauce.'],
+     ['下蒜白炒1分钟，再下蒜绿炒到刚断生，出锅。','Add the garlic whites for 1 minute, then the greens until just cooked. Serve.']],
+ tip:['肉煮好后一定要放凉再切才切得薄。豆瓣酱已经很咸，不用再加盐。','Cool the pork completely before slicing so you can cut it thin. The doubanjiang is already salty, so skip extra salt.']},
+{id:'sc2',c:'cn',r:'sc',zh:'鱼香肉丝',en:'Yu-Xiang Shredded Pork',t:25,d:2,s:2,
+ i:[['猪里脊肉','Pork loin',200,'g'],['料酒（腌肉用）','Shaoxing wine (marinade)',1,'tbsp'],['淀粉（腌肉用）','Cornstarch (marinade)',1,'tsp'],['泡发木耳','Soaked wood ear mushrooms',50,'g'],['胡萝卜','Carrot',0.5,'pc'],['泡辣椒（剁碎）','Pickled chilies (minced)',1,'tbsp'],['蒜（切末）','Garlic (minced)',3,'clove'],['姜末','Minced ginger',1,'tsp'],['葱','Scallions',2,'stalk'],['生抽（调汁）','Light soy sauce (sauce)',1,'tbsp'],['醋（调汁）','Vinegar (sauce)',1,'tbsp'],['糖（调汁）','Sugar (sauce)',1,'tbsp'],['淀粉（调汁）','Cornstarch (sauce)',1,'tsp'],['水（调汁）','Water (sauce)',2,'tbsp'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['里脊肉切成粗丝，加料酒、淀粉和一小撮盐拌匀，腌10分钟。木耳、胡萝卜切丝。','Cut the pork into thick strips and marinate with the wine, cornstarch and a pinch of salt for 10 minutes. Shred the wood ear and carrot.'],
+     ['把调汁的生抽、醋、糖、淀粉和水在碗里调匀。','Stir the sauce ingredients together in a bowl.'],
+     ['锅烧热，下油，下肉丝快速滑炒到变白，盛出。','Heat the oil and stir-fry the pork quickly until it turns white. Set aside.'],
+     ['锅里留油，下泡辣椒末炒出红油，再下姜蒜末炒香。','In the same oil, fry the pickled chilies until the oil turns red, then the ginger and garlic.'],
+     ['下胡萝卜丝和木耳丝炒1分钟，倒回肉丝，淋入调好的汁，大火翻炒到汁变稠，撒葱花。','Add the carrot and wood ear for 1 minute, return the pork and pour in the sauce. Toss over high heat until thick and glossy, then add the scallions.']],
+ tip:['川菜的“鱼香”是糖、醋、泡辣椒、姜、蒜、葱的味道，菜里并没有鱼。','“Yu-xiang” is a flavor made from sugar, vinegar, pickled chili, ginger, garlic and scallion. There is no fish in the dish.']},
+{id:'sc3',c:'cn',r:'sc',zh:'水煮牛肉',en:'Sichuan Boiled Beef in Chili Broth',t:40,d:3,s:3,
+ i:[['牛里脊或牛腿肉','Beef sirloin or round',300,'g'],['料酒（腌肉用）','Shaoxing wine (marinade)',1,'tbsp'],['淀粉（腌肉用）','Cornstarch (marinade)',1,'tbsp'],['豆芽','Bean sprouts',200,'g'],['郫县豆瓣酱','Pixian doubanjiang',2,'tbsp'],['干辣椒','Dried chilies',10,'pc'],['花椒','Sichuan peppercorns',1,'tbsp'],['蒜','Garlic',4,'clove'],['姜','Ginger',4,'slice'],['高汤或水','Stock or water',500,'ml'],['食用油','Cooking oil',6,'tbsp'],['盐','Salt',0,'']],
+ st:[['牛肉逆着纹理切成3毫米薄片，加料酒、淀粉、少许盐和1勺油拌匀，腌15分钟。','Slice the beef thinly (3 mm) against the grain and mix with the wine, cornstarch, a little salt and 1 tbsp of oil. Marinate for 15 minutes.'],
+     ['豆芽焯1分钟，捞出垫在大碗底部。','Blanch the bean sprouts for 1 minute and spread them in a large serving bowl.'],
+     ['锅里放2勺油，下豆瓣酱炒出红油，加姜蒜炒香，倒入高汤烧开。','Heat 2 tbsp of oil, fry the doubanjiang until the oil turns red, add the ginger and half the garlic, then pour in the stock and bring it to a boil.'],
+     ['把牛肉片一片片放进去，用筷子拨散，煮到刚变色（约1分钟），连汤倒进碗里。','Add the beef slices one by one, separate them with chopsticks and cook just until they change color (about 1 minute). Pour everything over the sprouts.'],
+     ['碗面撒上干辣椒、花椒和剩下的蒜末。另起小锅，把3勺油烧到冒烟，浇在辣椒花椒上，听到滋滋声，香味就出来了。','Top with the dried chilies, peppercorns and remaining garlic. Heat the last 3 tbsp of oil until smoking and pour it over the top; it will sizzle and release the aroma.']],
+ tip:['牛肉一定不要煮久，否则会老。浇热油时要小心溅出。','Don’t overcook the beef or it turns tough. Be careful of splashes when pouring the hot oil.']},
+{id:'sc4',c:'cn',r:'sc',zh:'口水鸡',en:'Mouth-Watering Chicken',t:45,d:2,s:3,
+ i:[['带骨鸡腿','Bone-in chicken thighs',500,'g'],['姜','Ginger',3,'slice'],['葱','Scallions',2,'stalk'],['料酒','Shaoxing wine',1,'tbsp'],['生抽','Light soy sauce',2,'tbsp'],['醋','Vinegar',1,'tbsp'],['糖','Sugar',1,'tsp'],['红油辣椒','Chili oil',2,'tbsp'],['花椒粉','Ground Sichuan pepper',0.5,'tsp'],['蒜（切末）','Garlic (minced)',3,'clove'],['熟白芝麻','Toasted sesame seeds',1,'tbsp'],['花生碎','Crushed peanuts',1,'tbsp'],['香油','Sesame oil',1,'tsp'],['香菜','Cilantro',0,'']],
+ st:[['锅里放水、姜片、葱段和料酒，水开后放入鸡腿，转小火煮约15分钟。','Bring water with the ginger, scallions and wine to a boil, add the chicken and simmer for about 15 minutes.'],
+     ['关火，盖盖焖10分钟。用筷子戳最厚处，流出的汁是清的才是熟了。','Turn off the heat and let it sit covered for 10 minutes. The chicken is done when the juices from the thickest part run clear.'],
+     ['捞出，放入冰水里浸5分钟，让皮紧实、肉嫩滑。沥干，切成块或条。','Plunge into ice water for 5 minutes to firm up the skin and keep the meat tender. Drain and chop into pieces.'],
+     ['把生抽、醋、糖、红油、花椒粉、蒜末和香油在碗里调成酱汁。','Whisk the soy sauce, vinegar, sugar, chili oil, Sichuan pepper, garlic and sesame oil into a sauce.'],
+     ['鸡肉装盘，淋上酱汁，撒芝麻、花生碎和香菜。','Arrange the chicken on a plate, pour over the sauce and top with sesame, peanuts and cilantro.']],
+ tip:['名字来自“想到就流口水”。煮的汤可以留着做面条汤。','The name means it makes your mouth water just thinking of it. Keep the poaching broth for noodles.']},
+{id:'sc5',c:'cn',r:'sc',zh:'担担面',en:'Dan Dan Noodles',t:25,d:2,s:2,
+ i:[['细面条','Thin wheat noodles',200,'g'],['猪肉末','Ground pork',100,'g'],['芽菜或榨菜（碎）','Sichuan preserved greens (yacai) or zha cai, chopped',2,'tbsp'],['生抽（炒肉用）','Light soy sauce (for the pork)',1,'tbsp'],['料酒','Shaoxing wine',1,'tbsp'],['芝麻酱','Sesame paste',2,'tbsp'],['生抽（调碗底）','Light soy sauce (for the bowls)',2,'tbsp'],['红油辣椒','Chili oil',2,'tbsp'],['花椒粉','Ground Sichuan pepper',0.5,'tsp'],['醋','Vinegar',1,'tsp'],['糖','Sugar',0.5,'tsp'],['蒜（切末）','Garlic (minced)',2,'clove'],['青菜','Leafy greens',2,'pc'],['食用油','Cooking oil',1,'tbsp']],
+ st:[['锅里放油，下肉末炒散，加料酒和1勺生抽，炒到干香。加芽菜碎再炒1分钟，盛出。','Fry the ground pork in the oil until dry and fragrant, adding the wine and 1 tbsp of soy sauce. Add the yacai for 1 minute and set aside.'],
+     ['芝麻酱用2勺热水调稀，和生抽、红油、花椒粉、醋、糖、蒜末分到两个碗里，每碗加50毫升面汤。','Thin the sesame paste with 2 tbsp of hot water. Divide it with the soy sauce, chili oil, Sichuan pepper, vinegar, sugar and garlic between two bowls.'],
+     ['水烧开，煮面条和青菜，煮熟后捞入碗里。每碗再加约50毫升煮面水。','Boil the noodles and greens in a pot of water. Lift them into the bowls and add about 50 ml of the cooking water to each.'],
+     ['面上盖肉末，吃的时候拌匀。','Top with the pork mixture and toss everything together before eating.']],
+ tip:['“担担”是挑着担子卖的意思。想更辣就多加红油。','“Dan dan” refers to the shoulder poles street vendors once used. Add more chili oil for extra heat.']},
+{id:'sc6',c:'cn',r:'sc',zh:'蒜泥白肉',en:'Sliced Pork with Garlic Sauce',t:45,d:2,s:3,
+ i:[['五花肉或猪后腿肉','Pork belly or pork leg',300,'g'],['姜','Ginger',3,'slice'],['葱','Scallions',2,'stalk'],['料酒','Shaoxing wine',1,'tbsp'],['黄瓜','Cucumber',1,'pc'],['蒜（切末）','Garlic (minced)',5,'clove'],['生抽','Light soy sauce',2,'tbsp'],['红油辣椒','Chili oil',2,'tbsp'],['糖','Sugar',1,'tsp'],['醋','Vinegar',1,'tsp'],['香油','Sesame oil',1,'tsp']],
+ st:[['整块猪肉冷水下锅，加姜片、葱段和料酒，煮开后小火煮约25分钟，到筷子能戳透。','Start the whole pork in cold water with the ginger, scallions and wine, then simmer for about 25 minutes, until a chopstick goes through easily.'],
+     ['关火，让肉在汤里泡着放凉，肉会更嫩更多汁。','Turn off the heat and let it cool in the broth; this keeps it tender and juicy.'],
+     ['把肉切成非常薄的片（越薄越好）。黄瓜切成薄片，在盘底铺一层。','Slice the pork as thin as you can. Slice the cucumber and lay it on the plate.'],
+     ['蒜末、生抽、红油、糖、醋和香油调成蒜泥酱汁。','Mix the garlic, soy sauce, chili oil, sugar, vinegar and sesame oil into a sauce.'],
+     ['把肉片卷成一片片摆在黄瓜上，浇上酱汁。','Fan the pork slices over the cucumber and pour the sauce on top.']],
+ tip:['肉片要冷吃，所以一定要放凉后再切。','This is served cool, and the pork slices much thinner once chilled.']},
+{id:'sc7',c:'cn',r:'sc',zh:'鱼香茄子',en:'Yu-Xiang Eggplant',t:30,d:2,s:3,
+ i:[['长茄子','Long eggplants',2,'pc'],['猪肉末','Ground pork',80,'g'],['郫县豆瓣酱','Pixian doubanjiang',1,'tbsp'],['泡辣椒（剁碎）','Pickled chilies (minced)',1,'tbsp'],['蒜（切末）','Garlic (minced)',3,'clove'],['姜末','Minced ginger',1,'tsp'],['葱','Scallions',2,'stalk'],['生抽','Light soy sauce',1,'tbsp'],['醋','Vinegar',1,'tbsp'],['糖','Sugar',1,'tbsp'],['淀粉','Cornstarch',1,'tsp'],['水','Water',3,'tbsp'],['食用油','Cooking oil',4,'tbsp'],['盐','Salt',0,'']],
+ st:[['茄子切成手指粗的条，拌1小勺盐腌10分钟，用手挤出水分。','Cut the eggplant into finger-thick strips, toss with 1 tsp of salt for 10 minutes and squeeze out the liquid.'],
+     ['把生抽、醋、糖、淀粉和水调成汁。','Stir the soy sauce, vinegar, sugar, cornstarch and water into a sauce.'],
+     ['锅里放2勺油，下茄子中火煎炒到软、表面金黄，盛出。','Cook the eggplant in 2 tbsp of oil over medium heat until soft and golden. Set aside.'],
+     ['锅里再放2勺油，下肉末炒散，加豆瓣酱、泡辣椒炒出红油，再下姜蒜炒香。','Add 2 tbsp more oil, brown the pork, then fry the doubanjiang and pickled chilies until the oil turns red, followed by the ginger and garlic.'],
+     ['倒回茄子，淋入汁，翻炒到汁变稠，撒葱花。','Return the eggplant, pour in the sauce and toss until thick. Finish with the scallions.']],
+ tip:['茄子先用盐腌、挤水，吸的油会少很多。','Salting and squeezing the eggplant makes it absorb much less oil.']},
+{id:'sc8',c:'cn',r:'sc',zh:'干煸四季豆',en:'Dry-Fried Green Beans',t:25,d:2,s:2,
+ i:[['四季豆','Green beans',300,'g'],['猪肉末','Ground pork',80,'g'],['芽菜或榨菜（碎）','Yacai or zha cai (chopped)',1,'tbsp'],['干辣椒','Dried chilies',4,'pc'],['花椒','Sichuan peppercorns',0.5,'tsp'],['蒜（切末）','Garlic (minced)',2,'clove'],['生抽','Light soy sauce',1,'tsp'],['食用油','Cooking oil',3,'tbsp'],['盐','Salt',0,'']],
+ st:[['四季豆掐去两头和老筋，洗净，一定要擦干。','Snap off the ends and any strings, wash and dry the beans very thoroughly.'],
+     ['锅里放2勺油，下四季豆中火煸炒约6分钟，炒到表皮起皱、有焦点，盛出。','Cook the beans in 2 tbsp of oil over medium heat for about 6 minutes, until the skin wrinkles and blisters. Set aside.'],
+     ['锅里放1勺油，下肉末炒到干香，加芽菜炒1分钟。','Add 1 tbsp of oil and fry the pork until crisp, then add the yacai for 1 minute.'],
+     ['下干辣椒、花椒和蒜末炒出香味，倒回四季豆，加生抽和少许盐，翻匀。','Add the chilies, peppercorns and garlic, return the beans, and season with the soy sauce and a little salt.']],
+ tip:['四季豆必须彻底做熟，没熟的四季豆会引起肠胃不适。','Green beans must be cooked through; undercooked ones can upset the stomach.']},
+{id:'sc9',c:'cn',r:'sc',zh:'辣子鸡',en:'Chongqing Chili Chicken',t:40,d:2,s:3,
+ i:[['去骨鸡腿肉','Boneless chicken thighs',400,'g'],['料酒（腌肉用）','Shaoxing wine (marinade)',1,'tbsp'],['生抽（腌肉用）','Light soy sauce (marinade)',1,'tbsp'],['淀粉（腌肉用）','Cornstarch (marinade)',1,'tbsp'],['干辣椒','Dried chilies',30,'g'],['花椒','Sichuan peppercorns',1,'tbsp'],['姜','Ginger',3,'slice'],['蒜','Garlic',4,'clove'],['葱','Scallions',2,'stalk'],['糖','Sugar',1,'tsp'],['熟白芝麻','Toasted sesame seeds',1,'tbsp'],['炸鸡用油','Oil for frying',250,'ml'],['盐','Salt',0.5,'tsp']],
+ st:[['鸡肉切成2厘米见方的小块，加料酒、生抽、盐和淀粉拌匀，腌20分钟。干辣椒剪成段。','Cut the chicken into 2 cm cubes and marinate with the wine, soy sauce, salt and cornstarch for 20 minutes. Snip the chilies into pieces.'],
+     ['锅里油烧到约180℃，把鸡块分2～3批炸约3分钟到金黄酥脆，捞出沥油。','Heat the oil to about 180°C (350°F) and fry the chicken in 2–3 batches for about 3 minutes until golden and crisp. Drain.'],
+     ['倒出多余的油，只留1勺。小火下干辣椒和花椒炒约30秒，炒到辣椒变深红色（不要炒糊）。','Pour off all but 1 tbsp of oil. Fry the chilies and peppercorns over low heat for about 30 seconds until deep red (don’t burn them).'],
+     ['下姜、蒜、葱炒香，倒回鸡块，加糖和芝麻，翻炒1分钟。','Add the ginger, garlic and scallions, return the chicken, then add the sugar and sesame and toss for 1 minute.']],
+ tip:['这道菜的辣椒主要提香，一般是在辣椒堆里找鸡块吃，辣椒不用吃。','The chilies are there mostly for aroma. Traditionally you pick the chicken out of the chilies and don’t eat them.']},
+{id:'sc10',c:'cn',r:'sc',zh:'水煮鱼',en:'Sichuan Boiled Fish in Chili Oil',t:45,d:3,s:3,
+ i:[['草鱼或其他肉质紧的白肉鱼（切片）','Grass carp or firm white fish fillets (sliced)',500,'g'],['料酒（腌鱼用）','Shaoxing wine (marinade)',1,'tbsp'],['蛋清','Egg white',1,'pc'],['淀粉（腌鱼用）','Cornstarch (marinade)',1,'tbsp'],['豆芽','Bean sprouts',200,'g'],['郫县豆瓣酱','Pixian doubanjiang',2,'tbsp'],['干辣椒','Dried chilies',10,'pc'],['花椒','Sichuan peppercorns',1,'tbsp'],['蒜','Garlic',5,'clove'],['姜','Ginger',5,'slice'],['高汤或水','Stock or water',600,'ml'],['食用油','Cooking oil',6,'tbsp'],['盐','Salt',0,'']],
+ st:[['鱼片加料酒、蛋清、淀粉和一小撮盐抓匀，腌15分钟。','Mix the fish slices with the wine, egg white, cornstarch and a pinch of salt. Marinate for 15 minutes.'],
+     ['豆芽焯1分钟，放在大碗底。','Blanch the bean sprouts for 1 minute and put them in a large bowl.'],
+     ['锅里放2勺油，下豆瓣酱炒出红油，加姜和一半蒜炒香，倒入高汤，加盐调味，烧开。','Fry the doubanjiang in 2 tbsp of oil until the oil turns red, add the ginger and half the garlic, pour in the stock, season with salt and bring to a boil.'],
+     ['把鱼片一片片放入，不要搅动，煮约1分钟到变白，连汤倒入碗中。','Slide in the fish slices one by one without stirring. Cook about 1 minute until white, then pour everything over the sprouts.'],
+     ['碗面撒干辣椒、花椒和剩下的蒜，把4勺油烧到冒烟，浇上去。','Scatter the chilies, peppercorns and remaining garlic on top. Heat 4 tbsp of oil until smoking and pour it over.']],
+ tip:['“水煮”是指用汤煮，不是清水。鱼片滑嫩的关键是腌好和别煮久。','“Boiled” means poached in a spicy broth. The tender texture comes from the marinade and not overcooking.']},
+{id:'sc11',c:'cn',r:'sc',zh:'酸菜鱼',en:'Fish with Pickled Mustard Greens',t:45,d:2,s:3,
+ i:[['黑鱼或草鱼（切片，鱼骨留着）','Snakehead or grass carp (fillets, bones kept)',500,'g'],['酸菜（切片）','Pickled mustard greens (sliced)',200,'g'],['泡椒','Pickled chilies',3,'pc'],['姜','Ginger',5,'slice'],['蒜','Garlic',4,'clove'],['干辣椒','Dried chilies',5,'pc'],['花椒','Sichuan peppercorns',1,'tsp'],['白胡椒粉','White pepper',0.5,'tsp'],['料酒','Shaoxing wine',1,'tbsp'],['蛋清','Egg white',1,'pc'],['淀粉','Cornstarch',1,'tbsp'],['糖','Sugar',1,'tsp'],['水','Water',800,'ml'],['食用油','Cooking oil',3,'tbsp'],['盐','Salt',0,'']],
+ st:[['鱼片加料酒、蛋清、淀粉、白胡椒粉和盐抓匀，腌15分钟。','Marinate the fish slices with the wine, egg white, cornstarch, white pepper and salt for 15 minutes.'],
+     ['锅里放油，下姜、蒜、泡椒、干辣椒和花椒炒香，再下酸菜炒2～3分钟，加糖。','Fry the ginger, garlic, pickled chilies, dried chilies and peppercorns in the oil, add the pickled greens for 2–3 minutes and the sugar.'],
+     ['先放鱼骨炒一下，倒入热水烧开，煮8分钟，煮出奶白色的汤。','Add the fish bones and stir briefly, pour in hot water, and simmer for 8 minutes until the broth turns milky.'],
+     ['转中火，放入鱼片，用筷子轻轻拨散，煮1～2分钟到变白。','Lower to medium, slide in the fish slices, separate them gently and cook 1–2 minutes until white.'],
+     ['尝味，按需加盐。连汤一起盛进大碗。','Taste and add salt if needed. Serve in a large bowl with all the broth.']],
+ tip:['酸菜本身有咸味，最后再加盐。','Pickled greens are already salty, so season at the end.']},
+{id:'sc12',c:'cn',r:'sc',zh:'蚂蚁上树',en:'Ants Climbing a Tree',t:20,d:1,s:2,
+ i:[['粉丝（红薯粉丝）','Sweet potato glass noodles',100,'g'],['猪肉末','Ground pork',100,'g'],['郫县豆瓣酱','Pixian doubanjiang',1,'tbsp'],['蒜','Garlic',2,'clove'],['姜末','Minced ginger',1,'tsp'],['葱','Scallion',1,'stalk'],['生抽','Light soy sauce',1,'tbsp'],['糖','Sugar',0.5,'tsp'],['高汤或水','Stock or water',200,'ml'],['食用油','Cooking oil',2,'tbsp']],
+ st:[['粉丝用温水泡软（约15分钟），沥干，剪短一点。','Soak the noodles in warm water for about 15 minutes, drain and snip them shorter.'],
+     ['锅里放油，下肉末炒散到微焦，加豆瓣酱炒出红油。','Brown the ground pork in the oil, then fry the doubanjiang until the oil turns red.'],
+     ['加姜、蒜炒香，倒入高汤，加生抽和糖，烧开。','Add the ginger and garlic, pour in the stock, soy sauce and sugar, and bring to a boil.'],
+     ['放粉丝，中火煮到汤汁几乎收干，粉丝变透明，撒葱花。','Add the noodles and simmer until the liquid is nearly absorbed and the noodles turn translucent. Top with scallion.']],
+ tip:['肉末粘在粉丝上，像蚂蚁爬树，这就是名字的来历。','The bits of pork cling to the noodles like ants on branches, hence the name.']},
+{id:'sc13',c:'cn',r:'sc',zh:'豆瓣鱼',en:'Fish in Doubanjiang Sauce',t:35,d:2,s:3,
+ i:[['鲫鱼或鲤鱼（整条，已处理）','Whole carp or crucian carp (cleaned)',500,'g'],['郫县豆瓣酱','Pixian doubanjiang',2,'tbsp'],['姜','Ginger',4,'slice'],['蒜','Garlic',4,'clove'],['葱','Scallions',2,'stalk'],['料酒','Shaoxing wine',2,'tbsp'],['糖','Sugar',1,'tsp'],['生抽','Light soy sauce',1,'tsp'],['醋','Vinegar',1,'tbsp'],['水','Water',300,'ml'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['鱼两面各划几刀，抹上料酒，放10分钟。','Score both sides of the fish and rub with 1 tbsp of the wine. Rest 10 minutes.'],
+     ['锅里放油烧热，下鱼，每面煎约2分钟到微黄，盛出。','Pan-fry the fish in the hot oil for about 2 minutes per side until lightly golden. Set aside.'],
+     ['锅里留油，下豆瓣酱炒出红油，加姜、蒜炒香。','In the remaining oil, fry the doubanjiang until the oil turns red, then add the ginger and garlic.'],
+     ['加水、糖、生抽和剩下的料酒，放回鱼，烧开后小火炖10分钟，中间用勺子把汤汁浇在鱼身上。','Add the water, sugar, soy sauce and remaining wine, return the fish and simmer for 10 minutes, spooning the sauce over it.'],
+     ['转大火收汁到稍稠，淋醋，撒葱花。','Reduce the sauce over high heat until slightly thick, add the vinegar and sprinkle with scallions.']],
+ tip:['煎鱼前把鱼擦干，并把锅烧热，鱼皮才不会粘锅。','Dry the fish well and heat the pan first so the skin doesn’t stick.']},
+{id:'sc14',c:'cn',r:'sc',zh:'盐煎肉',en:'Salt-Fried Pork with Garlic Sprouts',t:20,d:1,s:2,
+ i:[['五花肉（切薄片）','Pork belly (thinly sliced)',250,'g'],['蒜苗','Garlic sprouts',3,'stalk'],['郫县豆瓣酱','Pixian doubanjiang',1,'tbsp'],['豆豉','Fermented black beans',1,'tsp'],['干辣椒','Dried chilies',3,'pc'],['生抽','Light soy sauce',1,'tsp'],['料酒','Shaoxing wine',1,'tbsp'],['食用油','Cooking oil',1,'tbsp']],
+ st:[['五花肉切成薄片，蒜苗斜切段，干辣椒剪段。','Slice the pork thin, cut the garlic sprouts on the diagonal and snip the chilies.'],
+     ['锅里放少许油，下肉片，中火煎到出油、两面微焦，加料酒。','Cook the pork in a little oil over medium heat until the fat renders and both sides brown. Add the wine.'],
+     ['加豆瓣酱、豆豉和干辣椒，炒出红油和香味。','Add the doubanjiang, black beans and chilies and fry until fragrant and the oil turns red.'],
+     ['下蒜苗，加生抽，翻炒到蒜苗断生即可。','Add the garlic sprouts and soy sauce and toss until just cooked.']],
+ tip:['和回锅肉相似，但肉是直接生煎的，做法更快。','Similar to twice-cooked pork, but the meat is fried raw, so it is quicker.']},
+{id:'sc15',c:'cn',r:'sc',zh:'家常豆腐',en:'Home-Style Tofu',t:25,d:1,s:2,
+ i:[['老豆腐','Firm tofu',400,'g'],['五花肉（切薄片）','Pork belly (thinly sliced)',80,'g'],['青椒','Green pepper',1,'pc'],['郫县豆瓣酱','Pixian doubanjiang',1,'tbsp'],['蒜','Garlic',2,'clove'],['葱','Scallion',1,'stalk'],['生抽','Light soy sauce',1,'tbsp'],['糖','Sugar',0.5,'tsp'],['水','Water',100,'ml'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['豆腐切成5毫米厚的片，锅里放2勺油，把豆腐两面煎到金黄，盛出。','Cut the tofu into 5 mm slabs and pan-fry both sides in 2 tbsp of oil until golden. Set aside.'],
+     ['锅里放1勺油，下肉片炒到出油，加豆瓣酱炒出红油，下蒜片炒香。','Add 1 tbsp of oil, fry the pork until it renders, then the doubanjiang until the oil turns red, and the garlic.'],
+     ['加水、生抽和糖，放回豆腐，小火煮3分钟。','Add the water, soy sauce and sugar, return the tofu and simmer for 3 minutes.'],
+     ['下青椒片和葱段，翻炒1分钟，收汁出锅。','Add the sliced pepper and scallion, toss for 1 minute and reduce the sauce.']],
+ tip:['豆腐先煎过更不容易碎，也更入味。','Pan-frying the tofu first keeps it from breaking up and helps it absorb flavor.']},
+{id:'sc16',c:'cn',r:'sc',zh:'红油抄手',en:'Wontons in Chili Oil',t:50,d:2,s:2,
+ i:[['馄饨皮','Wonton wrappers',20,'pc'],['猪肉末','Ground pork',150,'g'],['姜末','Minced ginger',1,'tsp'],['葱花','Chopped scallion',1,'stalk'],['盐','Salt',0.5,'tsp'],['料酒','Shaoxing wine',1,'tsp'],['生抽（调馅）','Light soy sauce (filling)',1,'tsp'],['清水（调馅）','Water (filling)',1,'tbsp'],['香油','Sesame oil',1,'tsp'],['红油辣椒','Chili oil',2,'tbsp'],['生抽（调汁）','Light soy sauce (sauce)',1,'tbsp'],['醋','Vinegar',1,'tsp'],['糖','Sugar',0.5,'tsp'],['蒜水（蒜末加水）','Garlic water (minced garlic in water)',2,'tbsp'],['花椒粉','Ground Sichuan pepper',0.25,'tsp']],
+ st:[['肉末加姜末、葱花、盐、料酒、生抽、清水和香油，顺着一个方向搅到有黏性。','Mix the pork with the ginger, scallion, salt, wine, soy sauce, water and sesame oil and stir in one direction until sticky.'],
+     ['每张皮包入一小勺馅，对折成三角形，再把两个角捏在一起。','Place a small spoonful of filling on each wrapper, fold into a triangle and pinch the two corners together.'],
+     ['碗里放红油、生抽、醋、糖、蒜水和花椒粉调成料汁。','In a bowl, mix the chili oil, soy sauce, vinegar, sugar, garlic water and Sichuan pepper.'],
+     ['水烧开，下抄手，煮到浮起后再煮2分钟，捞出放进料汁里，拌匀。','Boil the wontons; when they float, cook 2 more minutes. Lift them into the sauce and toss.']],
+ tip:['抄手是四川对馄饨的叫法。包好的可以冷冻保存。','“Chaoshou” is the Sichuan word for wontons. Freeze extras uncooked.']},
+{id:'sc17',c:'cn',r:'sc',zh:'酸辣粉',en:'Hot & Sour Glass Noodles',t:25,d:1,s:2,
+ i:[['红薯粉条（干）','Dried sweet potato noodles',150,'g'],['炸花生米','Fried or roasted peanuts',2,'tbsp'],['芽菜（碎）','Chopped yacai',1,'tbsp'],['蒜（切末）','Garlic (minced)',2,'clove'],['生抽','Light soy sauce',2,'tbsp'],['醋','Vinegar',2,'tbsp'],['红油辣椒','Chili oil',2,'tbsp'],['花椒粉','Ground Sichuan pepper',0.5,'tsp'],['糖','Sugar',0.5,'tsp'],['葱花','Chopped scallion',1,'stalk'],['高汤或开水','Stock or boiling water',400,'ml'],['青菜','Leafy greens',2,'pc']],
+ st:[['粉条按包装说明泡软或煮软（一般用热水泡30分钟以上，再煮几分钟）。','Soften the noodles according to the package, typically soaking in hot water for 30 minutes or more and then boiling a few minutes.'],
+     ['两个碗里分别放生抽、醋、红油、花椒粉、糖和蒜末。','Divide the soy sauce, vinegar, chili oil, Sichuan pepper, sugar and garlic between two bowls.'],
+     ['每个碗里倒入200毫升热高汤搅匀。','Pour 200 ml of hot stock into each bowl and stir.'],
+     ['青菜烫熟，粉条捞入碗里，放上花生、芽菜和葱花。','Blanch the greens, add the noodles to the bowls, and top with peanuts, yacai and scallion.']],
+ tip:['醋可以多放，酸辣粉的味道就在“酸”上。','Don’t be shy with the vinegar; the sourness is the point.']},
+{id:'sc18',c:'cn',r:'sc',zh:'蒜泥拍黄瓜',en:'Smashed Cucumber with Garlic & Chili Oil',t:10,d:1,s:2,
+ i:[['黄瓜','Cucumbers',2,'pc'],['盐','Salt',0.5,'tsp'],['蒜（切末）','Garlic (minced)',3,'clove'],['糖','Sugar',0.5,'tsp'],['醋','Vinegar',1,'tbsp'],['生抽','Light soy sauce',1,'tbsp'],['红油辣椒','Chili oil',1,'tbsp'],['香油','Sesame oil',1,'tsp']],
+ st:[['黄瓜洗净，用刀面拍裂，再切成3厘米的块。','Wash the cucumbers, smash them with the flat of a knife and cut them into 3 cm pieces.'],
+     ['拌盐腌5分钟，倒掉渗出来的水。','Toss with the salt, rest 5 minutes and pour off the liquid.'],
+     ['加蒜末、糖、醋、生抽、红油和香油，拌匀即可。','Add the garlic, sugar, vinegar, soy sauce, chili oil and sesame oil and toss.']],
+ tip:['拍出来的裂口更入味。拌好马上吃最脆。','Smashing creates rough edges that soak up the dressing. Eat soon after mixing for the best crunch.']},
+{id:'sc19',c:'cn',r:'sc',zh:'糖醋里脊',en:'Sweet & Sour Pork Tenderloin',t:40,d:3,s:2,
+ i:[['猪里脊肉','Pork tenderloin',250,'g'],['盐','Salt',0.5,'tsp'],['料酒','Shaoxing wine',1,'tbsp'],['鸡蛋','Egg',1,'pc'],['淀粉','Cornstarch',5,'tbsp'],['水（调面糊）','Water (for the batter)',3,'tbsp'],['炸肉用油','Oil for frying',400,'ml'],['番茄酱','Ketchup',2,'tbsp'],['白醋','White vinegar',2,'tbsp'],['糖','Sugar',2,'tbsp'],['水（调汁）','Water (sauce)',2,'tbsp'],['淀粉（调汁）','Cornstarch (sauce)',1,'tsp']],
+ st:[['里脊肉切成1厘米粗的条，加盐和料酒腌10分钟。','Cut the pork into 1 cm strips and marinate with the salt and wine for 10 minutes.'],
+     ['鸡蛋、4勺淀粉和水调成稠糊，把肉条裹上。','Whisk the egg, 4 tbsp of cornstarch and water into a thick batter and coat the pork.'],
+     ['油烧到约160℃，把肉条炸约3分钟定型，捞出。再把油烧到190℃，复炸30秒，炸到金黄酥脆。','Heat the oil to about 160°C (320°F) and fry the pork for about 3 minutes, then remove. Raise the oil to 190°C (375°F) and fry again for 30 seconds until golden and crisp.'],
+     ['另起锅，倒入番茄酱、白醋、糖、水和1勺淀粉，小火煮到浓稠起泡。','In another pan, simmer the ketchup, vinegar, sugar, water and 1 tsp of cornstarch until thick and bubbling.'],
+     ['倒入炸好的肉条，快速翻匀，马上出锅。','Add the pork, toss quickly to coat and serve at once.']],
+ tip:['炸两次才会酥。挂汁后很快就会变软，要现做现吃。','Frying twice is what makes it crisp. It softens once coated, so serve immediately.']},
+{id:'sc20',c:'cn',r:'sc',zh:'干煸牛肉丝',en:'Dry-Fried Shredded Beef',t:35,d:3,s:2,
+ i:[['牛肉（牛腿或牛里脊）','Beef (round or sirloin)',250,'g'],['料酒','Shaoxing wine',1,'tbsp'],['生抽','Light soy sauce',1,'tbsp'],['胡萝卜','Carrot',1,'pc'],['芹菜','Celery',2,'stalk'],['郫县豆瓣酱','Pixian doubanjiang',1,'tbsp'],['干辣椒','Dried chilies',6,'pc'],['花椒','Sichuan peppercorns',1,'tsp'],['姜（切丝）','Ginger (shredded)',3,'slice'],['糖','Sugar',0.5,'tsp'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['牛肉逆着纹理切成细丝，加料酒和生抽拌匀，腌10分钟。胡萝卜和芹菜切成细丝。','Cut the beef into thin strips against the grain and marinate with the wine and soy sauce for 10 minutes. Shred the carrot and celery.'],
+     ['锅里放油，下牛肉丝中火不停翻炒8～10分钟，炒到水分蒸发、肉丝变干微焦。','Stir the beef continuously in the oil over medium heat for 8–10 minutes, until the moisture cooks off and the strands are dry and slightly crisp.'],
+     ['加豆瓣酱、姜丝、干辣椒和花椒，炒出红油和香味。','Add the doubanjiang, ginger, chilies and peppercorns and fry until fragrant and the oil turns red.'],
+     ['下胡萝卜丝和芹菜丝，加糖，大火翻炒2分钟出锅。','Add the carrot and celery with the sugar and toss over high heat for 2 minutes.']],
+ tip:['“干煸”要有耐心，火不要太大，把水分慢慢炒干，肉丝才有嚼劲。','Be patient with “dry-frying”: keep the heat moderate and cook off the moisture slowly for a chewy texture.']},
+
+{id:'cn9',c:'cn',zh:'糖醋排骨',en:'Sweet & Sour Spare Ribs',t:70,d:2,s:3,
+ i:[['猪肋排（切小段）','Pork spare ribs (cut into pieces)',500,'g'],['姜','Ginger',3,'slice'],['料酒','Shaoxing wine',1,'tbsp'],['冰糖或白糖','Rock sugar or sugar',3,'tbsp'],['生抽','Light soy sauce',1,'tbsp'],['醋','Vinegar',3,'tbsp'],['热水','Hot water',300,'ml'],['食用油','Cooking oil',1,'tbsp'],['盐','Salt',0,'']],
+ st:[['排骨冷水下锅，加姜片和料酒，煮开后撇去浮沫，煮3分钟，捞出洗净。','Start the ribs in cold water with the ginger and wine, boil and skim for 3 minutes, then drain and rinse.'],
+     ['锅里放油和糖，小火炒到糖变成琥珀色。','Melt the sugar with the oil over low heat until amber.'],
+     ['下排骨翻炒到裹上糖色，加生抽、醋和热水，水量约没过一半。','Add the ribs and toss to coat. Pour in the soy sauce, vinegar and hot water to about half cover.'],
+     ['烧开后盖盖，小火炖30分钟，开盖大火收汁到浓稠，按口味加盐。','Bring to a boil, cover and simmer 30 minutes. Uncover and reduce over high heat until thick, adding salt to taste.']],
+ tip:['醋放早一点，酸味会变柔和；喜欢更酸，起锅前再补1勺。','Adding vinegar early mellows it. For a sharper sourness, add 1 more tbsp at the end.']},
+{id:'cn10',c:'cn',zh:'地三鲜',en:'Di San Xian (Potato, Eggplant & Pepper)',t:35,d:2,s:2,
+ i:[['长茄子','Long eggplant',1,'pc'],['土豆（中等大）','Potato (medium)',1,'pc'],['青椒','Green pepper',1,'pc'],['蒜','Garlic',3,'clove'],['生抽','Light soy sauce',1,'tbsp'],['蚝油','Oyster sauce',1,'tbsp'],['糖','Sugar',0.5,'tsp'],['淀粉','Cornstarch',1,'tsp'],['水','Water',100,'ml'],['食用油','Cooking oil',4,'tbsp']],
+ st:[['茄子、土豆切滚刀块，青椒切块，蒜切片。土豆用水冲洗并擦干。','Cut the eggplant and potato into chunks, the pepper into pieces and slice the garlic. Rinse and dry the potato.'],
+     ['把生抽、蚝油、糖、淀粉和水调成汁。','Stir the soy sauce, oyster sauce, sugar, cornstarch and water into a sauce.'],
+     ['锅里放油，先煎土豆到金黄，盛出；再煎茄子到软，盛出；最后煎青椒30秒，盛出。','Pan-fry the potato until golden and set aside, then the eggplant until soft, then the pepper for 30 seconds.'],
+     ['锅里留一点油，下蒜片炒香，倒入汁，煮到变稠，倒回所有蔬菜翻匀。','With a little oil left, fry the garlic, pour in the sauce until thick, return all the vegetables and toss.']],
+ tip:['三样分开煎，各自熟的时间才合适。','Cook each vegetable separately so each is done just right.']},
+{id:'cn11',c:'cn',zh:'蒜蓉西兰花',en:'Garlic Broccoli',t:12,d:1,s:2,
+ i:[['西兰花','Broccoli',300,'g'],['蒜（切末）','Garlic (minced)',4,'clove'],['食用油','Cooking oil',1,'tbsp'],['蚝油（可选）','Oyster sauce (optional)',1,'tsp'],['盐','Salt',0.5,'tsp']],
+ st:[['西兰花切成小朵，洗净。','Cut the broccoli into florets and wash them.'],
+     ['水烧开，加一小撮盐和几滴油，西兰花焯约1分钟，捞出过凉水，沥干。','Blanch in boiling water with a pinch of salt and a few drops of oil for about 1 minute. Cool in cold water and drain.'],
+     ['锅里放油，小火下蒜末炒出香味，别炒糊。','Fry the garlic in the oil over low heat until fragrant, without burning.'],
+     ['下西兰花，大火翻炒1分钟，加盐和蚝油，炒匀出锅。','Add the broccoli, toss over high heat for 1 minute and season with the salt and oyster sauce.']],
+ tip:['焯水时间短，西兰花才翠绿脆嫩。','A short blanch keeps the broccoli bright green and crisp.']},
+{id:'cn12',c:'cn',zh:'紫菜蛋花汤',en:'Seaweed & Egg Drop Soup',t:10,d:1,s:2,
+ i:[['紫菜','Dried nori',5,'g'],['鸡蛋','Eggs',2,'pc'],['水或高汤','Water or stock',600,'ml'],['盐','Salt',0.5,'tsp'],['白胡椒粉','White pepper',0.25,'tsp'],['香油','Sesame oil',1,'tsp'],['葱花','Chopped scallion',1,'stalk']],
+ st:[['鸡蛋打散。紫菜撕成小片。','Beat the eggs and tear the nori into small pieces.'],
+     ['水烧开，放入紫菜，煮30秒。','Bring the water to a boil, add the nori and cook for 30 seconds.'],
+     ['转小火，把蛋液沿着筷子慢慢淋入，等蛋花浮起再搅动。','Lower the heat and pour the eggs in slowly along a chopstick; stir only after the ribbons float.'],
+     ['加盐和白胡椒粉，淋香油，撒葱花。','Season with the salt and pepper, add the sesame oil and scallion.']],
+ tip:['想要蛋花更细，可以在蛋液里加半勺水淀粉。','For finer egg ribbons, mix 1/2 tsp of cornstarch slurry into the eggs.']},
+{id:'cn13',c:'cn',zh:'玉米排骨汤',en:'Corn & Pork Rib Soup',t:100,d:1,s:4,
+ i:[['猪排骨','Pork ribs',400,'g'],['玉米','Corn on the cob',2,'pc'],['胡萝卜','Carrot',1,'pc'],['姜','Ginger',4,'slice'],['料酒','Shaoxing wine',1,'tbsp'],['水','Water',1500,'ml'],['盐','Salt',1.5,'tsp']],
+ st:[['排骨冷水下锅，加料酒和2片姜，煮开撇去浮沫，煮3分钟，捞出洗净。','Start the ribs in cold water with the wine and 2 ginger slices, boil and skim for 3 minutes, then drain and rinse.'],
+     ['玉米切成段，胡萝卜切滚刀块。','Cut the corn into sections and the carrot into chunks.'],
+     ['汤锅里放排骨、玉米、剩下的姜和水，烧开后转小火炖1小时。','In a soup pot, combine the ribs, corn, remaining ginger and water, bring to a boil and simmer for 1 hour.'],
+     ['加胡萝卜再炖20分钟，最后加盐调味。','Add the carrot and simmer 20 minutes more. Season with salt at the end.']],
+ tip:['盐最后放，肉才不会变柴。','Salt at the end keeps the meat tender.']},
+
+{id:'gd1',c:'cn',r:'gd',zh:'白切鸡',en:'Cantonese Poached Chicken',t:60,d:2,s:4,
+ i:[['整鸡（约1.2公斤）','Whole chicken (about 1.2 kg)',1200,'g'],['姜（煮鸡用）','Ginger (for the pot)',5,'slice'],['葱（煮鸡用）','Scallions (for the pot)',3,'stalk'],['盐（煮鸡用）','Salt (for the pot)',1,'tbsp'],['姜末（蘸料）','Minced ginger (dip)',3,'tbsp'],['葱花（蘸料）','Chopped scallion (dip)',2,'stalk'],['盐（蘸料）','Salt (dip)',0.5,'tsp'],['食用油（蘸料）','Cooking oil (dip)',3,'tbsp'],['生抽（蘸料，可选）','Light soy sauce (dip, optional)',1,'tbsp']],
+ st:[['大锅里放足够淹没整只鸡的水（约3升），加姜片、葱段和盐，烧开。','Fill a large pot with enough water to cover the chicken (about 3 liters). Add the ginger, scallions and salt and bring to a boil.'],
+     ['提着鸡脖子，把鸡放进滚水里浸3次，每次几秒钟，让鸡皮收紧。然后把整只鸡放入水中。','Hold the chicken by the neck and dunk it into the boiling water 3 times for a few seconds each to tighten the skin, then submerge it completely.'],
+     ['水再次煮到冒小泡时马上关火，盖上盖子，浸泡30～35分钟。','When the water returns to a gentle simmer, turn off the heat, cover and let it sit for 30–35 minutes.'],
+     ['用筷子戳大腿最厚处，流出的汁是清的才是熟了（温度计应到74℃）。如果还带血色，放回热水里再泡10分钟。','Pierce the thickest part of the thigh; the juices must run clear (74°C / 165°F on a thermometer). If pink, return it to the hot water for 10 more minutes.'],
+     ['鸡放入冰水里浸10分钟，让皮爽脆，沥干，斩成块。','Chill the chicken in ice water for 10 minutes for a crisp skin, drain and chop into pieces.'],
+     ['蘸料：姜末、葱花和盐放碗里，把油烧热，浇上去，加生抽拌匀。','Dip: put the ginger, scallion and salt in a bowl, pour over the hot oil and add the soy sauce.']],
+ tip:['这个方法用的是余温把鸡浸熟，一定要确认熟透才能吃。煮鸡的汤可以拿来煮粥或煮面。','This cooks the chicken in residual heat, so always confirm it is cooked through. The broth is great for congee or noodles.']},
+{id:'gd2',c:'cn',r:'gd',zh:'蜜汁叉烧',en:'Char Siu (Honey-Glazed BBQ Pork)',t:70,d:2,s:4,
+ i:[['猪梅花肉（或猪颈肉），切成条','Pork shoulder or pork neck, cut into strips',500,'g'],['蜂蜜（腌肉）','Honey (marinade)',2,'tbsp'],['生抽','Light soy sauce',2,'tbsp'],['蚝油','Oyster sauce',1,'tbsp'],['海鲜酱','Hoisin sauce',1,'tbsp'],['料酒','Shaoxing wine',1,'tbsp'],['糖','Sugar',1,'tbsp'],['五香粉','Five-spice powder',0.5,'tsp'],['蒜（切末）','Garlic (minced)',3,'clove'],['蜂蜜（刷面用）','Honey (for glazing)',1,'tbsp']],
+ st:[['把除了刷面用的蜂蜜以外的所有调料混合成腌料，把肉条拌匀，放冰箱腌至少4小时，最好过夜（这段时间不计入用时）。','Mix all the ingredients except the glazing honey into a marinade and coat the pork. Refrigerate at least 4 hours, ideally overnight (not counted in the time).'],
+     ['烤箱预热到200℃。烤盘铺锡纸，放上烤架，把肉条放在架子上，下面烤盘里加一点水，防止滴下的糖烧焦。','Preheat the oven to 200°C (400°F). Line a pan with foil, set a rack on top, place the pork on the rack and add a little water to the pan so drips don’t burn.'],
+     ['烤20分钟，翻面，刷上剩下的腌料，再烤15分钟。','Roast 20 minutes, flip, brush with the leftover marinade and roast another 15 minutes.'],
+     ['刷一层蜂蜜，再烤5分钟，到表面焦糖化、边缘微焦。肉中心温度应达到72℃以上。','Brush with the glazing honey and roast 5 more minutes until caramelized with slightly charred edges. The center should reach at least 72°C (160°F).'],
+     ['静置10分钟，逆着纹理切片。','Rest for 10 minutes and slice against the grain.']],
+ tip:['想要传统的红色，可以在腌料里加半块红腐乳。叉烧可以配饭、拌面或做叉烧包。','For the classic red color, add half a cube of red fermented tofu to the marinade. Serve with rice, noodles or in buns.']},
+{id:'gd3',c:'cn',r:'gd',zh:'豉汁蒸排骨',en:'Steamed Spare Ribs with Black Bean Sauce',t:55,d:1,s:2,
+ i:[['猪肋排（斩成小块）','Pork ribs (chopped into small pieces)',400,'g'],['豆豉','Fermented black beans',2,'tbsp'],['蒜（切末）','Garlic (minced)',4,'clove'],['姜末','Minced ginger',1,'tbsp'],['生抽','Light soy sauce',1,'tbsp'],['料酒','Shaoxing wine',1,'tbsp'],['糖','Sugar',1,'tsp'],['淀粉','Cornstarch',1,'tbsp'],['食用油','Cooking oil',1,'tbsp'],['红辣椒（可选）','Red chili (optional)',1,'pc']],
+ st:[['排骨用清水泡30分钟，中间换两次水，去掉血水，沥干。','Soak the ribs in cold water for 30 minutes, changing the water twice, then drain.'],
+     ['豆豉冲一下水，用刀稍微拍碎。','Rinse the black beans and lightly chop or mash them.'],
+     ['排骨加豆豉、蒜、姜、生抽、料酒、糖和淀粉拌匀，最后拌入油，腌20分钟。','Mix the ribs with the beans, garlic, ginger, soy sauce, wine, sugar and cornstarch, then stir in the oil. Marinate 20 minutes.'],
+     ['摆在盘子里，水烧开后大火蒸25～30分钟，直到排骨软烂。','Arrange on a plate and steam over boiling water on high heat for 25–30 minutes, until tender.'],
+     ['撒上红辣椒圈和葱花。','Garnish with sliced chili and scallion.']],
+ tip:['排骨块越小越快熟。豆豉本身有咸味，不用再加盐。','Smaller pieces cook faster. Black beans are salty, so no extra salt is needed.']},
+{id:'gd4',c:'cn',r:'gd',zh:'蒜蓉粉丝蒸虾',en:'Steamed Prawns with Garlic & Glass Noodles',t:25,d:1,s:2,
+ i:[['大虾（带壳，开背去虾线）','Large prawns (shell on, butterflied and deveined)',300,'g'],['粉丝','Glass noodles',50,'g'],['蒜（切末）','Garlic (minced)',6,'clove'],['生抽','Light soy sauce',1,'tbsp'],['蚝油','Oyster sauce',1,'tsp'],['食用油','Cooking oil',3,'tbsp'],['葱花','Chopped scallion',1,'stalk'],['小红辣椒（可选）','Small red chili (optional)',1,'pc']],
+ st:[['粉丝用温水泡10分钟泡软，沥干，铺在盘子底部。','Soak the glass noodles in warm water for 10 minutes until soft, drain and spread them on a plate.'],
+     ['虾摆在粉丝上。','Arrange the prawns on top of the noodles.'],
+     ['油烧热，下一半蒜末小火炒到微黄，关火，再加另一半生蒜末、生抽和蚝油拌匀。','Heat the oil and fry half the garlic over low heat until pale golden. Turn off the heat and stir in the raw garlic, soy sauce and oyster sauce.'],
+     ['把蒜蓉酱均匀淋在虾上。','Spoon the garlic mixture evenly over the prawns.'],
+     ['水烧开，大火蒸6～8分钟，到虾变红、肉不透明。撒葱花和辣椒。','Steam over boiling water on high heat for 6–8 minutes, until the prawns are pink and opaque. Top with scallion and chili.']],
+ tip:['蒸太久虾会变老，看到虾弯曲变红就可以出锅。粉丝会吸收虾汁，非常好吃。','Over-steaming makes prawns tough; take them out once pink and curled. The noodles soak up the juices and are delicious.']},
+{id:'gd5',c:'cn',r:'gd',zh:'干炒牛河',en:'Beef Chow Fun (Dry-Fried Beef Noodles)',t:25,d:3,s:2,
+ i:[['新鲜河粉','Fresh flat rice noodles',300,'g'],['牛肉（逆纹切薄片）','Beef (sliced thin against the grain)',150,'g'],['生抽（腌牛肉）','Light soy sauce (for beef)',1,'tsp'],['淀粉（腌牛肉）','Cornstarch (for beef)',1,'tsp'],['豆芽','Bean sprouts',100,'g'],['葱（切段）','Scallions (cut into sections)',2,'stalk'],['生抽（炒粉）','Light soy sauce (for noodles)',1,'tbsp'],['老抽','Dark soy sauce',1,'tsp'],['蚝油','Oyster sauce',1,'tsp'],['糖','Sugar',0.5,'tsp'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['牛肉加生抽、淀粉和半勺油拌匀，腌10分钟。河粉轻轻剥散，不要弄断。','Marinate the beef with the soy sauce, cornstarch and 1/2 tbsp of oil for 10 minutes. Gently separate the noodles so they don’t break.'],
+     ['把生抽、老抽、蚝油和糖在小碗里混合。','Mix the soy sauces, oyster sauce and sugar in a small bowl.'],
+     ['锅烧到很热，放1勺油，下牛肉快炒到刚变色，盛出。','Heat a wok until very hot, add 1 tbsp of oil and sear the beef until just browned. Set aside.'],
+     ['锅里再放油，下河粉，大火铺开煎一会儿，轻轻翻动，淋上调好的酱汁，让每根粉都上色。','Add the remaining oil and the noodles. Let them sit over high heat to pick up color, toss gently and drizzle in the sauce until evenly coated.'],
+     ['加豆芽和葱段，倒回牛肉，快速翻匀，马上出锅。','Add the sprouts and scallions, return the beef, toss quickly and serve at once.']],
+ tip:['关键是锅要很热、火要大，一次别炒太多，才有“锅气”。河粉不要反复大力翻，容易断。','The secret is a very hot wok and not too much food at a time, which gives “wok hei”. Avoid over-tossing so the noodles don’t break.']},
+{id:'gd6',c:'cn',r:'gd',zh:'滑蛋虾仁',en:'Shrimp with Silky Scrambled Eggs',t:20,d:2,s:2,
+ i:[['虾仁','Peeled shrimp',200,'g'],['盐（腌虾）','Salt (for shrimp)',0.25,'tsp'],['淀粉（腌虾）','Cornstarch (for shrimp)',1,'tsp'],['料酒','Shaoxing wine',1,'tsp'],['鸡蛋','Eggs',4,'pc'],['盐（蛋液）','Salt (for eggs)',0.25,'tsp'],['淀粉（蛋液）','Cornstarch (for eggs)',1,'tsp'],['水','Water',1,'tbsp'],['葱花','Chopped scallion',1,'stalk'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['虾仁洗净擦干，加盐、淀粉和料酒拌匀，腌10分钟。','Rinse and dry the shrimp and marinate with the salt, cornstarch and wine for 10 minutes.'],
+     ['鸡蛋加盐、淀粉和水打散，加入葱花。','Beat the eggs with the salt, cornstarch and water and add the scallion.'],
+     ['锅里放1勺油，下虾仁炒到八分熟（刚变红），盛出。','Cook the shrimp in 1 tbsp of oil until just pink. Set aside.'],
+     ['锅里放2勺油烧热，转中火，倒入蛋液，倒入虾仁，用锅铲从边缘往中间轻轻推。','Heat the remaining oil, lower to medium, pour in the eggs and shrimp and gently push from the edges toward the center.'],
+     ['蛋液还有一点流动、七八分凝固时，马上关火出锅，余温会让它继续变熟。','Remove from the heat when the eggs are still slightly runny and about 80% set; residual heat finishes the cooking.']],
+ tip:['蛋要嫩，不要炒太久；放一点水淀粉能让蛋更滑。','Don’t overcook; the cornstarch keeps the eggs silky.']},
+{id:'gd7',c:'cn',r:'gd',zh:'腊味煲仔饭',en:'Clay Pot Rice with Chinese Sausage',t:50,d:2,s:2,
+ i:[['长粒米（如茉莉香米）','Jasmine or long-grain rice',200,'g'],['水','Water',300,'ml'],['腊肠（切片）','Chinese sausage (sliced)',2,'pc'],['青菜','Leafy greens',2,'pc'],['葱花','Chopped scallion',1,'stalk'],['生抽','Light soy sauce',2,'tbsp'],['糖','Sugar',1,'tsp'],['水（调酱汁）','Water (for the sauce)',2,'tbsp'],['食用油','Cooking oil',1,'tbsp']],
+ st:[['米淘洗干净，浸泡30分钟，沥干。','Rinse the rice and soak for 30 minutes, then drain.'],
+     ['砂锅或厚底锅里放米和水，大火煮开，煮到水快收干（约10分钟）。','In a clay pot or heavy pot, bring the rice and water to a boil over high heat and cook until most of the water is absorbed (about 10 minutes).'],
+     ['把腊肠片铺在饭上，盖上盖，转最小火焖12～15分钟。','Lay the sausage slices on top, cover and cook on the lowest heat for 12–15 minutes.'],
+     ['沿锅边淋一圈油，开大火30～60秒，听到轻微的噼啪声，就有锅巴了。关火焖5分钟。','Drizzle the oil around the edge and turn the heat to high for 30–60 seconds until you hear a light crackle, which makes the crust. Turn off the heat and rest 5 minutes.'],
+     ['青菜焯熟，放在饭上。生抽、糖和水调成酱汁，淋在饭上，撒葱花，拌匀吃。','Blanch the greens and place them on the rice. Mix the soy sauce, sugar and water, pour over, add the scallion and stir before eating.']],
+ tip:['每个锅火力不同，最后用最小火，防止烧糊。腊肠本身有咸味，酱汁不要放太多。','Stoves differ, so keep the final heat low to avoid burning. The sausage is salty, so go easy on the sauce.']},
+{id:'gd8',c:'cn',r:'gd',zh:'西洋菜猪骨汤',en:'Watercress & Pork Bone Soup',t:130,d:1,s:4,
+ i:[['西洋菜','Watercress',300,'g'],['猪骨或瘦猪肉','Pork bones or lean pork',400,'g'],['蜜枣','Dried honey dates',3,'pc'],['姜','Ginger',3,'slice'],['水','Water',2000,'ml'],['盐','Salt',1.5,'tsp']],
+ st:[['猪骨冷水下锅，煮开后撇去浮沫，煮3分钟，捞出洗净。','Start the bones in cold water, boil and skim for 3 minutes, then drain and rinse.'],
+     ['汤锅里放水、猪骨、蜜枣和姜，烧开后转小火炖1.5小时。','Put the water, bones, honey dates and ginger in a pot, bring to a boil and simmer for 1.5 hours.'],
+     ['西洋菜洗净，加入汤里，再煮20～30分钟。','Wash the watercress, add it to the soup and cook 20–30 more minutes.'],
+     ['最后加盐调味。','Season with salt at the end.']],
+ tip:['这是广东的“老火靓汤”，长时间小火慢炖。西洋菜要煮久一点，味道才甘润。','This is a classic Cantonese slow-simmered soup. Cook the watercress a while to give it a mellow, sweet flavor.']},
+{id:'gd9',c:'cn',r:'gd',zh:'蚝油生菜',en:'Lettuce with Oyster Sauce',t:10,d:1,s:2,
+ i:[['生菜','Lettuce',300,'g'],['蒜（切末）','Garlic (minced)',3,'clove'],['蚝油','Oyster sauce',1.5,'tbsp'],['生抽','Light soy sauce',1,'tsp'],['糖','Sugar',0.5,'tsp'],['水','Water',2,'tbsp'],['食用油','Cooking oil',1,'tbsp'],['盐','Salt',0.25,'tsp']],
+ st:[['生菜洗净，掰成大片。','Wash the lettuce and separate the leaves.'],
+     ['水烧开，加盐和几滴油，生菜烫15～20秒，捞出沥干，摆盘。','Boil water with the salt and a few drops of oil, blanch the lettuce for 15–20 seconds, drain and place on a plate.'],
+     ['锅里放油，下蒜末炒香，加蚝油、生抽、糖和水，煮开。','Fry the garlic in the oil, add the oyster sauce, soy sauce, sugar and water and bring to a boil.'],
+     ['把酱汁浇在生菜上。','Pour the sauce over the lettuce.']],
+ tip:['烫的时间要短，生菜才脆。','Keep the blanching brief so the lettuce stays crisp.']},
+{id:'gd10',c:'cn',r:'gd',zh:'蒸水蛋',en:'Steamed Egg Custard',t:20,d:1,s:2,
+ i:[['鸡蛋','Eggs',3,'pc'],['温水','Warm water',220,'ml'],['盐','Salt',0.5,'tsp'],['生抽','Light soy sauce',1,'tbsp'],['香油','Sesame oil',1,'tsp'],['葱花','Chopped scallion',1,'stalk']],
+ st:[['鸡蛋在碗里轻轻打散，不要打出太多泡泡。','Gently beat the eggs in a bowl, avoiding too many bubbles.'],
+     ['加入盐和温水（不是热水），搅匀，用细筛过滤到蒸碗里，撇去表面的气泡。','Add the salt and warm (not hot) water and stir. Strain through a fine sieve into a bowl and skim off any bubbles.'],
+     ['蒸碗盖上盘子或保鲜膜（扎几个小孔），防止水珠滴下。','Cover the bowl with a plate or plastic wrap (poke a few holes) to keep condensation from dripping in.'],
+     ['水烧开后转中小火，蒸8～10分钟，到轻轻晃动时中间不再有液体。','Once the water boils, lower to medium-low and steam for 8–10 minutes, until the center no longer sloshes when you shake the bowl.'],
+     ['淋上生抽和香油，撒葱花。','Drizzle with the soy sauce and sesame oil and add the scallion.']],
+ tip:['蛋和水的比例约1:1.5（按体积），火太大会蒸出蜂窝孔。','The egg-to-water ratio is about 1:1.5 by volume. High heat creates a honeycomb texture.']},
+
+{id:'hn1',c:'cn',r:'hn',zh:'剁椒鱼头',en:'Steamed Fish Head with Chopped Chilies',t:40,d:2,s:3,
+ i:[['鱼头（鳙鱼头，对半剖开）','Fish head (bighead carp), halved',800,'g'],['剁椒','Chopped salted chilies',100,'g'],['料酒','Shaoxing wine',2,'tbsp'],['盐','Salt',0.5,'tsp'],['姜（片）','Ginger (sliced)',5,'slice'],['姜末','Minced ginger',1,'tbsp'],['蒜（切末）','Garlic (minced)',4,'clove'],['葱','Scallions',3,'stalk'],['蒸鱼豉油','Steamed-fish soy sauce',2,'tbsp'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['鱼头洗净，加料酒和盐抹匀，腌15分钟。','Wash the fish head, rub with the wine and salt and marinate for 15 minutes.'],
+     ['盘子里垫上姜片和一段葱，放上鱼头，鱼头切面朝上。','Place the ginger slices and a piece of scallion on a plate and lay the fish head on top, cut side up.'],
+     ['剁椒、姜末、蒜末拌匀，铺在鱼头上，淋蒸鱼豉油。','Mix the chopped chilies, ginger and garlic, spread over the fish head and drizzle with the soy sauce.'],
+     ['水烧开后大火蒸15～18分钟，直到鱼肉熟透、骨边的肉不再透明。','Steam over boiling water on high heat for 15–18 minutes, until the flesh near the bone is opaque and cooked through.'],
+     ['撒上葱花，把油烧到冒烟，浇在上面。','Scatter chopped scallion on top and pour over smoking-hot oil.']],
+ tip:['剁椒已经很咸，所以腌鱼时盐放少一些。可以用鱼汤拌饭或拌面。','The chopped chilies are salty, so go light on salt in the marinade. The sauce is great over rice or noodles.']},
+{id:'hn2',c:'cn',r:'hn',zh:'毛氏红烧肉',en:'Mao-Style Red-Braised Pork',t:100,d:2,s:4,
+ i:[['五花肉（切3厘米块）','Pork belly (3 cm cubes)',500,'g'],['冰糖','Rock sugar',2,'tbsp'],['生抽','Light soy sauce',1,'tbsp'],['老抽','Dark soy sauce',1,'tbsp'],['料酒','Shaoxing wine',2,'tbsp'],['干辣椒','Dried chilies',3,'pc'],['八角','Star anise',2,'pc'],['桂皮','Cinnamon stick',1,'piece'],['姜','Ginger',4,'slice'],['葱','Scallions',2,'stalk'],['热水','Hot water',400,'ml'],['食用油','Cooking oil',1,'tbsp']],
+ st:[['五花肉冷水下锅，加姜片和1勺料酒，煮开后煮3分钟，捞出洗净、沥干。','Start the pork in cold water with the ginger and 1 tbsp of wine, boil for 3 minutes, then drain, rinse and dry.'],
+     ['锅里放油，下肉块中火煎到表面金黄、出油。','Brown the pork in the oil over medium heat until golden and the fat renders.'],
+     ['加冰糖，翻炒到糖融化、肉块上色。','Add the rock sugar and toss until it melts and coats the pork.'],
+     ['加干辣椒、八角、桂皮、葱段、剩下的料酒、生抽和老抽，倒入热水到快淹没肉。','Add the chilies, spices, scallions, remaining wine and both soy sauces, then pour in hot water until it almost covers the meat.'],
+     ['烧开后盖盖，小火炖60分钟，开盖大火收汁到浓稠发亮。','Bring to a boil, cover and simmer 60 minutes, then reduce over high heat until thick and glossy.']],
+ tip:['湘式红烧肉带一点辣和咸香，比一般红烧肉更重口味。','Hunan red-braised pork has a touch of chili and a more savory, robust flavor than other versions.']},
+{id:'hn3',c:'cn',r:'hn',zh:'农家小炒肉',en:'Farmhouse Stir-Fried Pork with Green Chilies',t:20,d:1,s:2,
+ i:[['五花肉（切薄片）','Pork belly (thinly sliced)',200,'g'],['青辣椒（螺丝椒或线椒）','Green chilies (Hunan or finger chilies)',4,'pc'],['蒜（切片）','Garlic (sliced)',3,'clove'],['豆豉','Fermented black beans',1,'tbsp'],['生抽','Light soy sauce',1,'tbsp'],['老抽','Dark soy sauce',1,'tsp'],['料酒','Shaoxing wine',1,'tbsp'],['盐','Salt',0,'']],
+ st:[['辣椒斜切成段。锅烧热，不放油，把辣椒煎到表面起虎皮、微焦，盛出。','Cut the chilies into diagonal pieces. In a hot dry pan, blister them until their skin is lightly charred. Set aside.'],
+     ['锅里不用放油，下五花肉片，中火煸炒到出油、边缘微焦。','Fry the pork belly in the same pan without oil over medium heat until the fat renders and the edges turn golden.'],
+     ['加料酒、豆豉和蒜片炒香，加生抽和老抽炒匀。','Add the wine, black beans and garlic, then both soy sauces.'],
+     ['倒回辣椒，大火翻炒1分钟，按口味加盐。','Return the chilies, toss over high heat for 1 minute and add salt to taste.']],
+ tip:['肉要选带点肥的，用自己的油炒更香。辣椒用煎的方式更有香味。','Choose a fatty cut so it fries in its own oil. Blistering the chilies adds a lot of flavor.']},
+{id:'hn4',c:'cn',r:'hn',zh:'酸豆角炒肉末',en:'Stir-Fried Pickled Long Beans with Pork',t:15,d:1,s:2,
+ i:[['酸豆角（切1厘米小段）','Pickled long beans (cut in 1 cm pieces)',200,'g'],['猪肉末','Ground pork',150,'g'],['小米辣或干辣椒','Bird’s eye chilies or dried chilies',4,'pc'],['蒜（切末）','Garlic (minced)',3,'clove'],['姜末','Minced ginger',1,'tsp'],['料酒','Shaoxing wine',1,'tbsp'],['生抽','Light soy sauce',1,'tsp'],['食用油','Cooking oil',2,'tbsp']],
+ st:[['酸豆角用清水冲洗一下，挤干水分。','Rinse the pickled beans briefly and squeeze them dry.'],
+     ['锅里不放油，把酸豆角干煸1～2分钟，煸出水汽和香味，盛出。','Dry-fry the beans in a pan without oil for 1–2 minutes to drive off moisture. Set aside.'],
+     ['锅里放油，下肉末炒散，加料酒炒到微焦。','Heat the oil and brown the pork, adding the wine.'],
+     ['下姜、蒜、辣椒炒香，倒回酸豆角，加生抽，大火翻炒2分钟。','Add the ginger, garlic and chilies, return the beans, add the soy sauce and toss on high heat for 2 minutes.']],
+ tip:['酸豆角本身很咸，一般不用再加盐。很下饭。','The pickled beans are already salty, so extra salt isn’t usually needed. A great dish with rice.']},
+{id:'hn5',c:'cn',r:'hn',zh:'尖椒炒蛋',en:'Hunan Green Chili & Egg',t:12,d:1,s:2,
+ i:[['鸡蛋','Eggs',3,'pc'],['青辣椒（螺丝椒或尖椒）','Green chilies (Hunan or long hot)',3,'pc'],['蒜（切末）','Garlic (minced)',2,'clove'],['盐','Salt',0.5,'tsp'],['生抽','Light soy sauce',1,'tsp'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['辣椒切圈，鸡蛋加一小撮盐打散。','Slice the chilies into rings and beat the eggs with a pinch of salt.'],
+     ['锅烧热，放2勺油，油热后倒入蛋液，等蛋液鼓起、底部凝固后翻炒成块，盛出。','Heat 2 tbsp of oil until hot, pour in the eggs and let them puff and set on the bottom. Break into pieces and remove.'],
+     ['锅里放1勺油，下蒜末和辣椒，大火煸炒2分钟，炒到辣椒表面微焦。','Add 1 tbsp of oil and fry the garlic and chilies on high heat for 2 minutes until slightly charred.'],
+     ['倒回鸡蛋，加盐和生抽，翻匀即可。','Return the eggs, season with the salt and soy sauce and toss.']],
+ tip:['辣度由辣椒决定，不吃辣可以换成青椒。','The heat depends on the chilies; use bell peppers for a mild version.']},
+{id:'hn6',c:'cn',r:'hn',zh:'手撕包菜',en:'Hand-Torn Cabbage Stir-Fry',t:12,d:1,s:2,
+ i:[['圆白菜（卷心菜）','Cabbage',400,'g'],['干辣椒','Dried chilies',4,'pc'],['蒜（切片）','Garlic (sliced)',3,'clove'],['五花肉（切薄片，可选）','Pork belly (sliced, optional)',50,'g'],['生抽','Light soy sauce',1,'tbsp'],['醋','Vinegar',1,'tsp'],['糖','Sugar',0.5,'tsp'],['盐','Salt',0.5,'tsp'],['食用油','Cooking oil',2,'tbsp']],
+ st:[['圆白菜用手撕成小片，洗净沥干。','Tear the cabbage into small pieces by hand, then wash and drain.'],
+     ['锅烧热放油，下五花肉片煸到出油（不用肉就跳过）。','Heat the oil and fry the pork until it renders its fat (skip if not using).'],
+     ['下干辣椒和蒜片炒香。','Add the dried chilies and garlic and fry until fragrant.'],
+     ['倒入圆白菜，大火翻炒2分钟，沿锅边淋生抽和醋，加糖和盐，炒到菜叶微焦、保持脆感。','Add the cabbage and stir-fry on high heat for 2 minutes. Add the soy sauce and vinegar around the edge of the pan, then the sugar and salt, cooking until slightly charred but still crisp.']],
+ tip:['用手撕比刀切更容易入味。火一定要大。','Tearing by hand absorbs the sauce better than cutting. Use high heat.']},
+{id:'hn7',c:'cn',r:'hn',zh:'干锅花菜',en:'Dry-Pot Cauliflower',t:25,d:1,s:2,
+ i:[['花菜（切小朵）','Cauliflower (small florets)',400,'g'],['五花肉（切薄片）','Pork belly (thinly sliced)',100,'g'],['干辣椒','Dried chilies',6,'pc'],['蒜（切片）','Garlic (sliced)',4,'clove'],['姜','Ginger',3,'slice'],['郫县豆瓣酱','Doubanjiang',1,'tbsp'],['生抽','Light soy sauce',1,'tbsp'],['青椒','Green pepper',1,'pc'],['葱','Scallion',1,'stalk'],['食用油','Cooking oil',2,'tbsp'],['盐','Salt',0,'']],
+ st:[['花菜掰成小朵，洗净沥干，擦干水分。','Break the cauliflower into small florets, wash and dry them well.'],
+     ['锅里放少许油，下五花肉片煸炒到出油、边缘微焦。','Fry the pork belly in a little oil until the fat renders and the edges turn golden.'],
+     ['加干辣椒、蒜、姜和豆瓣酱炒出红油。','Add the chilies, garlic, ginger and doubanjiang and fry until the oil turns red.'],
+     ['倒入花菜，大火翻炒3分钟，加生抽，盖盖焖2～3分钟，到花菜变软但仍有嚼劲。','Add the cauliflower and stir-fry for 3 minutes, add the soy sauce and cover for 2–3 minutes, until tender but still firm.'],
+     ['加青椒和葱段，翻炒1分钟，按需加盐。','Add the green pepper and scallion for 1 minute and season with salt to taste.']],
+ tip:['传统的“干锅”用小锅端上桌，边吃边热。','Traditionally served in a small pot on the table, so it stays warm as you eat.']},
+{id:'hn8',c:'cn',r:'hn',zh:'腊肉炒蒜苗',en:'Stir-Fried Cured Pork with Garlic Sprouts',t:30,d:1,s:2,
+ i:[['湖南腊肉','Hunan cured pork belly',150,'g'],['蒜苗','Garlic sprouts',4,'stalk'],['干辣椒','Dried chilies',3,'pc'],['蒜（切片）','Garlic (sliced)',2,'clove'],['生抽','Light soy sauce',1,'tsp'],['糖','Sugar',0.5,'tsp'],['食用油','Cooking oil',1,'tsp']],
+ st:[['腊肉用温水洗净，放入锅里蒸或煮10～15分钟，去掉一些咸味，让肉变软。','Rinse the cured pork in warm water and steam or boil it for 10–15 minutes to soften it and remove some salt.'],
+     ['腊肉切成薄片，蒜苗斜切段，蒜白和蒜绿分开。','Slice the pork thin and cut the garlic sprouts on the diagonal, separating whites and greens.'],
+     ['锅里放一点油，下腊肉片中火煸炒，到肥肉部分变透明、出油。','Fry the pork slices in a little oil over medium heat until the fat turns translucent and renders.'],
+     ['加干辣椒、蒜片和蒜白炒香，加生抽和糖，再下蒜绿炒1分钟出锅。','Add the chilies, garlic and sprout whites, then the soy sauce and sugar, and finish with the greens for 1 minute.']],
+ tip:['腊肉已经很咸，几乎不需要再放盐。','Cured pork is already very salty, so little or no extra salt is needed.']},
+{id:'hn9',c:'cn',r:'hn',zh:'小炒黄牛肉',en:'Hunan Stir-Fried Beef with Chilies & Cilantro',t:25,d:2,s:2,
+ i:[['牛肉（逆纹切薄片）','Beef (sliced thin against the grain)',250,'g'],['生抽（腌肉）','Light soy sauce (marinade)',1,'tbsp'],['料酒（腌肉）','Shaoxing wine (marinade)',1,'tbsp'],['淀粉（腌肉）','Cornstarch (marinade)',1,'tsp'],['青红辣椒','Green and red chilies',3,'pc'],['香菜（切段）','Cilantro (cut into sections)',30,'g'],['蒜（切片）','Garlic (sliced)',4,'clove'],['姜','Ginger',3,'slice'],['豆豉','Fermented black beans',1,'tsp'],['蚝油','Oyster sauce',1,'tsp'],['食用油','Cooking oil',3,'tbsp']],
+ st:[['牛肉加生抽、料酒、淀粉和1勺油拌匀，腌15分钟。辣椒斜切成段。','Marinate the beef with the soy sauce, wine, cornstarch and 1 tbsp of oil for 15 minutes. Cut the chilies on the diagonal.'],
+     ['锅烧得很热，放油，下牛肉大火快炒约1分钟，到刚变色，盛出。','Heat a wok very hot, add the oil and sear the beef on high heat for about a minute until just browned. Set aside.'],
+     ['下姜、蒜和豆豉炒香，加辣椒炒1分钟。','Fry the ginger, garlic and black beans, then add the chilies for 1 minute.'],
+     ['倒回牛肉，加蚝油，大火翻炒30秒，最后放香菜，翻匀出锅。','Return the beef, add the oyster sauce and toss for 30 seconds, then add the cilantro and serve.']],
+ tip:['牛肉不要炒太久。想要更嫩，腌的时候加一勺水。','Don’t overcook the beef. For more tender meat, add 1 tbsp of water to the marinade.']},
+{id:'hn10',c:'cn',r:'hn',zh:'香干炒肉丝',en:'Stir-Fried Pork with Pressed Tofu',t:20,d:1,s:2,
+ i:[['香干（豆腐干）','Pressed tofu (flavored or plain)',200,'g'],['猪里脊或五花肉','Pork loin or belly',100,'g'],['青椒','Green peppers',2,'pc'],['干辣椒','Dried chilies',2,'pc'],['蒜（切片）','Garlic (sliced)',2,'clove'],['生抽','Light soy sauce',1,'tbsp'],['蚝油','Oyster sauce',1,'tsp'],['料酒','Shaoxing wine',1,'tbsp'],['食用油','Cooking oil',2,'tbsp']],
+ st:[['香干切成细条，猪肉切丝，青椒切丝。','Cut the pressed tofu into thin strips, and shred the pork and peppers.'],
+     ['锅里放油，下肉丝炒到变色，加料酒。','Stir-fry the pork in the oil until it changes color and add the wine.'],
+     ['加蒜片和干辣椒炒香，下香干翻炒2分钟。','Add the garlic and dried chilies, then the tofu and stir-fry 2 minutes.'],
+     ['加青椒丝、生抽和蚝油，大火翻炒到青椒断生，出锅。','Add the peppers, soy sauce and oyster sauce and toss on high heat until the peppers are just tender.']],
+ tip:['香干本身带咸味，最后再尝味道。五花肉的版本更香。','Pressed tofu can be salty, so taste at the end. Pork belly gives a richer version.']},
+
+{id:'we1',c:'we',zh:'意大利培根蛋面',en:'Spaghetti Carbonara',t:25,d:2,s:2,
+ i:[['意大利面','Spaghetti',200,'g'],['腌猪颊肉（guanciale）或意式培根/培根','Guanciale, pancetta or bacon',100,'g'],['鸡蛋','Eggs',2,'pc'],['蛋黄','Egg yolk',1,'pc'],['罗马羊奶酪或帕玛森奶酪（磨碎）','Pecorino Romano or Parmesan (grated)',50,'g'],['现磨黑胡椒','Freshly ground black pepper',1,'tsp'],['盐（煮面水用）','Salt (for the pasta water)',0,'']],
+ st:[['大锅水烧开，加盐，下意大利面，按包装时间煮到有嚼劲（al dente）。留出1杯（约200毫升）煮面水。','Boil salted water and cook the spaghetti until al dente, following the package time. Reserve about 200 ml of the pasta water.'],
+     ['培根切条，冷锅下锅，中小火煎到出油、变脆，关火。','Cut the bacon into strips and start it in a cold pan over medium-low heat until the fat renders and it’s crisp. Turn off the heat.'],
+     ['碗里把鸡蛋、蛋黄、奶酪和黑胡椒搅匀。','In a bowl, whisk the eggs, yolk, cheese and black pepper.'],
+     ['把面条捞进培根锅里拌匀（离火）。倒入蛋液，加2～3勺煮面水，快速翻拌，利用余温做成奶油般的酱汁。','Transfer the pasta into the pan off the heat. Pour in the egg mixture with 2–3 tbsp of pasta water and toss quickly; the residual heat makes a silky sauce.'],
+     ['酱太稠就再加一点煮面水。立刻上桌，再撒奶酪和黑胡椒。','Loosen with more pasta water if needed. Serve right away with extra cheese and pepper.']],
+ tip:['正宗做法不放奶油。锅一定要离火，否则鸡蛋会变成炒蛋。','Authentic carbonara has no cream. Keep the pan off the heat or the eggs will scramble.']},
+{id:'we2',c:'we',zh:'蒜香黄油煎牛排',en:'Garlic-Butter Pan-Seared Steak',t:25,d:2,s:2,
+ i:[['牛排（肋眼或西冷，约2.5厘米厚，每块约250克）','Steaks (ribeye or sirloin, ~2.5 cm thick, ~250 g each)',2,'pc'],['盐','Salt',1,'tsp'],['黑胡椒','Black pepper',0.5,'tsp'],['食用油','Cooking oil',1,'tbsp'],['黄油','Butter',30,'g'],['蒜（拍破）','Garlic (smashed)',3,'clove'],['百里香或迷迭香','Thyme or rosemary',3,'sprig']],
+ st:[['牛排提前30分钟从冰箱拿出回温，用厨房纸擦干，两面抹盐和黑胡椒。','Take the steaks out of the fridge 30 minutes ahead. Pat them dry and season both sides with salt and pepper.'],
+     ['铸铁锅或平底锅烧到很热，倒油。放入牛排，不要移动，每面煎3～4分钟（三分熟到五分熟）。','Heat a cast-iron or heavy pan until very hot and add the oil. Sear the steaks without moving them, 3–4 minutes per side for medium-rare.'],
+     ['转中火，加黄油、蒜和香草，倾斜锅，用勺子把融化的黄油反复浇在牛排上约1分钟。','Lower to medium, add the butter, garlic and herbs, tilt the pan and baste the steaks with the melted butter for about 1 minute.'],
+     ['牛排放到盘子上，静置5分钟，让肉汁回流。逆着纹理切片，淋上锅里的黄油汁。','Rest the steaks on a plate for 5 minutes so the juices settle. Slice against the grain and spoon the pan butter over them.']],
+ tip:['中心温度：三分熟约52℃，五分熟约57℃，七分熟约63℃。牛排太薄会很快过熟，要缩短时间。','Core temperature: about 52°C (125°F) rare, 57°C (135°F) medium-rare, 63°C (145°F) medium. Thinner steaks cook faster, so shorten the time.']},
+{id:'we3',c:'we',zh:'柠檬香草烤鸡',en:'Roast Chicken with Lemon & Herbs',t:100,d:2,s:4,
+ i:[['整鸡','Whole chicken',1600,'g'],['软化的黄油','Softened butter',50,'g'],['柠檬','Lemon',1,'pc'],['大蒜','Garlic',1,'head'],['百里香','Thyme',4,'sprig'],['盐','Salt',2,'tsp'],['黑胡椒','Black pepper',1,'tsp'],['小土豆（可选）','Baby potatoes (optional)',500,'g']],
+ st:[['烤箱预热到220℃。把鸡里外都擦干，里外抹盐（最好提前1小时）。','Preheat the oven to 220°C (430°F). Pat the chicken completely dry and salt it inside and out (ideally an hour ahead).'],
+     ['黄油加柠檬皮屑、切碎的一半百里香和黑胡椒拌匀，抹在鸡皮下和鸡皮上。','Mix the butter with the lemon zest, half the chopped thyme and the pepper. Rub it under and over the skin.'],
+     ['肚子里塞入切半的柠檬、切半的整头大蒜和剩下的百里香，用线把鸡腿绑起来。土豆铺在盘底，把鸡放在上面。','Stuff the cavity with the halved lemon, the halved head of garlic and the remaining thyme, and tie the legs together. Spread the potatoes in the pan and set the chicken on top.'],
+     ['先烤20分钟，然后把温度降到190℃，再烤50～60分钟，直到大腿最厚处温度达到74℃，流出的汁是清的。','Roast for 20 minutes, then lower to 190°C (375°F) for another 50–60 minutes, until the thickest part of the thigh reads 74°C (165°F) and the juices run clear.'],
+     ['取出静置15分钟再切，肉才多汁。','Rest the chicken for 15 minutes before carving to keep it juicy.']],
+ tip:['每个烤箱不一样，一定用温度计确认熟了。鸡皮想更脆，烤前在冰箱里不盖盖子放一晚。','Ovens vary, so use a thermometer to be sure it’s done. For crisper skin, leave the chicken uncovered in the fridge overnight.']},
+{id:'we4',c:'we',zh:'奶油蘑菇汤',en:'Creamy Mushroom Soup',t:35,d:1,s:4,
+ i:[['蘑菇（口蘑或褐蘑菇）','Mushrooms (button or cremini)',400,'g'],['洋葱（中等大）','Onion (medium)',1,'pc'],['蒜','Garlic',2,'clove'],['黄油','Butter',30,'g'],['面粉','Flour',2,'tbsp'],['鸡高汤或蔬菜高汤','Chicken or vegetable stock',600,'ml'],['淡奶油','Heavy cream',100,'ml'],['百里香（可选）','Thyme (optional)',2,'sprig'],['盐和黑胡椒','Salt and pepper',0,'']],
+ st:[['洋葱切丁，蘑菇切片，蒜切末。','Dice the onion, slice the mushrooms and mince the garlic.'],
+     ['锅里化开黄油，下洋葱炒5分钟到变软透明。','Melt the butter in a pot and cook the onion for 5 minutes until soft and translucent.'],
+     ['加蘑菇，中大火炒8～10分钟，炒到水分蒸发、表面金黄。加蒜和百里香炒1分钟。','Add the mushrooms and cook over medium-high heat for 8–10 minutes until the liquid evaporates and they’re golden. Add the garlic and thyme for 1 minute.'],
+     ['撒面粉，翻炒1分钟，慢慢倒入高汤，边倒边搅，烧开后小火煮15分钟。','Sprinkle in the flour and stir for 1 minute. Gradually pour in the stock, stirring, bring to a boil and simmer for 15 minutes.'],
+     ['用料理棒打成顺滑的汤（也可以留一些颗粒），倒入奶油，加盐和黑胡椒调味。','Blend until smooth (or leave some texture), stir in the cream and season with salt and pepper.']],
+ tip:['蘑菇不要一次放太多，否则会出水煮成一团，没有香味。','Don’t overcrowd the pot; mushrooms that steam instead of brown lose most of their flavor.']},
+{id:'we5',c:'we',zh:'玛格丽特披萨',en:'Margherita Pizza',t:150,d:3,s:2,
+ i:[['高筋面粉','Bread flour',250,'g'],['水','Water',160,'ml'],['速溶酵母','Instant yeast',3,'g'],['盐','Salt',5,'g'],['橄榄油','Olive oil',1,'tbsp'],['番茄碎罐头','Canned crushed tomatoes',200,'g'],['新鲜马苏里拉奶酪','Fresh mozzarella',150,'g'],['新鲜罗勒叶','Fresh basil leaves',8,'leaf']],
+ st:[['面粉、酵母、盐、水和橄榄油混合，揉8～10分钟到光滑有弹性。盖好，在温暖处发酵1～2小时，到体积翻倍。','Mix the flour, yeast, salt, water and olive oil and knead for 8–10 minutes until smooth and elastic. Cover and let rise for 1–2 hours in a warm place, until doubled.'],
+     ['烤箱放入烤盘或披萨石，预热到最高温（约250℃）30分钟。','Place a baking sheet or pizza stone in the oven and preheat to the highest setting (about 250°C / 480°F) for 30 minutes.'],
+     ['面团分成2份，在撒了面粉的台面上用手拉薄成圆形，中间薄、边缘稍厚。','Divide the dough in two and stretch each piece by hand on a floured surface, thinner in the middle with a slightly thicker rim.'],
+     ['番茄碎加一小撮盐，薄薄地抹在面饼上，撕上马苏里拉奶酪。','Season the tomatoes with a pinch of salt, spread a thin layer on each base and tear the mozzarella on top.'],
+     ['放到热烤盘上，烤8～10分钟，边缘金黄、奶酪起泡。','Slide onto the hot sheet and bake for 8–10 minutes until the crust is golden and the cheese bubbles.'],
+     ['出炉后放上罗勒叶，淋少许橄榄油。','Top with the basil leaves and a drizzle of olive oil.']],
+ tip:['这个份量可以做2个小披萨。面团可以前一天做好，放冰箱发酵，味道更好。','This makes two small pizzas. For better flavor, ferment the dough in the fridge overnight.']},
+{id:'we6',c:'we',zh:'凯撒沙拉',en:'Caesar Salad',t:20,d:1,s:2,
+ i:[['罗马生菜','Romaine lettuce',1,'head'],['面包（切丁）','Bread (cubed)',2,'slice'],['橄榄油（烤面包丁用）','Olive oil (for croutons)',2,'tbsp'],['蒜','Garlic',1,'clove'],['凤尾鱼（可选）','Anchovy fillets (optional)',2,'pc'],['蛋黄酱','Mayonnaise',3,'tbsp'],['柠檬汁','Lemon juice',1,'tbsp'],['第戎芥末酱','Dijon mustard',1,'tsp'],['伍斯特酱','Worcestershire sauce',1,'tsp'],['帕玛森奶酪','Parmesan',40,'g'],['黑胡椒','Black pepper',0,'']],
+ st:[['烤箱预热到180℃。面包丁拌橄榄油和少许盐，烤10分钟到金黄酥脆。','Preheat the oven to 180°C (350°F). Toss the bread cubes with the olive oil and a little salt and bake for 10 minutes until golden and crisp.'],
+     ['蒜（和凤尾鱼）压成泥，加蛋黄酱、柠檬汁、芥末酱、伍斯特酱和一半的奶酪搅匀，加1～2勺水调到合适的稠度，加黑胡椒。','Mash the garlic (and anchovies) and whisk with the mayonnaise, lemon juice, mustard, Worcestershire sauce and half the cheese. Thin with 1–2 tbsp of water and add pepper.'],
+     ['生菜洗净、甩干，用手撕成大片。','Wash and dry the lettuce and tear it into large pieces.'],
+     ['生菜拌上酱汁，放上面包丁，撒上剩下的奶酪，马上吃。','Toss the lettuce with the dressing, top with the croutons and remaining cheese and serve right away.']],
+ tip:['想做成主菜，可以加煎好的鸡胸肉片。','Add sliced pan-seared chicken breast to make it a main dish.']},
+{id:'we7',c:'we',zh:'松软煎饼（美式）',en:'Fluffy Pancakes',t:25,d:1,s:4,
+ i:[['面粉','All-purpose flour',200,'g'],['泡打粉','Baking powder',2,'tsp'],['糖','Sugar',2,'tbsp'],['盐','Salt',0.25,'tsp'],['牛奶','Milk',250,'ml'],['鸡蛋','Egg',1,'pc'],['融化的黄油','Melted butter',30,'g'],['香草精（可选）','Vanilla extract (optional)',1,'tsp'],['煎锅用黄油','Butter (for the pan)',0,'']],
+ st:[['把面粉、泡打粉、糖和盐在大碗里拌匀。','Whisk the flour, baking powder, sugar and salt in a large bowl.'],
+     ['另一个碗里把牛奶、鸡蛋、融化的黄油和香草精搅匀。','In another bowl, whisk the milk, egg, melted butter and vanilla.'],
+     ['把湿料倒进干料里，拌到刚好没有干粉就停（留一些小疙瘩没关系）。静置5分钟。','Pour the wet mixture into the dry and stir just until combined; a few lumps are fine. Rest for 5 minutes.'],
+     ['平底锅中小火烧热，抹一点黄油，每张饼倒约1/4杯面糊。','Heat a pan over medium-low heat, brush with butter and pour about 1/4 cup of batter per pancake.'],
+     ['表面冒泡、边缘凝固后（约2分钟）翻面，再煎1～1.5分钟。配枫糖浆或水果吃。','When bubbles form and the edges set (about 2 minutes), flip and cook another 1–1.5 minutes. Serve with maple syrup or fruit.']],
+ tip:['不要过度搅拌，面糊才会松软。第一张饼常常不好看，是正常的。','Don’t overmix, or the pancakes turn tough. The first pancake is often a test one.']},
+{id:'we8',c:'we',zh:'红酒炖牛肉',en:'Classic Beef Stew',t:170,d:2,s:4,
+ i:[['牛肩肉或牛腩（切3厘米块）','Beef chuck (cut in 3 cm cubes)',700,'g'],['面粉','Flour',2,'tbsp'],['洋葱','Onion',1,'pc'],['胡萝卜','Carrots',2,'pc'],['土豆（中等大）','Potatoes (medium)',2,'pc'],['蒜','Garlic',3,'clove'],['番茄酱','Tomato paste',1,'tbsp'],['红酒（可不放，用高汤代替）','Red wine (or use extra stock)',150,'ml'],['牛高汤','Beef stock',500,'ml'],['月桂叶','Bay leaves',2,'leaf'],['百里香','Thyme',3,'sprig'],['食用油','Cooking oil',2,'tbsp'],['盐和黑胡椒','Salt and pepper',0,'']],
+ st:[['牛肉用厨房纸擦干，加盐、黑胡椒和面粉拌匀。','Pat the beef dry and toss with salt, pepper and the flour.'],
+     ['厚底锅里放油烧热，牛肉分2～3批煎到每面褐色，盛出。','Heat the oil in a heavy pot and brown the beef in 2–3 batches. Set aside.'],
+     ['原锅下洋葱丁炒软，加蒜和番茄酱炒1分钟，倒入红酒，刮起锅底的焦香，煮到酒减半。','In the same pot, soften the diced onion, add the garlic and tomato paste for 1 minute, then pour in the wine, scraping up the browned bits, and reduce by half.'],
+     ['倒回牛肉，加高汤、月桂叶和百里香，烧开后盖盖，小火炖1.5小时。','Return the beef, add the stock, bay leaves and thyme, bring to a boil, then cover and simmer on low for 1.5 hours.'],
+     ['加入切块的胡萝卜和土豆，再炖40分钟，直到牛肉和蔬菜都软烂。','Add the chopped carrots and potatoes and simmer 40 minutes more, until the beef and vegetables are tender.'],
+     ['拣出月桂叶和百里香梗，尝味调整盐和黑胡椒。','Remove the bay leaves and thyme stems and adjust the seasoning.']],
+ tip:['也可以放进150℃的烤箱炖。炖菜放过夜更好吃。','You can also braise it in a 150°C (300°F) oven. Stew tastes even better the next day.']}
+];
+
+let CAT='all',QRY='',CUR=null,SRV=0;
+const RG={sc:['川菜','Sichuan'],gd:['广味','Cantonese'],hn:['湘菜','Hunan']};
+const DIFF=[['','',''],['简单','Easy'],['中等','Medium'],['较难','Hard']];
+function fmtQ(v,u){
+  if(v===0)return X('适量','to taste');
+  let n;
+  if(v<10){n=Math.round(v*4)/4}else if((u==='g'||u==='ml')&&v>=50){n=Math.round(v/5)*5}else{n=Math.round(v)}
+  if(n===0)n=.25;
+  const w=Math.floor(n),f=n-w,fr={0:'',.25:'¼',.5:'½',.75:'¾'}[f];
+  return (w?String(w):'')+fr;
+}
+function unitTxt(u,n){const d=U[u]||U[''];if(!EN())return d[0];return n>1?d[2]:d[1]}
+function ingLine(it,k){
+  const q=it[2]*k;const t=fmtQ(q,it[3]);
+  if(it[2]===0)return t;
+  const num=Math.round(q*4)/4;
+  const ut=unitTxt(it[3],num);
+  return t+(ut?(EN()||it[3]==='g'||it[3]==='ml'?' ':'')+ut:'');
+}
+function timeTxt(t){const h=Math.floor(t/60),m=t%60;return EN()?(h?h+' h ':'')+(m?m+' min':'').trim():(h?h+' 小时':'')+(m?(h?' ':'')+m+' 分钟':'')}
+function chips(r){return `<div class="meta"><span class="chip">${r.r?X(RG[r.r][0],RG[r.r][1]):r.c==='cn'?X('中餐','Chinese'):X('西餐','Western')}</span><span class="chip">${timeTxt(r.t)}</span><span class="chip">${X(DIFF[r.d][0],DIFF[r.d][1])}</span></div>`}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderList(){
+  const q=QRY.trim().toLowerCase();
+  const rs=R.filter(r=>(CAT==='all'||((CAT==='cn'||CAT==='we')?r.c===CAT:r.r===CAT))&&(!q||(r.zh+' '+r.en+' '+r.i.map(i=>i[0]+' '+i[1]).join(' ')).toLowerCase().includes(q)));
+  $('list').innerHTML=rs.length?rs.map(r=>`<button type="button" class="rc ${r.c}" data-id="${r.id}"><b>${esc(X(r.zh,r.en))}</b><span class="o">${esc(X(r.en,r.zh))}</span>${chips(r)}</button>`).join(''):`<p class="note">${X('没有找到，换个词试试。','Nothing found. Try another word.')}</p>`;
+}
+function renderDetail(){
+  const r=R.find(x=>x.id===CUR);if(!r)return;
+  const k=SRV/r.s;
+  $('detail').innerHTML=`<div class="card">
+    <button type="button" id="back" class="noprint">← ${X('返回','Back')}</button>
+    <h2 style="margin-top:14px">${esc(X(r.zh,r.en))}</h2><div class="note">${esc(X(r.en,r.zh))}</div>${chips(r)}
+    <div class="srv noprint"><span>${X('份数','Servings')}</span><button type="button" id="dec" aria-label="${X('减少份数','Fewer servings')}">−</button><b id="sv">${SRV}</b><button type="button" id="inc" aria-label="${X('增加份数','More servings')}">+</button></div>
+    <h3>${X('食材','Ingredients')} <span class="note">（${X('按 '+SRV+' 人份','for '+SRV+' servings')}）</span></h3>
+    <ul class="ing">${r.i.map(it=>`<li><span>${esc(X(it[0],it[1]))}</span><span class="q">${esc(ingLine(it,k))}</span></li>`).join('')}</ul>
+    <h3>${X('做法','Method')}</h3>
+    <ol class="st">${r.st.map(s=>`<li>${esc(X(s[0],s[1]))}</li>`).join('')}</ol>
+    <div class="tip">💡 ${esc(X(r.tip[0],r.tip[1]))}</div>
+    <div class="row noprint" style="display:flex;gap:10px;margin-top:16px"><button type="button" class="main" id="copy">${X('复制食材清单','Copy shopping list')}</button><button type="button" id="print">${X('打印','Print')}</button><span class="note" id="cmsg"></span></div>
+  </div>`;
+  $('back').onclick=()=>show(null);
+  $('dec').onclick=()=>{if(SRV>1){SRV--;renderDetail()}};
+  $('inc').onclick=()=>{if(SRV<12){SRV++;renderDetail()}};
+  $('print').onclick=()=>window.print();
+  $('copy').onclick=async()=>{
+    const txt=X(r.zh,r.en)+'（'+SRV+X(' 人份）\n',' servings)\n')+r.i.map(it=>'- '+X(it[0],it[1])+'：'+ingLine(it,k)).join('\n');
+    try{await navigator.clipboard.writeText(txt);$('cmsg').textContent=X('已复制。','Copied.')}catch(e){$('cmsg').textContent=X('无法自动复制。','Could not copy automatically.')}
+  };
+}
+function show(id){
+  CUR=id;
+  if(id){const r=R.find(x=>x.id===id);SRV=r.s;$('list').hidden=true;$('bar').hidden=true;$('detail').hidden=false;renderDetail();try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0)}
+  else{$('detail').hidden=true;$('list').hidden=false;$('bar').hidden=false;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}renderList()}
+}
+function renderStatic(){
+  document.documentElement.lang=EN()?'en':'zh-CN';
+  document.title=X('中西料理','Chinese & Western Cooking');
+  $('h1').textContent=X('中西料理','Chinese & Western Cooking');
+  {const n=k=>R.filter(r=>r.r===k).length,cn=R.filter(r=>r.c==='cn').length,we=R.length-cn;$('sub').textContent=X(`共 ${R.length} 道家常菜：中餐 ${cn} 道（川菜 ${n('sc')}、广味 ${n('gd')}、湘菜 ${n('hn')}，其余家常菜），西餐 ${we} 道。可以调整份数，食材用量会自动换算。`,`${R.length} home recipes: ${cn} Chinese (${n('sc')} Sichuan, ${n('gd')} Cantonese, ${n('hn')} Hunan, plus other home dishes) and ${we} Western. Change the servings and the quantities adjust automatically.`)}
+  {const n=k=>R.filter(r=>r.r===k).length,L={all:[X('全部','All'),R.length],cn:[X('中餐','Chinese'),R.filter(r=>r.c==='cn').length],sc:[X('川菜','Sichuan'),n('sc')],gd:[X('广味','Cantonese'),n('gd')],hn:[X('湘菜','Hunan'),n('hn')],we:[X('西餐','Western'),R.filter(r=>r.c==='we').length]};
+  document.querySelectorAll('.tab').forEach(b=>{const l=L[b.dataset.c];b.textContent=l[0]+' '+l[1];b.setAttribute('aria-pressed',b.dataset.c===CAT?'true':'false')})}
+  $('q').placeholder=X('搜索菜名或食材','Search a dish or ingredient');
+  $('foot').textContent=X('用量和时间是参考，每家的灶火和烤箱不同，请边做边尝。肉类请彻底做熟。','Quantities and times are guides. Stoves and ovens vary, so taste as you go and cook meat thoroughly.');
+  if(CUR)renderDetail();else renderList();
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{CAT=b.dataset.c;renderStatic()}));
+$('q').addEventListener('input',e=>{QRY=e.target.value;renderList()});
+$('list').addEventListener('click',e=>{const b=e.target.closest('.rc');if(b)show(b.dataset.id)});
+function setLang(v){LANG=v;try{localStorage.setItem('lang',v)}catch(e){}renderStatic()}
+$('lang').addEventListener('click',()=>setLang(EN()?'zh':'en'));
+window.addEventListener('storage',e=>{if(e.key==='lang'){LANG=/^en/i.test(e.newValue||'')?'en':'zh';renderStatic()}});
+renderStatic();
+{const m=/^#(\w+)$/.exec(location.hash);if(m&&R.some(r=>r.id===m[1]))show(m[1])}
+</script>
+</body>
+</html>
