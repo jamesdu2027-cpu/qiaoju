@@ -190,6 +190,7 @@ async function showStats() {
 }
 (() => {
   const EN = {
+    '酒店':'Hotel','民宿':'Homestay','短租公寓':'Short-term apartment','出租屋（長租）':'Room / house for rent (long-term)',
     '發布':'Post','聯絡方式（微信/WhatsApp/電話/郵箱）':'Contact (WeChat/WhatsApp/phone/email)',
     '城市（例如：Tbilisi、曼谷、悉尼）':'City (e.g. Tbilisi, Bangkok, Sydney)','城市（例如: Tbilisi、曼谷、悉尼）':'City (e.g. Tbilisi, Bangkok, Sydney)',
 '城市(例如：Tbilisi、曼谷、悉尼)':'City (e.g. Tbilisi, Bangkok, Sydney)','城市(例如: Tbilisi、曼谷、悉尼)':'City (e.g. Tbilisi, Bangkok, Sydney)',
@@ -937,6 +938,10 @@ async function showStats() {
     '附近餐館（例如：步行 3 分鐘，有中餐館）': 'Nearby restaurants (e.g. 3 min walk, Chinese restaurant)',
     '介紹（設施、規則、租期）': 'Description (facilities, rules, lease term)',
     '酒店': 'Hotel',
+    '民宿': 'Homestay',
+    '短租公寓': 'Short-term apartment',
+    '出租屋（長租）': 'Room / house for rent (long-term)',
+
     '聯絡方式（微信/WhatsApp/電話/郵箱）': 'Contact (WeChat/WhatsApp/phone/email)'
   };
   const M = {};
