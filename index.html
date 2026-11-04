@@ -28,10 +28,11 @@ dialog{border:1px solid var(--line);border-radius:10px;background:var(--card);co
 <header><b>天南海北</b><nav id="nav"></nav><span id="who"></span></header> <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:6px 18px;padding:10px"><a href="story-animator-site.html" style="display:block;text-align:center;padding:10px;color:var(--brand);font-weight:700;text-decoration:none">故事動畫</a><a href="qimen.html" style="display:block;text-align:center;padding:10px;color:var(--brand);font-weight:700;text-decoration:none">奇門遁甲</a><a href="jiedu.html" style="display:block;text-align:center;padding:10px;color:var(--brand);font-weight:700;text-decoration:none">命盤解讀</a><a href="tcm.html" style="display:block;text-align:center;padding:10px;color:var(--brand);font-weight:700;text-decoration:none">中醫養生</a><a href="shici.html" style="display:block;text-align:center;padding:10px;color:var(--brand);font-weight:700;text-decoration:none">詩詞笑話</a><a href="music.html" style="display:block;text-align:center;padding:10px;color:var(--brand);font-weight:700;text-decoration:none">音樂編曲</a><a href="cooking.html" style="display:block;text-align:center;padding:10px;color:var(--brand);font-weight:700;text-decoration:none">中西料理</a>
 </div> 
 <main id="app"></main>
-<footer class="meta" style="text-align:center;padding:16px">版權投訴與廣告合作：richujianghua888@gmail.com</footer>
+<footer class="meta" style="text-align:center;padding:16px">版權投訴與廣告合作：richujianghua888@gmail.com｜ <a href="/privacy.html">隱私政策</a></footer> 
 <dialog id="dlg"><h3>登入／註冊</h3>
 <input id="em" type="email" placeholder="電子信箱"><input id="pw" type="password" placeholder="密碼（至少 6 位）"><input id="nk" placeholder="暱稱（註冊時填寫）">
 <p class="meta" id="am"></p>
+<p class="meta">註冊即表示你已閱讀並同意<a href="/privacy.html" target="_blank">隱私政策</a>。</p> 
 <button class="btn" onclick="signIn()">登入</button> <button class="btn" onclick="signUp()">註冊</button> <button class="btn" style="background:none;color:var(--brand)" onclick="dlg.close()">取消</button></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="app.js"></script>
