@@ -190,6 +190,12 @@ async function showStats() {
 }
 (() => {
   const EN = {
+    '城市（例如：Tbilisi、曼谷、悉尼）':'City (e.g. Tbilisi, Bangkok, Sydney)','城市（例如: Tbilisi、曼谷、悉尼）':'City (e.g. Tbilisi, Bangkok, Sydney)',
+'城市(例如：Tbilisi、曼谷、悉尼)':'City (e.g. Tbilisi, Bangkok, Sydney)','城市(例如: Tbilisi、曼谷、悉尼)':'City (e.g. Tbilisi, Bangkok, Sydney)',
+'電子信箱':'Email','密碼（至少 6 位）':'Password (at least 6 characters)','暱稱（註冊時填寫）':'Nickname (for sign-up)',
+'註冊即表示你已閱讀並同意':'By signing up you agree to the ','隱私政策':'Privacy Policy','。':'.',
+'發文章':'Write a post','還沒有內容，發第一篇吧':'Nothing here yet. Be the first to post.',
+
     '住宿與租房':'Stays & Rentals','全部類型':'All types','搜索':'Search','發布房源':'Post a listing',
 '聯絡方式、附近超市和餐館由房東自己填寫，請直接聯繫房東，線下付款。':'Contact details and nearby shops and restaurants are filled in by the host. Please contact the host directly and pay offline.',
 '暫時沒有房源':'No listings yet',
