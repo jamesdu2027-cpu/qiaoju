@@ -920,3 +920,52 @@ async function showStats() {
   new MutationObserver(add).observe(document.body, { childList: true, subtree: true });
   add();
 })();
+// ---- Placeholder / option translation (added) ----
+(() => {
+  const norm = s => s.replace(/[（(]/g, '(').replace(/[）)]/g, ')').replace(/[：:]/g, ':').replace(/[，,]/g, ',').replace(/\s+/g, '');
+  const RAW = {
+    '電子信箱': 'Email',
+    '密碼（至少 6 位）': 'Password (at least 6 characters)',
+    '暱稱（註冊時填寫）': 'Nickname (for sign-up)',
+    '城市（例如：Tbilisi、曼谷、悉尼）': 'City (e.g. Tbilisi, Bangkok, Sydney)',
+    '城市': 'City',
+    '標題（例如：市中心兩居室）': 'Title (e.g. 2-bedroom in city centre)',
+    '價格（例如：每晚 40 美元 / 每月 500 美元）': 'Price (e.g. $40 per night / $500 per month)',
+    '詳細地址（用於顯示地圖連結）': 'Full address (used for the map link)',
+    '附近超市（例如：步行 5 分鐘，Carrefour）': 'Nearby supermarket (e.g. 5 min walk, Carrefour)',
+    '附近餐館（例如：步行 3 分鐘，有中餐館）': 'Nearby restaurants (e.g. 3 min walk, Chinese restaurant)',
+    '介紹（設施、規則、租期）': 'Description (facilities, rules, lease term)',
+    '酒店': 'Hotel'
+  };
+  const M = {};
+  for (const k in RAW) M[norm(k)] = RAW[k];
+  const apply = () => {
+    let en = false;
+    try { en = localStorage.getItem('lang') === 'en'; } catch (e) {}
+    document.querySelectorAll('[placeholder],[data-zhph]').forEach(el => {
+      let zh = el.dataset.zhph;
+      if (!zh) {
+        const cur = el.getAttribute('placeholder') || '';
+        if (!M[norm(cur)]) return;
+        zh = cur; el.dataset.zhph = zh;
+      }
+      const want = en ? M[norm(zh)] : zh;
+      if (el.getAttribute('placeholder') !== want) el.setAttribute('placeholder', want);
+    });
+    document.querySelectorAll('option').forEach(o => {
+      let zh = o.dataset.zhtx;
+      if (!zh) {
+        const cur = o.textContent.trim();
+        if (!M[norm(cur)]) return;
+        zh = cur; o.dataset.zhtx = zh;
+      }
+      const want = en ? M[norm(zh)] : zh;
+      if (o.textContent !== want) o.textContent = want;
+    });
+  };
+  let timer = 0;
+  const sched = () => { clearTimeout(timer); timer = setTimeout(apply, 30); };
+  new MutationObserver(sched).observe(document.body, { childList: true, subtree: true, characterData: true });
+  document.addEventListener('click', () => setTimeout(apply, 150));
+  apply();
+})();
