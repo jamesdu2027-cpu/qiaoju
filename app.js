@@ -190,6 +190,7 @@ async function showStats() {
 }
 (() => {
   const EN = {
+    '發布':'Post','聯絡方式（微信/WhatsApp/電話/郵箱）':'Contact (WeChat/WhatsApp/phone/email)',
     '城市（例如：Tbilisi、曼谷、悉尼）':'City (e.g. Tbilisi, Bangkok, Sydney)','城市（例如: Tbilisi、曼谷、悉尼）':'City (e.g. Tbilisi, Bangkok, Sydney)',
 '城市(例如：Tbilisi、曼谷、悉尼)':'City (e.g. Tbilisi, Bangkok, Sydney)','城市(例如: Tbilisi、曼谷、悉尼)':'City (e.g. Tbilisi, Bangkok, Sydney)',
 '電子信箱':'Email','密碼（至少 6 位）':'Password (at least 6 characters)','暱稱（註冊時填寫）':'Nickname (for sign-up)',
@@ -935,7 +936,8 @@ async function showStats() {
     '附近超市（例如：步行 5 分鐘，Carrefour）': 'Nearby supermarket (e.g. 5 min walk, Carrefour)',
     '附近餐館（例如：步行 3 分鐘，有中餐館）': 'Nearby restaurants (e.g. 3 min walk, Chinese restaurant)',
     '介紹（設施、規則、租期）': 'Description (facilities, rules, lease term)',
-    '酒店': 'Hotel'
+    '酒店': 'Hotel',
+    '聯絡方式（微信/WhatsApp/電話/郵箱）': 'Contact (WeChat/WhatsApp/phone/email)'
   };
   const M = {};
   for (const k in RAW) M[norm(k)] = RAW[k];
