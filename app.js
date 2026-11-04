@@ -190,6 +190,9 @@ async function showStats() {
 }
 (() => {
   const EN = {
+    '住宿與租房':'Stays & Rentals','全部類型':'All types','搜索':'Search','發布房源':'Post a listing',
+'聯絡方式、附近超市和餐館由房東自己填寫，請直接聯繫房東，線下付款。':'Contact details and nearby shops and restaurants are filled in by the host. Please contact the host directly and pay offline.',
+'暫時沒有房源':'No listings yet',
     '天南海北':'tiannanhaibei','博客':'Blog','論壇':'Forum','聊天':'Chat',
     '登入 / 註冊':'Log in / Sign up','登入／註冊':'Log in / Sign up','登入':'Log in','註冊':'Sign up','登出':'Log out',
     '全部':'All','新聞':'News','文化':'Culture','社會':'Society','生活':'Life','花園':'Garden','種植':'Planting','栽培':'Growing',
