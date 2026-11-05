@@ -261,6 +261,7 @@ async function showStats() {
   const GL = ['ja', 'ko', 'es', 'ka'];
   const glang = GL.includes(lang) ? lang : '';
   if (!DICT[lang]) lang = 'zh';
+  (function(t){var h=location.hostname,x=t?'/zh-TW/'+t:'';var e=t?'':';expires=Thu, 01 Jan 1970 00:00:00 GMT';try{document.cookie='googtrans='+x+';path=/'+e;document.cookie='googtrans='+x+';path=/;domain='+h+e;document.cookie='googtrans='+x+';path=/;domain=.'+h.replace(/^www\./,'')+e}catch(_){}})(glang);
   if (glang) {
     window.gtInit = () => {
       new google.translate.TranslateElement({ pageLanguage: 'zh-TW', includedLanguages: 'ja,ko,es,ka', autoDisplay: false }, 'gt0');
