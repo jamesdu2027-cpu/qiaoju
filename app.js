@@ -211,19 +211,74 @@ async function showStats() {
     '信箱':'Email','密碼':'Password','暱稱':'Nickname','標題':'Title','內容':'Content','分類':'Category','回覆':'Replies','返回':'Back',
     '返回列表':'Back to list','存草稿':'Save draft','我的文章':'My posts','編輯':'Edit','刪除':'Delete','草稿':'Draft','公開':'Public','僅自己可見':'Only me','公開（全站可見）':'Public (everyone)'
   };
+
+  const VI_E = {
+    'Hotel':'Khách sạn','Homestay':'Nhà dân (homestay)','Short-term apartment':'Căn hộ ngắn hạn','Room / house for rent (long-term)':'Phòng / nhà cho thuê (dài hạn)',
+    'Post':'Đăng','Contact (WeChat/WhatsApp/phone/email)':'Liên hệ (WeChat/WhatsApp/điện thoại/email)',
+    'City (e.g. Tbilisi, Bangkok, Sydney)':'Thành phố (ví dụ: Tbilisi, Bangkok, Sydney)',
+    'Email':'Email','Password (at least 6 characters)':'Mật khẩu (ít nhất 6 ký tự)','Nickname (for sign-up)':'Biệt danh (điền khi đăng ký)',
+    'By signing up you agree to the ':'Đăng ký tức là bạn đồng ý với ','Privacy Policy':'Chính sách quyền riêng tư',
+    'Write a post':'Viết bài','Nothing here yet. Be the first to post.':'Chưa có nội dung. Hãy là người đăng đầu tiên.',
+    'Stays & Rentals':'Lưu trú & Cho thuê','All types':'Tất cả loại','Search':'Tìm kiếm','Post a listing':'Đăng tin cho thuê',
+    'Contact details and nearby shops and restaurants are filled in by the host. Please contact the host directly and pay offline.':'Thông tin liên hệ, siêu thị và nhà hàng gần đó do chủ nhà tự điền. Vui lòng liên hệ trực tiếp với chủ nhà và thanh toán trực tiếp với họ.',
+    'No listings yet':'Chưa có tin nào',
+    'Blog':'Blog','Forum':'Diễn đàn','Chat':'Trò chuyện',
+    'Log in / Sign up':'Đăng nhập / Đăng ký','Log in':'Đăng nhập','Sign up':'Đăng ký','Log out':'Đăng xuất',
+    'All':'Tất cả','News':'Tin tức','Culture':'Văn hóa','Society':'Xã hội','Life':'Đời sống','Garden':'Vườn','Planting':'Trồng trọt','Growing':'Canh tác',
+    'Fishing':'Câu cá','Food':'Ẩm thực','Pets':'Thú cưng','Travel':'Du lịch','Living Abroad':'Sống ở nước ngoài','Parenting':'Nuôi dạy con','Health':'Sức khỏe',
+    'Education':'Giáo dục','Real Estate':'Bất động sản','Careers':'Nghề nghiệp','Cars':'Ô tô','Photography':'Nhiếp ảnh','Film & TV':'Phim & TV','Sports':'Thể thao','Fiction':'Tiểu thuyết',
+    'Write a blog':'Viết blog','Story Animator':'Hoạt hình kể chuyện','Qimen Divination':'Kỳ môn độn giáp','Fortune-Telling':'Luận giải mệnh bàn','Chinese Medicine Wellness':'Dưỡng sinh Đông y','Poetry & Jokes':'Thơ & Truyện cười','Music Composer':'Sáng tác nhạc','Cooking':'Nấu ăn','Stays':'Lưu trú',
+    'Post reply':'Đăng trả lời','Publish':'Đăng bài','Send':'Gửi','Cancel':'Hủy','Close':'Đóng',
+    'Chat with everyone':'Trò chuyện cùng mọi người','Start video room':'Mở phòng video','Type a message':'Nhập tin nhắn',
+    'Password':'Mật khẩu','Nickname':'Biệt danh','Title':'Tiêu đề','Content':'Nội dung','Category':'Chuyên mục','Replies':'Trả lời','Back':'Quay lại',
+    'Back to list':'Về danh sách','Save draft':'Lưu bản nháp','My posts':'Bài của tôi','Edit':'Sửa','Delete':'Xóa','Draft':'Bản nháp','Public':'Công khai','Only me':'Chỉ mình tôi','Public (everyone)':'Công khai (mọi người đều xem được)'
+  };
+  const TH_E = {
+    'Hotel':'โรงแรม','Homestay':'โฮมสเตย์','Short-term apartment':'อพาร์ตเมนต์ระยะสั้น','Room / house for rent (long-term)':'ห้อง/บ้านเช่า (ระยะยาว)',
+    'Post':'โพสต์','Contact (WeChat/WhatsApp/phone/email)':'ช่องทางติดต่อ (WeChat/WhatsApp/โทรศัพท์/อีเมล)',
+    'City (e.g. Tbilisi, Bangkok, Sydney)':'เมือง (เช่น Tbilisi, Bangkok, Sydney)',
+    'Email':'อีเมล','Password (at least 6 characters)':'รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)','Nickname (for sign-up)':'ชื่อเล่น (กรอกตอนสมัคร)',
+    'By signing up you agree to the ':'การสมัครสมาชิกถือว่าคุณยอมรับ ','Privacy Policy':'นโยบายความเป็นส่วนตัว',
+    'Write a post':'เขียนโพสต์','Nothing here yet. Be the first to post.':'ยังไม่มีเนื้อหา มาโพสต์เป็นคนแรกกันเถอะ',
+    'Stays & Rentals':'ที่พักและห้องเช่า','All types':'ทุกประเภท','Search':'ค้นหา','Post a listing':'ลงประกาศที่พัก',
+    'Contact details and nearby shops and restaurants are filled in by the host. Please contact the host directly and pay offline.':'ช่องทางติดต่อ ร้านค้าและร้านอาหารใกล้เคียงกรอกโดยเจ้าของที่พักเอง กรุณาติดต่อเจ้าของโดยตรงและชำระเงินกับเจ้าของโดยตรง',
+    'No listings yet':'ยังไม่มีประกาศ',
+    'Blog':'บล็อก','Forum':'ฟอรัม','Chat':'แชท',
+    'Log in / Sign up':'เข้าสู่ระบบ / สมัครสมาชิก','Log in':'เข้าสู่ระบบ','Sign up':'สมัครสมาชิก','Log out':'ออกจากระบบ',
+    'All':'ทั้งหมด','News':'ข่าว','Culture':'วัฒนธรรม','Society':'สังคม','Life':'ไลฟ์สไตล์','Garden':'สวน','Planting':'การปลูก','Growing':'การเพาะปลูก',
+    'Fishing':'ตกปลา','Food':'อาหาร','Pets':'สัตว์เลี้ยง','Travel':'ท่องเที่ยว','Living Abroad':'ใช้ชีวิตต่างประเทศ','Parenting':'เลี้ยงลูก','Health':'สุขภาพ',
+    'Education':'การศึกษา','Real Estate':'อสังหาริมทรัพย์','Careers':'อาชีพ','Cars':'รถยนต์','Photography':'การถ่ายภาพ','Film & TV':'ภาพยนตร์และทีวี','Sports':'กีฬา','Fiction':'นิยาย',
+    'Write a blog':'เขียนบล็อก','Story Animator':'แอนิเมชันเล่าเรื่อง','Qimen Divination':'ฉีเหมินตุนเจี่ย','Fortune-Telling':'วิเคราะห์ผังชะตา','Chinese Medicine Wellness':'สุขภาพแพทย์แผนจีน','Poetry & Jokes':'กวีและมุกตลก','Music Composer':'แต่งเพลง','Cooking':'ทำอาหาร','Stays':'ที่พัก',
+    'Post reply':'ตอบกลับ','Publish':'เผยแพร่','Send':'ส่ง','Cancel':'ยกเลิก','Close':'ปิด',
+    'Chat with everyone':'คุยกับทุกคน','Start video room':'เปิดห้องวิดีโอ','Type a message':'พิมพ์ข้อความ',
+    'Password':'รหัสผ่าน','Nickname':'ชื่อเล่น','Title':'หัวข้อ','Content':'เนื้อหา','Category':'หมวดหมู่','Replies':'การตอบกลับ','Back':'กลับ',
+    'Back to list':'กลับไปที่รายการ','Save draft':'บันทึกแบบร่าง','My posts':'โพสต์ของฉัน','Edit':'แก้ไข','Delete':'ลบ','Draft':'แบบร่าง','Public':'สาธารณะ','Only me':'เฉพาะฉัน','Public (everyone)':'สาธารณะ (ทุกคนเห็นได้)'
+  };
+  const mk = m => { const o = {}; for (const k in EN) o[k] = m[EN[k]] || EN[k]; return o; };
+  const DICT = { en: EN, vi: mk(VI_E), th: mk(TH_E) };
   let lang = 'zh';
   try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
+  if (!DICT[lang]) lang = 'zh';
+  const D = DICT[lang] || EN;
+  document.documentElement.lang = { zh: 'zh-Hant', en: 'en', vi: 'vi', th: 'th' }[lang];
+  window.__I18N = { lang, dict: D };
+  const PT = {
+    en: { v: (a, b, c) => a + ' · ' + b + ' · ' + c + ' views', s: (x, y, z) => 'Today ' + x + ' | Total ' + y + ' | Posts ' + z, c: 'Copyright complaints & advertising: ' },
+    vi: { v: (a, b, c) => a + ' · ' + b + ' · ' + c + ' lượt xem', s: (x, y, z) => 'Hôm nay ' + x + ' | Tổng ' + y + ' | Bài viết ' + z, c: 'Khiếu nại bản quyền & quảng cáo: ' },
+    th: { v: (a, b, c) => a + ' · ' + b + ' · ดู ' + c + ' ครั้ง', s: (x, y, z) => 'วันนี้ ' + x + ' | ทั้งหมด ' + y + ' | บทความ ' + z, c: 'ร้องเรียนลิขสิทธิ์และโฆษณา: ' }
+  };
+  const P = PT[lang] || PT.en;
   const orig = new WeakMap();
   const tr = s => {
     const t = s.trim(); if (!t) return s;
-    if (EN[t]) return s.replace(t, EN[t]);
+    if (D[t]) return s.replace(t, D[t]);
     let m = t.match(/^(.+?) · (.+?) · (\d+) 次瀏覽$/);
-    if (m) return s.replace(t, (EN[m[1]] || m[1]) + ' · ' + m[2] + ' · ' + m[3] + ' views');
+    if (m) return s.replace(t, P.v(D[m[1]] || m[1], m[2], m[3]));
     m = t.match(/^(.+?) · (.+)$/);
-    if (m && EN[m[1]]) return s.replace(t, EN[m[1]] + ' · ' + m[2]);
+    if (m && D[m[1]]) return s.replace(t, D[m[1]] + ' · ' + m[2]);
     m = t.match(/^今日訪問 (\d+)\s*[|｜]\s*累計訪問 (\d+)\s*[|｜]\s*文章 (\d+)$/);
-    if (m) return s.replace(t, 'Today ' + m[1] + ' | Total ' + m[2] + ' | Posts ' + m[3]);
-    if (t.indexOf('版權投訴與廣告合作') === 0) return s.replace('版權投訴與廣告合作：', 'Copyright complaints & advertising: ').replace('版權投訴與廣告合作:', 'Copyright complaints & advertising: ');
+    if (m) return s.replace(t, P.s(m[1], m[2], m[3]));
+    if (t.indexOf('版權投訴與廣告合作') === 0) return s.replace('版權投訴與廣告合作：', P.c).replace('版權投訴與廣告合作:', P.c);
     return s;
   };
   function walk() {
@@ -232,26 +287,29 @@ async function showStats() {
     while ((n = w.nextNode())) {
       const p = n.parentNode && n.parentNode.nodeName;
       if (p === 'SCRIPT' || p === 'STYLE' || p === 'TEXTAREA') continue;
-      if (lang === 'en') {
+      if (lang !== 'zh') {
         if (!orig.has(n)) { const r = tr(n.nodeValue); if (r !== n.nodeValue) { orig.set(n, n.nodeValue); n.nodeValue = r; } }
       } else if (orig.has(n)) { n.nodeValue = orig.get(n); orig.delete(n); }
     }
     document.querySelectorAll('[placeholder]').forEach(el => {
-      if (lang === 'en') {
-        if (!el.dataset.zh && EN[el.placeholder]) { el.dataset.zh = el.placeholder; el.placeholder = EN[el.placeholder]; }
+      if (lang !== 'zh') {
+        if (!el.dataset.zh && D[el.placeholder]) { el.dataset.zh = el.placeholder; el.placeholder = D[el.placeholder]; }
       } else if (el.dataset.zh) { el.placeholder = el.dataset.zh; delete el.dataset.zh; }
     });
   }
   const obs = new MutationObserver(() => { obs.disconnect(); walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true }); });
-  const btn = document.createElement('button');
-  btn.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;padding:6px 12px;border:0;border-radius:16px;background:#2f6f73;color:#fff;font-size:13px;cursor:pointer;opacity:.9';
-  const label = () => { btn.textContent = lang === 'en' ? '中 / EN' : '中 / EN'; btn.title = lang === 'en' ? '切換為中文' : 'Switch to English'; };
-  btn.onclick = () => {
-    lang = lang === 'en' ? 'zh' : 'en';
-    try { localStorage.setItem('lang', lang); } catch (e) {}
-    location.reload ();
+  const sel = document.createElement('select');
+  sel.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;width:auto;margin:0;padding:6px 10px;border:0;border-radius:16px;background:#2f6f73;color:#fff;font-size:13px;cursor:pointer;opacity:.9';
+  [['zh', '中文'], ['en', 'English'], ['vi', 'Tiếng Việt'], ['th', 'ไทย']].forEach(([v, name]) => {
+    const o = document.createElement('option'); o.value = v; o.textContent = name; sel.appendChild(o);
+  });
+  sel.value = lang;
+  sel.title = 'Language / 語言 / Ngôn ngữ / ภาษา';
+  sel.onchange = () => {
+    try { localStorage.setItem('lang', sel.value); } catch (e) {}
+    location.reload();
   };
-  document.body.appendChild(btn); label();
+  document.body.appendChild(sel);
   walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true });
 })();
 (() => {
@@ -344,10 +402,12 @@ async function showStats() {
 // ===== 文章翻譯：按鈕 → 已存譯文 → Cloudflare AI → 額度滿改用 Google 翻譯 =====
 (() => {
   const _dt = detail;
-  const L = () => { try { return localStorage.getItem('lang') === 'en' ? 'en' : 'zh'; } catch (e) { return 'zh'; } };
+  const L = () => { try { const l = localStorage.getItem('lang'); return (l === 'en' || l === 'vi' || l === 'th') ? l : 'zh'; } catch (e) { return 'zh'; } };
   const T = {
     zh: { go: '翻譯', orig: '顯示原文', busy: '翻譯中…', full: '今日 AI 翻譯額度已滿，已改用瀏覽器翻譯' },
-    en: { go: 'Translate', orig: 'Show original', busy: 'Translating…', full: "Today's AI translation quota is used up. Switched to browser translation." }
+    en: { go: 'Translate', orig: 'Show original', busy: 'Translating…', full: "Today's AI translation quota is used up. Switched to browser translation." },
+    vi: { go: 'Dịch', orig: 'Xem bản gốc', busy: 'Đang dịch…', full: 'Hôm nay đã hết lượt dịch AI, chuyển sang dịch của trình duyệt' },
+    th: { go: 'แปล', orig: 'ดูต้นฉบับ', busy: 'กำลังแปล…', full: 'โควตาแปลด้วย AI ของวันนี้หมดแล้ว เปลี่ยนเป็นการแปลของเบราว์เซอร์' }
   };
   detail = async (...a) => {
     await _dt(...a);
@@ -367,6 +427,7 @@ async function showStats() {
       const id = openId;
       let r = null;
       try { r = (await db.from('translations').select('title,body').eq('post_id', id).eq('lang', to).maybeSingle()).data; } catch (e) {}
+      if (!r && (to === 'vi' || to === 'th')) { btn.textContent = t.go; return gtranslate(to); }
       if (!r) {
         try {
           const res = await fetch('/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: o.title, body: o.body, to }) });
@@ -380,12 +441,12 @@ async function showStats() {
     };
   };
   function gtranslate(to) {
-    const code = to === 'en' ? 'en' : 'zh-TW';
+    const code = ({ en: 'en', vi: 'vi', th: 'th' })[to] || 'zh-TW';
     const pick = () => { const s = document.querySelector('.goog-te-combo'); if (s) { s.value = code; s.dispatchEvent(new Event('change')); } };
     if (window.google && google.translate && google.translate.TranslateElement) return pick();
     let g = document.getElementById('gt');
     if (!g) { g = document.createElement('div'); g.id = 'gt'; g.style.cssText = 'position:absolute;left:-9999px'; document.body.appendChild(g); }
-    window.gtInit = () => { new google.translate.TranslateElement({ pageLanguage: 'zh-TW', includedLanguages: 'en,zh-TW', autoDisplay: false }, 'gt'); setTimeout(pick, 800); };
+    window.gtInit = () => { new google.translate.TranslateElement({ pageLanguage: 'zh-TW', includedLanguages: 'en,zh-TW,vi,th', autoDisplay: false }, 'gt'); setTimeout(pick, 800); };
     const s = document.createElement('script'); s.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; document.head.appendChild(s);
   }
 })();
@@ -924,50 +985,33 @@ async function showStats() {
 })();
 // ---- Placeholder / option translation (added) ----
 (() => {
+  const I = window.__I18N;
+  if (!I || I.lang === 'zh') return;
   const norm = s => s.replace(/[（(]/g, '(').replace(/[）)]/g, ')').replace(/[：:]/g, ':').replace(/[，,]/g, ',').replace(/\s+/g, '');
-  const RAW = {
-    '電子信箱': 'Email',
-    '密碼（至少 6 位）': 'Password (at least 6 characters)',
-    '暱稱（註冊時填寫）': 'Nickname (for sign-up)',
-    '城市（例如：Tbilisi、曼谷、悉尼）': 'City (e.g. Tbilisi, Bangkok, Sydney)',
-    '城市': 'City',
-    '標題（例如：市中心兩居室）': 'Title (e.g. 2-bedroom in city centre)',
-    '價格（例如：每晚 40 美元 / 每月 500 美元）': 'Price (e.g. $40 per night / $500 per month)',
-    '詳細地址（用於顯示地圖連結）': 'Full address (used for the map link)',
-    '附近超市（例如：步行 5 分鐘，Carrefour）': 'Nearby supermarket (e.g. 5 min walk, Carrefour)',
-    '附近餐館（例如：步行 3 分鐘，有中餐館）': 'Nearby restaurants (e.g. 3 min walk, Chinese restaurant)',
-    '介紹（設施、規則、租期）': 'Description (facilities, rules, lease term)',
-    '酒店': 'Hotel',
-    '民宿': 'Homestay',
-    '短租公寓': 'Short-term apartment',
-    '出租屋（長租）': 'Room / house for rent (long-term)',
-
-    '聯絡方式（微信/WhatsApp/電話/郵箱）': 'Contact (WeChat/WhatsApp/phone/email)'
-  };
+  const RAW = Object.assign({
+    '標題（例如：市中心兩居室）': { en: 'Title (e.g. 2-bedroom in city centre)', vi: 'Tiêu đề (ví dụ: căn 2 phòng ngủ ở trung tâm)', th: 'หัวข้อ (เช่น 2 ห้องนอนใจกลางเมือง)' },
+    '價格（例如：每晚 40 美元 / 每月 500 美元）': { en: 'Price (e.g. $40 per night / $500 per month)', vi: 'Giá (ví dụ: 40 USD/đêm / 500 USD/tháng)', th: 'ราคา (เช่น 40 ดอลลาร์/คืน / 500 ดอลลาร์/เดือน)' },
+    '詳細地址（用於顯示地圖連結）': { en: 'Full address (used for the map link)', vi: 'Địa chỉ đầy đủ (dùng để hiện liên kết bản đồ)', th: 'ที่อยู่เต็ม (ใช้สร้างลิงก์แผนที่)' },
+    '附近超市（例如：步行 5 分鐘，Carrefour）': { en: 'Nearby supermarket (e.g. 5 min walk, Carrefour)', vi: 'Siêu thị gần đó (ví dụ: đi bộ 5 phút, Carrefour)', th: 'ซูเปอร์มาร์เก็ตใกล้เคียง (เช่น เดิน 5 นาที, Carrefour)' },
+    '附近餐館（例如：步行 3 分鐘，有中餐館）': { en: 'Nearby restaurants (e.g. 3 min walk, Chinese restaurant)', vi: 'Nhà hàng gần đó (ví dụ: đi bộ 3 phút, có quán Trung Hoa)', th: 'ร้านอาหารใกล้เคียง (เช่น เดิน 3 นาที, มีร้านอาหารจีน)' },
+    '介紹（設施、規則、租期）': { en: 'Description (facilities, rules, lease term)', vi: 'Mô tả (tiện nghi, quy định, thời hạn thuê)', th: 'รายละเอียด (สิ่งอำนวยความสะดวก กฎ ระยะเวลาเช่า)' },
+    '城市': { en: 'City', vi: 'Thành phố', th: 'เมือง' },
+    '輸入對方暱稱，找人發私信': { en: "Enter the other person's nickname to send a private message", vi: 'Nhập biệt danh của người nhận để gửi tin nhắn riêng', th: 'ใส่ชื่อเล่นของอีกฝ่ายเพื่อส่งข้อความส่วนตัว' },
+    '輸入私信（發出後不能編輯或刪除）': { en: 'Type a private message (cannot be edited or deleted once sent)', vi: 'Nhập tin nhắn riêng (gửi xong không thể sửa hoặc xóa)', th: 'พิมพ์ข้อความส่วนตัว (ส่งแล้วแก้ไขหรือลบไม่ได้)' }
+  });
   const M = {};
-  for (const k in RAW) M[norm(k)] = RAW[k];
+  for (const k in I.dict) M[norm(k)] = I.dict[k];
+  for (const k in RAW) M[norm(k)] = RAW[k][I.lang] || RAW[k].en;
   const apply = () => {
-    let en = false;
-    try { en = localStorage.getItem('lang') === 'en'; } catch (e) {}
-    document.querySelectorAll('[placeholder],[data-zhph]').forEach(el => {
-      let zh = el.dataset.zhph;
-      if (!zh) {
-        const cur = el.getAttribute('placeholder') || '';
-        if (!M[norm(cur)]) return;
-        zh = cur; el.dataset.zhph = zh;
-      }
-      const want = en ? M[norm(zh)] : zh;
-      if (el.getAttribute('placeholder') !== want) el.setAttribute('placeholder', want);
+    document.querySelectorAll('[placeholder]').forEach(el => {
+      const cur = el.getAttribute('placeholder') || '';
+      const want = el.dataset.zh ? null : M[norm(cur)];
+      if (want && cur !== want) { el.dataset.zhph = cur; el.setAttribute('placeholder', want); }
     });
     document.querySelectorAll('option').forEach(o => {
-      let zh = o.dataset.zhtx;
-      if (!zh) {
-        const cur = o.textContent.trim();
-        if (!M[norm(cur)]) return;
-        zh = cur; o.dataset.zhtx = zh;
-      }
-      const want = en ? M[norm(zh)] : zh;
-      if (o.textContent !== want) o.textContent = want;
+      const cur = o.textContent.trim();
+      const want = M[norm(cur)];
+      if (want && o.textContent !== want) o.textContent = want;
     });
   };
   let timer = 0;
