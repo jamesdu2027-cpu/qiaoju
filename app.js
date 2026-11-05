@@ -1113,3 +1113,14 @@ async function showStats() {
     s.appendChild(o);
   });
 })();
+// ===== merge language selects =====
+(() => {
+  document.querySelectorAll('body > select').forEach(s => { if (s.style.position === 'fixed') s.remove(); });
+  let lang = 'zh'; try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
+  const LN = { zh: '\u4e2d\u6587', en: 'English', ja: '\u65e5\u672c\u8a9e', ko: '\ud55c\uad6d\uc5b4', es: 'Espa\u00f1ol', ka: '\u10e5\u10d0\u10e0\u10d7\u10e3\u10da\u10d8', vi: 'Ti\u1ebfng Vi\u1ec7t', th: '\u0e44\u0e17\u0e22' };
+  const sel = document.createElement('select');
+  sel.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;width:auto;margin:0;padding:6px 10px;border:0;border-radius:16px;background:#2f6f73;color:#fff;font-size:13px;cursor:pointer;opacity:.9';
+  sel.innerHTML = Object.keys(LN).map(k => '<option value="' + k + '"' + (k === lang ? ' selected' : '') + '>' + LN[k] + '</option>').join('');
+  sel.onchange = () => { try { localStorage.setItem('lang', sel.value); } catch (e) {} location.reload(); };
+  document.body.appendChild(sel);
+})();
