@@ -461,5 +461,17 @@ html[lang="en"] .card dl { grid-template-columns: 8.4em 1fr; }
   refresh();
 })();
 </script>
-</body>
+<div id="gt" style="position:absolute;left:-9999px"></div>
+<script>
+(function(){
+  var l; try{l=localStorage.getItem('lang')}catch(e){}
+  if(l!=='vi'&&l!=='th')return;
+  window.gtInit=function(){
+    new google.translate.TranslateElement({pageLanguage:'zh-TW',includedLanguages:'en,vi,th',autoDisplay:false},'gt');
+    var n=0,t=setInterval(function(){var s=document.querySelector('.goog-te-combo');
+      if(s){s.value=l;s.dispatchEvent(new Event('change'));clearInterval(t)}else if(++n>40)clearInterval(t)},250);
+  };
+  var s=document.createElement('script');s.src='https://translate.google.com/translate_a/element.js?cb=gtInit';document.head.appendChild(s);
+})();
+</script></body>
 </html>
