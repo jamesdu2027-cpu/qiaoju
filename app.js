@@ -1101,3 +1101,15 @@ async function showStats() {
   const obs = new MutationObserver(() => { obs.disconnect(); walk(); obs.observe(document.body, { childList: true, subtree: true }); });
   walk(); obs.observe(document.body, { childList: true, subtree: true });
 })();
+// 加入越南語和泰語選項
+(() => {
+  const s = document.querySelector('body > select');
+  if (!s) return;
+  let cur = ''; try { cur = localStorage.getItem('lang') || ''; } catch (e) {}
+  [['vi', 'Ti\u1ebfng Vi\u1ec7t'], ['th', '\u0e44\u0e17\u0e22']].forEach(([v, t]) => {
+    if ([...s.options].some(o => o.value === v)) return;
+    const o = document.createElement('option');
+    o.value = v; o.textContent = t; o.selected = (cur === v);
+    s.appendChild(o);
+  });
+})();
