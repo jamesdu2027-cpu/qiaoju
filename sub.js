@@ -13,6 +13,7 @@
   // 2) machine translation fallback (Google) when the page has no native text for this language
   var native = !!(document.querySelector('[data-en]') || document.getElementById('lang'));
   var needGoogle = cur !== 'zh' && cur !== 'en' || (cur === 'en' && !native);
+  (function(t){var h=location.hostname,x=t?'/zh-TW/'+t:'';var e=t?'':';expires=Thu, 01 Jan 1970 00:00:00 GMT';try{document.cookie='googtrans='+x+';path=/'+e;document.cookie='googtrans='+x+';path=/;domain='+h+e;document.cookie='googtrans='+x+';path=/;domain=.'+h.replace(/^www\./,'')+e}catch(_){}})(needGoogle ? cur : '');
   if (needGoogle && !window.gtInit) {
     var g = document.createElement('div'); g.id = 'gt2'; g.style.cssText = 'position:absolute;left:-9999px';
     document.body.appendChild(g);
