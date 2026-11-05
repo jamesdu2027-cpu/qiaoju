@@ -258,7 +258,17 @@ async function showStats() {
   const DICT = { en: EN, vi: mk(VI_E), th: mk(TH_E) };
   let lang = 'zh';
   try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
+  const GL = ['ja', 'ko', 'es', 'ka'];
+  const glang = GL.includes(lang) ? lang : '';
   if (!DICT[lang]) lang = 'zh';
+  if (glang) {
+    window.gtInit = () => {
+      new google.translate.TranslateElement({ pageLanguage: 'zh-TW', includedLanguages: 'ja,ko,es,ka', autoDisplay: false }, 'gt0');
+      let n = 0; const t = setInterval(() => { const q = document.querySelector('.goog-te-combo'); if (q) { q.value = glang; q.dispatchEvent(new Event('change')); clearInterval(t); } else if (++n > 40) clearInterval(t); }, 250);
+    };
+    const g = document.createElement('div'); g.id = 'gt0'; g.style.cssText = 'position:absolute;left:-9999px'; document.body.appendChild(g);
+    const sc = document.createElement('script'); sc.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; document.head.appendChild(sc);
+  }
   const D = DICT[lang] || EN;
   document.documentElement.lang = { zh: 'zh-Hant', en: 'en', vi: 'vi', th: 'th' }[lang];
   window.__I18N = { lang, dict: D };
@@ -300,10 +310,10 @@ async function showStats() {
   const obs = new MutationObserver(() => { obs.disconnect(); walk(); obs.observe(document.body, { childList: true, subtree: true, characterData: true }); });
   const sel = document.createElement('select');
   sel.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;width:auto;margin:0;padding:6px 10px;border:0;border-radius:16px;background:#2f6f73;color:#fff;font-size:13px;cursor:pointer;opacity:.9';
-  [['zh', '中文'], ['en', 'English'], ['vi', 'Tiếng Việt'], ['th', 'ไทย']].forEach(([v, name]) => {
+  [['zh', '中文'], ['en', 'English'], ['vi', 'Tiếng Việt'], ['th', 'ไทย'], ['ja', '日本語'], ['ko', '한국어'], ['es', 'Español'], ['ka', 'ქართული']].forEach(([v, name]) => {
     const o = document.createElement('option'); o.value = v; o.textContent = name; sel.appendChild(o);
   });
-  sel.value = lang;
+  sel.value = glang || lang;
   sel.title = 'Language / 語言 / Ngôn ngữ / ภาษา';
   sel.onchange = () => {
     try { localStorage.setItem('lang', sel.value); } catch (e) {}
@@ -1019,108 +1029,4 @@ async function showStats() {
   new MutationObserver(sched).observe(document.body, { childList: true, subtree: true, characterData: true });
   document.addEventListener('click', () => setTimeout(apply, 150));
   apply();
-})();
-// ===== 多語言：日語 韓語 西班牙語 格魯吉亞語 =====
-(() => {
-  let lang = 'zh'; try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
-  const LN = { zh: '中文', en: 'English', ja: '日本語', ko: '한국어', es: 'Español', ka: 'ქართული' };
-  document.querySelectorAll('body > button').forEach(b => { if (b.style.position === 'fixed') b.remove(); });
-  const sel = document.createElement('select');
-  sel.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;padding:6px 10px;border:0;border-radius:16px;background:#2f6f73;color:#fff;font-size:13px;cursor:pointer;opacity:.9;width:auto;margin:0';
-  sel.innerHTML = Object.keys(LN).map(k => '<option value="' + k + '"' + (k === lang ? ' selected' : '') + '>' + LN[k] + '</option>').join('');
-  sel.onchange = () => { try { localStorage.setItem('lang', sel.value); } catch (e) {} location.reload(); };
-  document.body.appendChild(sel);
-  const I = { ja: 0, ko: 1, es: 2, ka: 3 }[lang];
-  if (I === undefined) return;
-  document.documentElement.lang = lang;
-  const D = {
-    '博客':['ブログ','블로그','Blog','ბლოგი'],'論壇':['フォーラム','포럼','Foro','ფორუმი'],'聊天':['チャット','채팅','Chat','ჩატი'],
-    '住宿':['宿泊','숙박','Alojamiento','საცხოვრებელი'],
-    '登入／註冊':['ログイン／新規登録','로그인／회원가입','Entrar／Registrarse','შესვლა／რეგისტრაცია'],
-    '登入 / 註冊':['ログイン / 新規登録','로그인 / 회원가입','Entrar / Registrarse','შესვლა / რეგისტრაცია'],
-    '登入':['ログイン','로그인','Entrar','შესვლა'],'註冊':['新規登録','회원가입','Registrarse','რეგისტრაცია'],'登出':['ログアウト','로그아웃','Salir','გასვლა'],
-    '全部':['すべて','전체','Todos','ყველა'],'新聞':['ニュース','뉴스','Noticias','სიახლეები'],'文化':['文化','문화','Cultura','კულტურა'],
-    '社會':['社会','사회','Sociedad','საზოგადოება'],'生活':['暮らし','생활','Vida','ცხოვრება'],'花園':['ガーデン','정원','Jardín','ბაღი'],
-    '種植':['植え付け','식재','Siembra','დარგვა'],'栽培':['栽培','재배','Cultivo','მოყვანა'],'釣魚':['釣り','낚시','Pesca','თევზაობა'],
-    '美食':['グルメ','음식','Gastronomía','კერძები'],'寵物':['ペット','반려동물','Mascotas','შინაური ცხოველები'],'旅遊':['旅行','여행','Viajes','მოგზაურობა'],
-    '旅居':['海外生活','해외 생활','Vivir fuera','უცხოეთში ცხოვრება'],'親子':['子育て','육아','Crianza','ბავშვების აღზრდა'],'健康':['健康','건강','Salud','ჯანმრთელობა'],
-    '教育':['教育','교육','Educación','განათლება'],'房產':['不動産','부동산','Inmuebles','უძრავი ქონება'],'職場':['仕事','직장','Trabajo','კარიერა'],
-    '汽車':['車','자동차','Autos','მანქანები'],'攝影':['写真','사진','Fotografía','ფოტოგრაფია'],'影視':['映画・ドラマ','영화·드라마','Cine y TV','კინო და ტელევიზია'],
-    '體育':['スポーツ','스포츠','Deportes','სპორტი'],'小說':['小説','소설','Ficción','მხატვრული ლიტერატურა'],
-    '寫博客':['ブログを書く','블로그 쓰기','Escribir un blog','ბლოგის დაწერა'],'發文章':['投稿する','글쓰기','Publicar un artículo','სტატიის დაწერა'],
-    '發表回覆':['返信する','답글 등록','Publicar respuesta','პასუხის გამოქვეყნება'],'發表':['公開する','게시','Publicar','გამოქვეყნება'],
-    '發送':['送信','보내기','Enviar','გაგზავნა'],'取消':['キャンセル','취소','Cancelar','გაუქმება'],'關閉':['閉じる','닫기','Cerrar','დახურვა'],
-    '我的文章':['自分の投稿','내 글','Mis publicaciones','ჩემი პოსტები'],'編輯':['編集','수정','Editar','რედაქტირება'],'刪除':['削除','삭제','Eliminar','წაშლა'],
-    '返回列表':['一覧に戻る','목록으로','Volver a la lista','სიაში დაბრუნება'],'返回':['戻る','뒤로','Volver','უკან'],
-    '存草稿':['下書き保存','임시 저장','Guardar borrador','დრაფტის შენახვა'],'草稿':['下書き','임시 저장','Borrador','დრაფტი'],
-    '公開':['公開','공개','Público','საჯარო'],'僅自己可見':['自分のみ','나만 보기','Solo yo','მხოლოდ მე'],
-    '公開（全站可見）':['公開（全員に表示）','공개(전체 공개)','Público (visible para todos)','საჯარო (ყველასთვის)'],
-    '故事動畫':['ストーリーアニメ','스토리 애니메이션','Animador de historias','ისტორიის ანიმაცია'],
-    '奇門遁甲':['奇門遁甲','기문둔갑','Qimen Dunjia','ციმენ დუნძია'],
-    '命盤解讀':['命盤の解読','명반 해석','Lectura de carta natal','ბედის რუკის განმარტება'],
-    '中醫養生':['漢方・養生','한의학 건강','Salud y medicina china','ჩინური მედიცინა და ჯანმრთელობა'],
-    '大家在此聊天':['みんなでチャット','모두와 채팅','Chatea con todos','ჩატი ყველასთან'],
-    '開視頻房間':['ビデオルームを開く','화상 방 열기','Abrir sala de video','ვიდეოოთახის გახსნა'],
-    '翻譯':['翻訳','번역','Traducir','თარგმნა'],'顯示原文':['原文を表示','원문 보기','Ver original','ორიგინალის ნახვა'],
-    '私信':['メッセージ','쪽지','Mensaje','შეტყობინება'],
-    '輸入訊息':['メッセージを入力','메시지 입력','Escribe un mensaje','შეიყვანეთ შეტყობინება'],
-    '標題':['タイトル','제목','Título','სათაური'],
-    '貼上或撰寫文章內容':['本文を貼り付けるか入力','내용을 붙여넣거나 작성하세요','Pega o escribe el contenido','ჩასვით ან დაწერეთ ტექსტი'],
-    '寫下你的回覆':['返信を書く','답글을 작성하세요','Escribe tu respuesta','დაწერეთ პასუხი'],
-    '電子信箱':['メールアドレス','이메일','Correo electrónico','ელფოსტა'],
-    '密碼（至少 6 位）':['パスワード（6文字以上）','비밀번호(6자 이상)','Contraseña (mín. 6)','პაროლი (მინ. 6 სიმბოლო)'],
-    '暱稱（註冊時填寫）':['ニックネーム（登録時）','닉네임(가입 시)','Apodo (al registrarte)','მეტსახელი (რეგისტრაციისას)']
-  };
-  const VW = [' 回閲覧', ' 회 조회', ' visitas', ' ნახვა'];
-  const RP = ['{n}件の返信', '답글 {n}개', '{n} respuestas', '{n} პასუხი'];
-  const FT = ['著作権に関する苦情・広告のお問い合わせ：', '저작권 신고 및 광고 문의: ', 'Quejas de derechos de autor y publicidad: ', 'საავტორო უფლებების საჩივრები და რეკლამა: '];
-  const T = s => (D[s] ? D[s][I] : null);
-  const tr = s => {
-    const t = s.trim(); if (!t) return s;
-    const d = T(t); if (d) return s.replace(t, d);
-    let m = t.match(/^(.+?) · (.+?) · (\d+) 次瀏覽$/);
-    if (m) return s.replace(t, (T(m[1]) || m[1]) + ' · ' + m[2] + ' · ' + m[3] + VW[I]);
-    m = t.match(/^(\d+) 則回覆$/);
-    if (m) return s.replace(t, RP[I].replace('{n}', m[1]));
-    m = t.match(/^(.+?) · (.+)$/);
-    if (m && T(m[1])) return s.replace(t, T(m[1]) + ' · ' + m[2]);
-    if (t.indexOf('版權投訴與廣告合作') === 0) return s.replace(/版權投訴與廣告合作[：:]\s*/, FT[I]);
-    return s;
-  };
-  function walk() {
-    document.querySelectorAll('select#pc option').forEach(o => { if (!o.hasAttribute('value')) o.setAttribute('value', o.textContent); });
-    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let n;
-    while ((n = w.nextNode())) {
-      const p = n.parentNode && n.parentNode.nodeName;
-      if (p === 'SCRIPT' || p === 'STYLE' || p === 'TEXTAREA') continue;
-      const r = tr(n.nodeValue); if (r !== n.nodeValue) n.nodeValue = r;
-    }
-    document.querySelectorAll('[placeholder]').forEach(el => { const d = T(el.placeholder); if (d) el.placeholder = d; });
-  }
-  const obs = new MutationObserver(() => { obs.disconnect(); walk(); obs.observe(document.body, { childList: true, subtree: true }); });
-  walk(); obs.observe(document.body, { childList: true, subtree: true });
-})();
-// 加入越南語和泰語選項
-(() => {
-  const s = document.querySelector('body > select');
-  if (!s) return;
-  let cur = ''; try { cur = localStorage.getItem('lang') || ''; } catch (e) {}
-  [['vi', 'Ti\u1ebfng Vi\u1ec7t'], ['th', '\u0e44\u0e17\u0e22']].forEach(([v, t]) => {
-    if ([...s.options].some(o => o.value === v)) return;
-    const o = document.createElement('option');
-    o.value = v; o.textContent = t; o.selected = (cur === v);
-    s.appendChild(o);
-  });
-})();
-// ===== merge language selects =====
-(() => {
-  document.querySelectorAll('body > select').forEach(s => { if (s.style.position === 'fixed') s.remove(); });
-  let lang = 'zh'; try { lang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
-  const LN = { zh: '\u4e2d\u6587', en: 'English', ja: '\u65e5\u672c\u8a9e', ko: '\ud55c\uad6d\uc5b4', es: 'Espa\u00f1ol', ka: '\u10e5\u10d0\u10e0\u10d7\u10e3\u10da\u10d8', vi: 'Ti\u1ebfng Vi\u1ec7t', th: '\u0e44\u0e17\u0e22' };
-  const sel = document.createElement('select');
-  sel.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;width:auto;margin:0;padding:6px 10px;border:0;border-radius:16px;background:#2f6f73;color:#fff;font-size:13px;cursor:pointer;opacity:.9';
-  sel.innerHTML = Object.keys(LN).map(k => '<option value="' + k + '"' + (k === lang ? ' selected' : '') + '>' + LN[k] + '</option>').join('');
-  sel.onchange = () => { try { localStorage.setItem('lang', sel.value); } catch (e) {} location.reload(); };
-  document.body.appendChild(sel);
 })();
