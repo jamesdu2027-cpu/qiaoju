@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>照片開口說話・唱歌・跳舞</title>
+<style>
+:root{--bg:#1b1630;--card:#271f45;--fg:#f3eefc;--mut:#b6a9d9;--ac:#ff6aa8;--ac2:#6ae0ff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 50% 0,#3a2a73,var(--bg) 60%);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Microsoft JhengHei","PingFang TC",sans-serif;min-height:100vh}
+main{max-width:980px;margin:0 auto;padding:14px 14px 80px}
+h1{font-size:22px;margin:6px 0 2px}
+.sub{color:var(--mut);font-size:14px;margin:0 0 12px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px}
+@media(max-width:800px){.wrap{grid-template-columns:1fr}}
+.stage{background:#0e0a1d;border-radius:14px;padding:8px;text-align:center}
+canvas{max-width:100%;height:auto;border-radius:10px;touch-action:manipulation;cursor:crosshair;background:#150f2b}
+.panel{background:var(--card);border-radius:14px;padding:12px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 3px}
+textarea,select,input[type=range]{width:100%;font:inherit;background:#150f2b;color:var(--fg);border:1px solid #4a3d82;border-radius:8px;padding:7px}
+input[type=range]{padding:0}
+textarea{min-height:90px;resize:vertical}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+button,.file{font:inherit;border:0;border-radius:10px;padding:10px;color:#fff;cursor:pointer;text-align:center;display:block}
+.talk{background:linear-gradient(135deg,#ff6aa8,#ff8a5a)}.sing{background:linear-gradient(135deg,#8a6aff,#ff6aa8)}
+.dance{background:linear-gradient(135deg,#2bc0e4,#6a7bff)}.stop{background:#555}
+.file{background:#3b3070;margin-bottom:6px}.file input{display:none}
+.tip{font-size:13px;color:var(--mut);margin:8px 0 0}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.on{outline:3px solid var(--ac2)}
+a{color:var(--ac2)}
+.res{display:flex;gap:8px;align-items:center;background:#150f2b;border-radius:8px;padding:6px;margin:6px 0;font-size:13px}
+.res img{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#3b3070}.res .i{flex:1;min-width:0}.res .i b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res button{padding:6px 10px;background:#2bc0e4}
+.srch{display:flex;gap:6px}.srch input{flex:1;width:auto;font:inherit;background:#150f2b;color:var(--fg);border:1px solid #4a3d82;border-radius:8px;padding:7px}.srch button{background:#6a7bff;padding:7px 12px}
+</style></head><body><main>
+<h1>🎤 照片開口說話・唱歌・跳舞</h1>
+<p class="sub">放一張照片，寫幾句話，它就會張嘴說話、唱歌、跳舞。照片只在你的瀏覽器裡處理，不會上傳。請只用自己或已經同意的人的照片。</p>
+<div class="wrap">
+ <div class="stage"><canvas id="cv" width="640" height="640"></canvas>
+  <div class="tip">👆 點一下照片上「嘴巴」的位置，嘴才會張在對的地方</div></div>
+ <div class="panel">
+  <label class="file">📷 選一張照片<input type="file" id="file" accept="image/*"></label>
+  <label for="txt">要說（或唱）的話</label>
+  <textarea id="txt" class="notranslate" translate="no">大家好，我是你們的朋友。今天天氣真好，我們一起唱歌跳舞吧！</textarea>
+  <label for="voice">聲音</label><select id="voice" class="notranslate" translate="no"></select>
+  <div class="row"><div><label for="pitch">音調</label><input id="pitch" type="range" min="0.5" max="1.8" step="0.05" value="1"></div>
+  <div><label for="rate">速度</label><input id="rate" type="range" min="0.5" max="1.6" step="0.05" value="1"></div></div>
+  <div class="row"><div><label for="mw">嘴巴寬度</label><input id="mw" type="range" min="0.08" max="0.5" step="0.01" value="0.22"></div>
+  <div><label for="mo">張嘴大小</label><input id="mo" type="range" min="0.3" max="2" step="0.05" value="1"></div></div>
+  <label for="song">唱歌的曲調</label><select id="song"><option value="0">小星星</option><option value="1">生日快樂</option><option value="2">茉莉花</option></select>
+  <label for="sq">🎧 搜歌（輸入歌名）</label>
+  <div class="srch"><input id="sq" placeholder="例如：茉莉花、月亮代表我的心"><button id="sGo">搜</button></div>
+  <div id="sr"></div><audio id="au" style="width:100%;margin-top:6px" controls hidden></audio>
+  <label for="dn">舞步</label><select id="dn"><option value="sway">左右搖擺</option><option value="bounce">蹦蹦跳</option><option value="spin">轉圈圈</option><option value="robot">機器人</option><option value="bob">搖頭晃腦</option><option value="none">不跳</option></select>
+  <label for="bpm">節奏快慢</label><input id="bpm" type="range" min="60" max="180" step="5" value="110">
+  <div class="btns"><button class="talk" id="bTalk">🗣 說話</button><button class="sing" id="bSing">🎵 唱歌</button>
+  <button class="dance" id="bDance">💃 跳舞</button><button class="stop" id="bStop">⏹ 停止</button></div>
+  <div class="tip" id="msg"></div>
+ </div>
+</div>
+<p class="tip">想把效果錄成影片：Windows 按 Win+G 用內建錄影，或用手機的螢幕錄影。</p>
+<p class="tip"><a href="/">← 回首頁</a></p>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const LC={zh:'zh',en:'en',vi:'vi',th:'th',ja:'ja',ko:'ko',es:'es',ka:'ka'};
+let UL='zh';try{const l=localStorage.getItem('lang');if(LC[l])UL=l}catch(e){}
+const SAMPLE={zh:'大家好，我是你們的朋友。今天天氣真好，我們一起唱歌跳舞吧！',en:'Hello everyone, I am your friend. The weather is lovely today, so let us sing and dance together!',vi:'Xin chào mọi người, mình là bạn của các bạn. Hôm nay trời đẹp quá, cùng hát và nhảy nào!',th:'สวัสดีทุกคน ฉันเป็นเพื่อนของพวกคุณ วันนี้อากาศดีมาก มาร้องเพลงและเต้นรำด้วยกันเถอะ',ja:'みなさん、こんにちは。今日はいい天気ですね。一緒に歌って踊りましょう！',ko:'여러분 안녕하세요. 오늘 날씨가 정말 좋네요. 함께 노래하고 춤춰요!',es:'¡Hola a todos! Hoy hace un día precioso, ¡vamos a cantar y bailar juntos!',ka:'გამარჯობა ყველას! დღეს ამინდი მშვენიერია, მოდით ვიმღეროთ და ვიცეკვოთ ერთად!'};
+const VL={zh:'zh-TW',en:'en-US',vi:'vi-VN',th:'th-TH',ja:'ja-JP',ko:'ko-KR',es:'es-ES',ka:'ka-GE'};
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let musicOn=false,img=null,mouth={x:.5,y:.7},opening=0,target=0,talking=false,dancing=false,singing=false,t0=performance.now();
+// default placeholder face (cartoon) so the page works without a photo
+function placeholder(){const c=document.createElement('canvas');c.width=c.height=640;const g=c.getContext('2d');
+ g.fillStyle='#ffd9a8';g.fillRect(0,0,640,640);g.fillStyle='#f6b86b';g.beginPath();g.arc(320,300,200,0,7);g.fill();
+ g.fillStyle='#fff';[[250,260],[390,260]].forEach(p=>{g.beginPath();g.arc(p[0],p[1],34,0,7);g.fill()});
+ g.fillStyle='#222';[[250,264],[390,264]].forEach(p=>{g.beginPath();g.arc(p[0],p[1],14,0,7);g.fill()});
+ g.strokeStyle='#a04a2a';g.lineWidth=8;g.beginPath();g.arc(320,420,60,0.15*Math.PI,0.85*Math.PI);g.stroke();
+ g.fillStyle='#ff6aa8';g.font='bold 30px sans-serif';g.textAlign='center';g.fillText('先選一張照片',320,590);
+ const i=new Image();i.onload=()=>{img=i;fit()};i.src=c.toDataURL()}
+function fit(){const M=720,r=Math.min(1,M/Math.max(img.width,img.height));cv.width=Math.round(img.width*r);cv.height=Math.round(img.height*r)}
+$('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;const i=new Image();i.onload=()=>{img=i;fit();mouth={x:.5,y:.72};URL.revokeObjectURL(i.src);$('#msg').textContent='照片好了。點一下照片上嘴巴的位置，再按「說話」。'};i.src=URL.createObjectURL(f)};
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();mouth={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}});
+// ---------- drawing ----------
+function frame(now){
+ const W=cv.width,H=cv.height,t=(now-t0)/1000,bpm=+$('#bpm').value,beat=t*bpm/60;
+ opening+=(target-opening)*0.35;
+ ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,H);
+ const live=dancing||singing||talking||musicOn;
+ if(live){const h=(beat*40)%360;const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,`hsl(${h},70%,30%)`);g.addColorStop(1,`hsl(${h+80},70%,20%)`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+ ctx.save();
+ const dn=$('#dn').value,doDance=(dancing||singing||musicOn)&&dn!=='none';
+ ctx.translate(W/2,H);
+ if(doDance){const p=beat*Math.PI,s=Math.sin(p);
+  if(dn==='sway'){ctx.rotate(s*0.09);ctx.translate(s*W*0.03,0)}
+  else if(dn==='bounce'){const a=Math.abs(Math.sin(p));ctx.translate(0,-a*H*0.06);ctx.scale(1+(1-a)*0.03,1-(1-a)*0.04)}
+  else if(dn==='spin'){ctx.scale(Math.cos(beat*Math.PI/2),1)}
+  else if(dn==='robot'){const q=Math.floor(beat*2)%4;ctx.rotate([-0.07,0,0.07,0][q]);ctx.translate([-1,0,1,0][q]*W*0.03,0)}
+  else if(dn==='bob'){ctx.translate(0,Math.abs(Math.sin(p))*H*0.04);ctx.rotate(Math.sin(p/2)*0.06)}}
+ else if(talking){ctx.rotate(Math.sin(t*3)*0.012);ctx.translate(0,Math.sin(t*5)*H*0.004)}
+ ctx.translate(-W/2,-H);
+ if(img){
+  ctx.drawImage(img,0,0,W,H);
+  const mx=mouth.x*W,my=mouth.y*H,cw=Math.max(20,$('#mw').value*W*1.5),d=opening*$('#mo').value*H*0.075;
+  if(d>0.8){
+   const x0=mx-cw/2,sx=x0/W*img.width,sw=cw/W*img.width,sy=mouth.y*img.height;
+   ctx.save();ctx.beginPath();ctx.rect(x0,my,cw,H-my);ctx.clip();
+   // dark mouth gap
+   const gr=ctx.createLinearGradient(0,my,0,my+d);gr.addColorStop(0,'#3a0a14');gr.addColorStop(1,'#c43a55');
+   ctx.fillStyle=gr;ctx.fillRect(x0,my-1,cw,d+2);
+   ctx.fillStyle='#f4f0e8';ctx.fillRect(x0+cw*0.12,my-1,cw*0.76,Math.min(d*0.3,H*0.012)+1);
+   // lower face slides down
+   ctx.drawImage(img,sx,sy,sw,img.height-sy,x0,my+d,cw,H-my-d);
+   ctx.restore();
+   ctx.strokeStyle='rgba(60,10,20,.55)';ctx.lineWidth=Math.max(1,W/320);ctx.strokeRect(x0,my,cw,0);
+  }}
+ ctx.restore();
+ requestAnimationFrame(frame)}
+// ---------- mouth driver ----------
+let mouthTimer=null;
+function mouthStart(){clearInterval(mouthTimer);mouthTimer=setInterval(()=>{target=talking||singing||musicOn?(Math.random()<0.2?0.15:0.35+Math.random()*0.65):0},95)}
+function mouthPulse(){target=0.6+Math.random()*0.4}
+// ---------- speech ----------
+const synth=window.speechSynthesis;let voices=[];
+function loadVoices(){if(!synth)return;voices=synth.getVoices();const s=$('#voice'),cur=s.value;
+ const pre=new RegExp('^'+LC[UL],'i'),score=v=>(pre.test(v.lang)?2:0)+(UL==='zh'&&/cmn|yue/i.test(v.lang)?2:0);const ord=voices.map((v,i)=>({v,i})).sort((a,b)=>(score(b.v)-score(a.v))||a.v.name.localeCompare(b.v.name));
+ s.innerHTML=ord.map(o=>`<option value="${o.i}">${o.v.name} (${o.v.lang})</option>`).join('');if(cur)s.value=cur;else if(ord.length)s.value=ord[0].i;if(!ord.some(o=>pre.test(o.v.lang)||(UL==='zh'&&/cmn|yue/i.test(o.v.lang))))$('#msg').textContent={zh:'',en:'No voice for this language on this device. Try Edge or Chrome.',vi:'Máy này chưa có giọng đọc cho tiếng Việt. Hãy thử Edge hoặc Chrome.',th:'เครื่องนี้ไม่มีเสียงภาษาไทย ลองใช้ Edge หรือ Chrome',ja:'この端末には日本語の音声がありません。Edge か Chrome をお試しください。',ko:'이 기기에는 한국어 음성이 없습니다. Edge 또는 Chrome을 사용해 보세요.',es:'Este dispositivo no tiene voz en español. Prueba Edge o Chrome.',ka:'ამ მოწყობილობას ქართული ხმა არ აქვს. სცადეთ Edge ან Chrome.'}[UL]||''}
+if(synth){loadVoices();synth.onvoiceschanged=loadVoices}else $('#msg').textContent='這個瀏覽器不支持語音，請用 Edge 或 Chrome。';
+function mkUtt(text,pitch,rate){const u=new SpeechSynthesisUtterance(text);const v=voices[+$('#voice').value];if(v){u.voice=v;u.lang=v.lang}else u.lang=VL[UL];u.pitch=pitch;u.rate=rate;return u}
+function stopAll(){talking=singing=musicOn=false;try{au.pause()}catch(e){}talking=singing=false;target=0;clearInterval(mouthTimer);clearInterval(beatTimer);if(synth)synth.cancel();setOn()}
+function setOn(){$('#bTalk').classList.toggle('on',talking);$('#bSing').classList.toggle('on',singing);$('#bDance').classList.toggle('on',dancing)}
+function talk(){stopAll();const text=$('#txt').value.trim();if(!text)return $('#msg').textContent='先寫幾句話';
+ talking=true;setOn();mouthStart();
+ if(!synth||!voices.length){$('#msg').textContent='這台電腦沒有可用的語音，只能看嘴動。換 Edge 瀏覽器通常有中文聲音。';setTimeout(stopAll,text.length*250);return}
+ const parts=text.split(/(?<=[。！？!?\n.，,；;])/).filter(s=>s.trim());let i=0;
+ const next=()=>{if(!talking)return;if(i>=parts.length){talking=false;target=0;setOn();return}
+  const u=mkUtt(parts[i++],+$('#pitch').value,+$('#rate').value);u.onboundary=mouthPulse;u.onend=next;u.onerror=next;synth.speak(u)};next()}
+// ---------- sing ----------
+const SONGS=[ // semitone offsets from C, beats
+ [[0,1],[0,1],[7,1],[7,1],[9,1],[9,1],[7,2],[5,1],[5,1],[4,1],[4,1],[2,1],[2,1],[0,2]],
+ [[0,.75],[0,.25],[2,1],[0,1],[5,1],[4,2],[0,.75],[0,.25],[2,1],[0,1],[7,1],[5,2]],
+ [[4,1],[4,.5],[7,.5],[9,1],[9,1],[12,1],[9,.5],[7,.5],[4,2],[4,1],[4,.5],[7,.5],[9,1],[7,1],[4,2]]];
+let ac=null,beatTimer=null;
+function tone(semi,dur,type='triangle',vol=.18,base=261.63){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=base*Math.pow(2,semi/12);
+ g.gain.setValueAtTime(0,ac.currentTime);g.gain.linearRampToValueAtTime(vol,ac.currentTime+.03);g.gain.setValueAtTime(vol,ac.currentTime+dur*.8);g.gain.linearRampToValueAtTime(0,ac.currentTime+dur);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+dur+.05)}
+function drum(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(150,ac.currentTime);o.frequency.exponentialRampToValueAtTime(40,ac.currentTime+.12);g.gain.setValueAtTime(.5,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.15);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+.2)}
+function sing(){stopAll();const raw=$('#txt').value.trim();if(!raw)return $('#msg').textContent='...';const text=raw;
+ ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.resume)ac.resume();
+ singing=true;setOn();mouthStart();t0=performance.now();
+ const song=SONGS[+$('#song').value],bpm=+$('#bpm').value,bs=60/bpm;
+ const cjk=/[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\u0e00-\u0e7f]/.test(text);const chars=cjk?[...text.replace(/\s+/g,'')]:text.split(/\s+/);let i=0;
+ beatTimer=setInterval(drum,bs*1000);
+ const step=()=>{if(!singing)return;if(i>=chars.length){singing=false;target=0;clearInterval(beatTimer);setOn();return}
+  const n=song[i%song.length],ch=chars[i];i++;const dur=n[1]*bs;
+  tone(n[0],dur);tone(n[0]-12,dur,'sine',.08);target=.9;
+  if(synth&&/\S/.test(ch)&&!/^[，。！？,.!?、]+$/.test(ch)){const u=mkUtt(ch,Math.min(2,Math.max(.3,1+(n[0]-4)/14)),Math.min(1.9,+$('#rate').value*1.5));u.volume=.9;synth.speak(u)}
+  setTimeout(step,dur*1000)};step()}
+$('#bTalk').onclick=talk;$('#bSing').onclick=sing;$('#bStop').onclick=()=>{dancing=false;stopAll()};
+const au=$('#au');
+au.onended=au.onpause=()=>{if(musicOn&&au.ended){musicOn=false;target=0;clearInterval(mouthTimer)}};
+function playUrl(u,name){stopAll();au.hidden=false;au.src=u;t0=performance.now();
+ au.play().then(()=>{musicOn=true;mouthStart();$('#msg').textContent='正在播放：'+name+'。照片會跟著唱、跳。'}).catch(()=>{$('#msg').textContent='這首歌播放不了，換一首試試。'})}
+const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function search(){const q=$('#sq').value.trim();if(!q)return;const box=$('#sr');box.innerHTML='<div class="tip">搜尋中…</div>';let items=[];
+ try{const r=await fetch('https://itunes.apple.com/search?media=music&limit=8&term='+encodeURIComponent(q));const j=await r.json();
+  (j.results||[]).forEach(x=>x.previewUrl&&items.push({t:x.trackName,a:x.artistName,img:x.artworkUrl60,u:x.previewUrl,src:'試聽 30 秒'}))}catch(e){}
+ try{const r=await fetch('https://api.audius.co/v1/tracks/search?app_name=tiannanhaibei&limit=6&query='+encodeURIComponent(q));const j=await r.json();
+  (j.data||[]).forEach(x=>items.push({t:x.title,a:x.user&&x.user.name,img:x.artwork&&x.artwork['150x150'],u:'https://api.audius.co/v1/tracks/'+x.id+'/stream?app_name=tiannanhaibei',src:'免費全曲'}))}catch(e){}
+ const yt='https://www.youtube.com/results?search_query='+encodeURIComponent(q);
+ box.innerHTML=(items.length?items.map((x,i)=>`<div class="res"><img src="${E(x.img||'')}" alt=""><div class="i"><b>${E(x.t)}</b>${E(x.a||'')} · ${x.src}</div><button data-i="${i}">▶</button></div>`).join(''):'<div class="tip">沒搜到，換個關鍵詞（英文歌名也行）。</div>')
+  +`<div class="tip">想聽完整的流行歌：<a href="${yt}" target="_blank" rel="noopener">在 YouTube 搜「${E(q)}」</a></div>`;
+ box.onclick=e=>{const i=e.target.dataset.i;if(i!=null)playUrl(items[i].u,items[i].t)}}
+$('#sGo').onclick=search;$('#sq').onkeydown=e=>{if(e.key==='Enter')search()};
+$('#bDance').onclick=()=>{dancing=!dancing;t0=performance.now();setOn()};
+$('#txt').value=SAMPLE[UL];$('#sq').placeholder={zh:'例如：茉莉花、月亮代表我的心',en:'e.g. Jasmine Flower',vi:'Ví dụ: tên bài hát',th:'เช่น ชื่อเพลง',ja:'例：曲名',ko:'예: 노래 제목',es:'p. ej. nombre de la canción',ka:'მაგ. სიმღერის სახელი'}[UL];
+placeholder();requestAnimationFrame(frame);
+window.__t={get musicOn(){return musicOn},get opening(){return opening},talk,sing,setMouth:m=>mouth=m};
+</script><script src="/sub.js"></script></body></html>
