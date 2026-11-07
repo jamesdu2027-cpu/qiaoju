@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>站長後台</title>
+<style>
+body{margin:0;font:15px/1.6 system-ui,"Microsoft JhengHei",sans-serif;background:#f6f4ef;color:#222}
+main{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 10px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+button{font:inherit;padding:6px 12px;border:0;border-radius:6px;background:#2f6f73;color:#fff;cursor:pointer}
+button.on{background:#1b4244}button.del{background:#b3261e}button.gr{background:#777}
+input{font:inherit;padding:6px;border:1px solid #bbb;border-radius:6px;margin:3px 0;width:100%;box-sizing:border-box}
+.card{background:#fff;border:1px solid #e2ddd2;border-radius:8px;padding:10px 12px;margin:8px 0}
+.m{color:#777;font-size:13px}.body{white-space:pre-wrap;word-break:break-word;margin:6px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sp{flex:1}
+.ban{color:#b3261e;font-weight:700}
+</style></head><body><main>
+<h1>站長後台 <span class="m" id="who"></span></h1>
+<div id="login" hidden><div class="card"><div>請用站長帳號登入</div><input id="em" placeholder="電子信箱"><input id="pw" type="password" placeholder="密碼"><button id="go">登入</button> <span id="err" class="ban"></span></div></div>
+<div id="app" hidden>
+<div class="tabs" id="tabs"></div>
+<div class="row"><input id="q" placeholder="搜尋（標題、內容、作者、信箱）" style="max-width:340px"><button class="gr" id="rf">重新整理</button></div>
+<div id="list"></div></div>
+<p class="m"><a href="/">← 回首頁</a></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const db=supabase.createClient('https://gkqmxdmywcfpttrbgfig.supabase.co','sb_publishable_1NGnx5BbQkV3dCmQZLcPJg_eI4zSNyF');
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const T=[['users','註冊用戶'],['posts','文章'],['replies','評論'],['messages','聊天'],['stays','住宿']];
+let tab='users',data=[];
+const fmt=t=>t?new Date(t).toLocaleString('zh-TW',{hour12:false}):'';
+async function boot(){
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){$('#login').hidden=false;$('#app').hidden=true;return}
+  const {data:ok,error}=await db.rpc('is_admin');
+  if(!ok){$('#app').hidden=true;$('#login').hidden=false;$('#err').textContent=error?error.message:'這個帳號不是站長';return}
+  $('#who').textContent=session.user.email;$('#login').hidden=true;$('#app').hidden=false;
+  $('#tabs').innerHTML=T.map(t=>`<button data-t="${t[0]}" class="${t[0]===tab?'on':''}">${t[1]}</button>`).join('');
+  load();
+}
+async function load(){
+  $('#list').innerHTML='<div class="m">載入中…</div>';
+  const r=tab==='users'?await db.rpc('admin_users'):await db.rpc('admin_list',{tbl:tab,lim:300});
+  if(r.error){$('#list').innerHTML='<div class="ban">'+esc(r.error.message)+'（若提示找不到 admin_ 函數，請先在 Supabase 執行 admin.sql）</div>';return}
+  data=r.data||[];render();
+}
+function render(){
+  const q=$('#q').value.trim().toLowerCase();
+  const rows=data.filter(x=>!q||JSON.stringify(x).toLowerCase().includes(q));
+  $('#list').innerHTML='<div class="m">共 '+rows.length+' 條</div>'+rows.map(x=>{
+    if(tab==='users')return `<div class="card"><div class="row"><b>${esc(x.email)}</b><span>${esc(x.nick||'')}</span>${x.banned?'<span class="ban">已封禁</span>':''}<span class="sp"></span>
+      <button class="gr" data-ua="${x.banned?'unban':'ban'}" data-id="${x.id}">${x.banned?'解封':'封禁'}</button>
+      <button class="del" data-ua="purge" data-id="${x.id}">刪除他的全部內容</button></div>
+      <div class="m">註冊 ${fmt(x.created_at)} ｜ 最後登入 ${fmt(x.last_sign_in_at)}</div></div>`;
+    const who=x.author_name||x.owner_name||'';
+    const title=x.title||'';
+    return `<div class="card"><div class="row"><b>${esc(title)}</b><span class="m">${esc(x.kind||x.category||'')} ${esc(x.city||'')}</span><span class="sp"></span><button class="del" data-del="${esc(x.id)}">刪除</button></div>
+      <div class="m">${esc(who)} ｜ ${fmt(x.created_at)}${x.status?' ｜ '+esc(x.status):''}${x.contact?' ｜ 聯絡 '+esc(x.contact):''}</div>
+      <div class="body">${esc((x.body||x.description||'').slice(0,600))}</div></div>`}).join('');
+}
+$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(!t)return;tab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));load()};
+$('#q').oninput=render;$('#rf').onclick=load;
+$('#list').onclick=async e=>{
+  const d=e.target.dataset;
+  if(d.del){if(!confirm('確定刪除這一條？刪了不能恢復。'))return;const r=await db.rpc('admin_delete',{tbl:tab,rid:d.del});if(r.error)return alert(r.error.message);load()}
+  if(d.ua){const msg={ban:'封禁這個用戶？他將不能登入。',unban:'解封這個用戶？',purge:'刪除這個用戶發過的全部文章、評論、聊天和住宿？不能恢復。'}[d.ua];if(!confirm(msg))return;
+    const r=await db.rpc('admin_user_action',{uid:d.id,act:d.ua});if(r.error)return alert(r.error.message);load()}
+};
+$('#go').onclick=async()=>{const r=await db.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});if(r.error){$('#err').textContent=r.error.message;return}$('#err').textContent='';boot()};
+boot();
+</script></body></html>
