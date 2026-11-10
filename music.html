@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -762,10 +761,8 @@ let starting=false;
 async function play(song){
   if(starting)return;
   if(!ensureAC()){setMsg('noaudio');return}
-  starting=true;
-  try{await sfEnsure(song&&SONG?SONG.blocks:curStates())}catch(e){}
-  starting=false;
   if(playing)return;
+  try{sfEnsure(song&&SONG?SONG.blocks:curStates()).catch(()=>{})}catch(e){}
   SONGON=!!(song&&SONG);if(SONGON){SONG.bi=0;SNAP=snap()}
   bus=AC.createGain();bus.connect(master);playing=true;cur=0;TM=1;nextT=AC.currentTime+.08;visQ=[];
   timer=setInterval(sched,25);raf=requestAnimationFrame(vis);setPlayBtn();
@@ -858,4 +855,3 @@ window.addEventListener('storage',e=>{if(e.key==='lang'){const v=(e.newValue&&/^
 })();
 </script><script src="/sub.js"></script></body>
 </html>
-
