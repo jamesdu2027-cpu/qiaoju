@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -94,7 +93,7 @@ html[lang="en"] h1{letter-spacing:0}
     <button id="save" data-en="Save on this device">保存到本机</button>
     <button id="load" data-en="Load saved">读取已保存</button>
   </div>
-  <p class="note" id="msg" role="status" style="margin:10px 0 0"></p><p class="note" style="margin:6px 0 0"><button id="beep" type="button">测试声音（点一下应听到“嘟”）</button> <span id="astat"></span></p>
+  <p class="note" id="msg" role="status" style="margin:10px 0 0"></p>
 </div>
 
 <div class="card">
@@ -181,8 +180,8 @@ const SF={player:null,presets:{},loading:{},dead:false};
 const SF_FONTS=['FluidR3_GM_sf2_file','GeneralUserGS_sf2_file','JCLive_sf2_file'];
 const SF_BASES=['https://surikov.github.io/webaudiofontdata/sound/','https://cdn.jsdelivr.net/gh/surikov/webaudiofontdata@master/sound/'];
 const SF_LIBS=['https://surikov.github.io/webaudiofont/npm/dist/WebAudioFontPlayer.js','https://cdn.jsdelivr.net/gh/surikov/webaudiofont@master/npm/dist/WebAudioFontPlayer.js'];
-const PROG={pluck:107,flute:73,piano:0,synth:81,violin:40,erhu:110,panpipe:75,sax:65,strings:48,nylon:24,steel:25,bassf:33,bassa:32,harp:46,epiano:4};
-const TRIM={pluck:1,flute:.9,violin:.8,erhu:.8,panpipe:.9,sax:.8,piano:1,synth:.7,strings:.5,nylon:.6,steel:.5,bassf:1,bassa:1,harp:.7,epiano:.6};
+const PROG={pluck:107,flute:73,piano:0,synth:81,violin:40,erhu:110,panpipe:75,sax:65,strings:48,nylon:24,steel:25,bassf:33,bassa:32,harp:46,epiano:4,eguitar:29};
+const TRIM={pluck:1,flute:.9,violin:.8,erhu:.8,panpipe:.9,sax:.8,piano:1,synth:.7,strings:.5,nylon:.6,steel:.5,bassf:1,bassa:1,harp:.7,epiano:.6,eguitar:.75};
 function sfScript(url,ms){return new Promise(res=>{let done=false;const el=document.createElement('script');const fin=ok=>{if(done)return;done=true;clearTimeout(tm);if(!ok)try{el.remove()}catch(e){}res(ok)};const tm=setTimeout(()=>fin(false),ms);el.onload=()=>fin(true);el.onerror=()=>fin(false);el.async=true;el.src=url;document.head.appendChild(el)})}
 async function sfGetPlayer(){
   if(SF.player)return SF.player;
@@ -296,7 +295,7 @@ function lead(ctx,dest,t,m,dur,inst){
     g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.16,t+.01);g.gain.setValueAtTime(.12,t+Math.max(.02,dur-.05));g.gain.linearRampToValueAtTime(.0001,t+dur+.15);
     end=t+dur+.18;os=[o];
   }else{
-    const pl=inst==='pluck'||inst==='steel'||inst==='nylon'||inst==='harp',decay=pl?Math.min(dur+.5,1.3):Math.min(dur+.9,2.2);
+    const pl=inst==='pluck'||inst==='steel'||inst==='nylon'||inst==='harp'||inst==='eguitar',decay=pl?Math.min(dur+.5,1.3):Math.min(dur+.9,2.2);
     const o1=osc('triangle',f,1),o2=osc('sine',f*2,pl?.35:.22),o3=osc('sine',f*3,pl?.1:.06);
     g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.32,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+decay);
     os=[o1,o2,o3];
@@ -530,7 +529,7 @@ const SNK=['root','scale','bpm','inst','bass','pad','strum','swing','seventh','c
 const snap=()=>{const o={};SNK.forEach(k=>o[k]=S[k]);return o};
 const restore=o=>{SNK.forEach(k=>{S[k]=o[k]});evDirty=true};
 const applyBlock=b=>{S.root=b.root;S.mel=b.mel;S.chords=b.chords;S.drum=b.drum;S.pad=b.pad;S.bass=b.bass;S.strum=b.strum;S.comp=b.comp;S.arp=b.arp;S.crash=!!b.crash;S.inst=b.inst;evDirty=true};
-const SECN={intro:['前奏','Intro'],verse:['主歌','Verse'],chorus:['副歌','Chorus'],bridge:['过渡段','Bridge'],final:['转调副歌','Key-change chorus'],outro:['尾声','Outro']};
+const SECN={intro:['前奏','Intro'],verse:['主歌','Verse'],chorus:['副歌','Chorus'],bridge:['过渡段','Bridge'],solo:['吉他独奏','Guitar solo'],final:['转调副歌','Key-change chorus'],outro:['尾声','Outro']};
 let SONG=null,SONGON=false,SNAP=null,secBus=null,songEnd=false;
 function buildSong(P,target){
   const keep=snap();
@@ -554,13 +553,15 @@ function buildSong(P,target){
   const verse=sw=>add('verse',[{mel:sw?A2:A,chords:pA,drum:dr(1),v0:.7,v1:.72},{mel:sw?A:A2,chords:pA,drum:dr(1,hasDr),v0:.72,v1:.76}]);
   const chorus=(key,rt)=>add(key,[{mel:B,chords:pB,drum:dr(2,false),bass:chBass,root:rt,crash:hasDr,v0:.95,v1:1},{mel:B2,chords:pB,drum:dr(2,hasDr),bass:chBass,root:rt,v0:1,v1:key==='final'?1.08:1}]);
   const blockSec=960/S.bpm;
-  const baseBlocks=14,pairs=clamp(Math.round((target-baseBlocks*blockSec)/(4*blockSec)),0,8);
+  const baseBlocks=16,pairs=clamp(Math.round((target-baseBlocks*blockSec)/(4*blockSec)),0,8);
   add('intro',[{mel:intro,chords:pA,drum:dr(0),bass:'none',strum:false,comp:false,v0:.5,v1:.8}]);
   verse(false);chorus('chorus',base.root);
   for(let i=0;i<pairs;i++){verse(i%2===0);chorus('chorus',base.root)}
   verse(true);chorus('chorus',base.root);
   const alt=base.inst==='piano'?'flute':'piano';
   add('bridge',[{mel:C,chords:brP,drum:dr(0),bass:'none',strum:false,comp:false,inst:alt,v0:.5,v1:.7},{mel:C2,chords:brP,drum:dr(0),bass:'none',strum:false,comp:false,inst:alt,v0:.7,v1:.95}]);
+  {const S1=gen(pB,.6),S2=splice(S1,gen(pB,.78),16);
+   add('solo',[{mel:S1,chords:pB,drum:dr(2,false),bass:chBass,strum:false,comp:false,inst:'eguitar',v0:.85,v1:.95},{mel:S2,chords:pB,drum:dr(2,hasDr),bass:chBass,strum:false,comp:false,inst:'eguitar',crash:hasDr,v0:.95,v1:1}])}
   chorus('final',base.root+2);
   add('outro',[{mel:outro,chords:[pA[0],pA[1],pA[2],1],drum:dr(0),bass:'none',strum:false,comp:false,v0:.85,v1:.4,tm0:1,tm1:1.35}]);
   restore(keep);
@@ -605,7 +606,7 @@ function midiBytes(blocks){
   const sn=snap(),list=blocks||[null];
   const tpq=480,st=tpq/2,ev=[];let o=0;
   const add=(t,b)=>ev.push({t,b,o:o++});
-  const PR={pluck:107,flute:73,piano:0,synth:81,violin:40,erhu:110,panpipe:75,sax:65};
+  const PR={eguitar:29,pluck:107,flute:73,piano:0,synth:81,violin:40,erhu:110,panpipe:75,sax:65};
   add(0,[0xC1,48]);add(0,[0xC2,33]);add(0,[0xC3,25]);add(0,[0xC4,0]);add(0,[0xC5,24]);
   const note=(ch,m,t0,t1,v)=>{add(t0,[0x90|ch,m,v]);add(t1,[0x80|ch,m,0])};
   list.forEach((blk,bi)=>{
@@ -663,7 +664,7 @@ const unmask=v=>{const a=blank();for(let s=0;s<N;s++)a[s]=(v>>>s)&1;return a};
 function pack(){return {r:S.root,sc:S.scale,b:S.bpm,i:S.inst,ba:S.bass,p:S.pad?1:0,st:S.strum?1:0,sw:S.swing?1:0,sv:S.seventh?1:0,cp:S.comp?1:0,c:S.chords,k:mask(S.drum.k),s:mask(S.drum.s),h:mask(S.drum.h),m:S.mel.map(mask)}}
 function unpack(o){
   if(!o||!BASES[o.sc])return false;
-  S.root=clamp(+o.r||0,0,11);S.scale=o.sc;S.bpm=clamp(+o.b||110,60,180);S.inst=['pluck','flute','piano','synth','violin','erhu','panpipe','sax'].includes(o.i)?o.i:'pluck';
+  S.root=clamp(+o.r||0,0,11);S.scale=o.sc;S.bpm=clamp(+o.b||110,60,180);S.inst=['pluck','flute','piano','synth','violin','erhu','panpipe','sax','eguitar'].includes(o.i)?o.i:'pluck';
   S.bass=['none','root','alt','walk','eighth'].includes(o.ba)?o.ba:'root';S.pad=!!o.p;S.strum=!!o.st;S.swing=!!o.sw;S.seventh=!!o.sv;S.comp=!!o.cp;S.arp=null;S.crash=false;S.chords=(o.c||[1,5,6,4]).slice(0,4).map(x=>clamp(+x||1,1,7));
   S.drum={k:unmask(o.k),s:unmask(o.s),h:unmask(o.h)};
   const n=rowSemis().length;S.mel=zeros(n);(o.m||[]).slice(0,n).forEach((v,r)=>{S.mel[r]=unmask(v)});
@@ -697,7 +698,7 @@ function fillAll(){
   fillSel($('style'),[['pop','流行','Pop'],['sad','忧伤','Sad'],['happy','欢快','Happy'],['guofeng','古风','Chinese classical'],['country','乡村','Country'],['jazz','爵士','Jazz'],['free','自由（保持当前设置）','Free (keep my settings)']],x=>X(x[1],x[2]));
   fillSel($('root'),NOTE.map((n,i)=>[String(i),n]),x=>x[1]);
   fillSel($('scale'),[['major','大调','Major'],['minor','小调','Minor'],['pentMaj','五声音阶 · 宫调','Pentatonic (major)'],['pentMin','五声音阶 · 羽调','Pentatonic (minor)'],['blues','蓝调音阶','Blues']],x=>X(x[1],x[2]));
-  fillSel($('inst'),[['pluck','古筝（拨弦）','Plucked string (guzheng-like)'],['flute','笛子','Flute'],['violin','小提琴','Violin'],['erhu','二胡','Erhu'],['panpipe','排箫','Panpipes'],['sax','萨克斯','Saxophone'],['piano','钢琴','Piano'],['synth','合成器','Synth']],x=>X(x[1],x[2]));
+  fillSel($('inst'),[['pluck','古筝（拨弦）','Plucked string (guzheng-like)'],['flute','笛子','Flute'],['violin','小提琴','Violin'],['erhu','二胡','Erhu'],['panpipe','排箫','Panpipes'],['sax','萨克斯','Saxophone'],['piano','钢琴','Piano'],['eguitar','电吉他','Electric guitar'],['synth','合成器','Synth']],x=>X(x[1],x[2]));
   fillSel($('bass'),[['none','无','None'],['root','根音','Root notes'],['alt','根音与五音交替（乡村）','Root-fifth alternating (country)'],['walk','行走低音（爵士）','Walking bass (jazz)'],['eighth','八分音符跳动','Eighth-note bounce']],x=>X(x[1],x[2]));
 }
 function syncUI(){
@@ -846,12 +847,6 @@ window.addEventListener('storage',e=>{if(e.key==='lang'){const v=(e.newValue&&/^
   if(!ok){$('style').value='guofeng';autoCompose()}
   syncUI();buildGrid();applyStatic();
 })();
-
-(function(){var bt=document.getElementById('beep'),st=document.getElementById('astat');if(!bt)return;
-function upd(){try{st.textContent='声音系统：'+(AC?AC.state+'，时钟 '+AC.currentTime.toFixed(1)+' 秒':'未启动')}catch(e){}}
-setInterval(upd,500);
-bt.onclick=function(){try{var c=ensureAC();if(!c){st.textContent='浏览器不支持声音';return}
-var o=c.createOscillator(),g=c.createGain();o.frequency.value=440;g.gain.value=.3;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.6)}catch(e){st.textContent='错误：'+e.message}}})();
 </script>
 <div id="gt" style="position:absolute;left:-9999px"></div>
 <script>
