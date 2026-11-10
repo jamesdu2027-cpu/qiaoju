@@ -110,6 +110,11 @@ html[lang="en"] h1{letter-spacing:0}
 </main>
 
 <script>
+/* 出错时在页面顶部显示红字，方便排查 */
+(function(){function show(t){try{var d=document.getElementById('errbar');if(!d){d=document.createElement('div');d.id='errbar';d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;background:#a8322d;color:#fff;padding:8px 12px;font:14px/1.4 monospace;white-space:pre-wrap';document.body.appendChild(d)}d.textContent='出错了 / Error: '+t}catch(e){}}
+window.addEventListener('error',function(e){show((e.message||'')+' @'+(e.lineno||'')+':'+(e.colno||''))});
+window.addEventListener('unhandledrejection',function(e){show('promise: '+(e.reason&&e.reason.message||e.reason))})})();
+
 /* ===== 语言 ===== */
 let LANG='zh';
 try{const m=/[?&]lang=([\w-]+)/.exec(location.search),v=m?m[1]:localStorage.getItem('lang');if(v&&/^en/i.test(v))LANG='en'}catch(e){}
