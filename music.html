@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -58,6 +59,7 @@ html[lang="en"] h1{letter-spacing:0}
     <textarea id="mood" maxlength="300"></textarea>
     <div class="row" style="margin-top:8px">
       <select id="songLen" style="width:auto"><option value="3" data-en="About 3 min">约 3 分钟</option><option value="4" data-en="About 4 min">约 4 分钟</option><option value="5" selected data-en="About 5 min">约 5 分钟</option></select>
+      <select id="soloInst" style="width:auto" title="独奏乐器"><option value="eguitar" selected data-en="Solo: electric guitar">独奏：电吉他</option><option value="erhu" data-en="Solo: erhu">独奏：二胡</option><option value="piano" data-en="Solo: piano">独奏：钢琴</option><option value="violin" data-en="Solo: violin">独奏：小提琴</option><option value="sax" data-en="Solo: saxophone">独奏：萨克斯</option><option value="flute" data-en="Solo: flute">独奏：笛子</option></select>
       <button class="main" id="songGo" data-en="Create full song">生成完整歌曲</button>
       <button id="songPlay">播放整曲</button>
       <button id="songWav" data-en="Song WAV">整曲 WAV</button>
@@ -560,8 +562,8 @@ function buildSong(P,target){
   verse(true);chorus('chorus',base.root);
   const alt=base.inst==='piano'?'flute':'piano';
   add('bridge',[{mel:C,chords:brP,drum:dr(0),bass:'none',strum:false,comp:false,inst:alt,v0:.5,v1:.7},{mel:C2,chords:brP,drum:dr(0),bass:'none',strum:false,comp:false,inst:alt,v0:.7,v1:.95}]);
-  {const S1=gen(pB,.6),S2=splice(S1,gen(pB,.78),16);
-   add('solo',[{mel:S1,chords:pB,drum:dr(2,false),bass:chBass,strum:false,comp:false,inst:'eguitar',v0:.85,v1:.95},{mel:S2,chords:pB,drum:dr(2,hasDr),bass:chBass,strum:false,comp:false,inst:'eguitar',crash:hasDr,v0:.95,v1:1}])}
+  {const SOLO=($('soloInst')&&$('soloInst').value)||'eguitar';const S1=gen(pB,.6),S2=splice(S1,gen(pB,.78),16);
+   add('solo',[{mel:S1,chords:pB,drum:dr(2,false),bass:chBass,strum:false,comp:false,inst:SOLO,v0:.85,v1:.95},{mel:S2,chords:pB,drum:dr(2,hasDr),bass:chBass,strum:false,comp:false,inst:SOLO,crash:hasDr,v0:.95,v1:1}])}
   chorus('final',base.root+2);
   add('outro',[{mel:outro,chords:[pA[0],pA[1],pA[2],1],drum:dr(0),bass:'none',strum:false,comp:false,v0:.85,v1:.4,tm0:1,tm1:1.35}]);
   restore(keep);
