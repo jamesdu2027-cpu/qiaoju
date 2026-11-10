@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -93,7 +94,7 @@ html[lang="en"] h1{letter-spacing:0}
     <button id="save" data-en="Save on this device">保存到本机</button>
     <button id="load" data-en="Load saved">读取已保存</button>
   </div>
-  <p class="note" id="msg" role="status" style="margin:10px 0 0"></p>
+  <p class="note" id="msg" role="status" style="margin:10px 0 0"></p><p class="note" style="margin:6px 0 0"><button id="beep" type="button">测试声音（点一下应听到“嘟”）</button> <span id="astat"></span></p>
 </div>
 
 <div class="card">
@@ -845,6 +846,12 @@ window.addEventListener('storage',e=>{if(e.key==='lang'){const v=(e.newValue&&/^
   if(!ok){$('style').value='guofeng';autoCompose()}
   syncUI();buildGrid();applyStatic();
 })();
+
+(function(){var bt=document.getElementById('beep'),st=document.getElementById('astat');if(!bt)return;
+function upd(){try{st.textContent='声音系统：'+(AC?AC.state+'，时钟 '+AC.currentTime.toFixed(1)+' 秒':'未启动')}catch(e){}}
+setInterval(upd,500);
+bt.onclick=function(){try{var c=ensureAC();if(!c){st.textContent='浏览器不支持声音';return}
+var o=c.createOscillator(),g=c.createGain();o.frequency.value=440;g.gain.value=.3;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.6)}catch(e){st.textContent='错误：'+e.message}}})();
 </script>
 <div id="gt" style="position:absolute;left:-9999px"></div>
 <script>
