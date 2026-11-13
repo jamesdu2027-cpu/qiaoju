@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 歌曲 · 天南海北</title>
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--ink:#17262b;--mute:#62727a;--line:#dbe3e1;--brand:#0d5c63}
+@media(prefers-color-scheme:dark){:root{--bg:#101a1c;--card:#172427;--ink:#e6efee;--mute:#92a5a8;--line:#2a3b3e;--brand:#5cc3c9}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif}
+main{max-width:600px;margin:0 auto;padding:24px 14px 48px}
+.back{display:inline-block;margin-bottom:16px;color:var(--brand);text-decoration:none;font-size:14px}
+h1{margin:0 0 6px;font-size:22px}
+.lead{margin:0 0 18px;color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:14px}
+.card h2{margin:0 0 2px;font-size:17px}
+.meta{margin:0 0 10px;font-size:13px;color:var(--mute)}
+audio{width:100%}
+.note{margin-top:20px;font-size:12px;color:var(--mute);line-height:1.8}
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← 返回首頁</a>
+  <h1>🎶 AI 歌曲</h1>
+  <p class="lead">用 AI 創作的歌曲，點播放鍵即可收聽。</p>
+  <div id="list"><p class="meta">載入中…</p></div>
+  <p class="note">以上歌曲由 AI 生成，僅供欣賞。</p>
+</main>
+<script>
+// 歌曲列表自動讀取倉庫裡 songs 資料夾的 mp3，新歌直接傳進 songs 資料夾即可，不用改這個頁面
+const OWNER = 'jamesdu2027-cpu', REPO = 'qiaoju', DIR = 'songs';
+// 舊的兩首（放在倉庫最外層的），檔案存在才會顯示
+const EXTRA = [['寒山客愁', 'hanshan-kechou.mp3'], ['冬夜歸思', 'dongye-guisi.mp3']];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const NAMES = { 'hanshan-kechou': '寒山客愁', 'dongye-guisi': '冬夜歸思' };
+function parse(file) {
+  const base = file.replace(/(\.(mp3|m4a|wav|ogg))+$/i, '');
+  const m = base.match(/《(.+?)》(.*)/);
+  const title = NAMES[base] || (m ? m[1] : base);
+  // 《歌名》作者名-曲風：只保留曲風，不顯示作者名
+  const rest = m ? m[2].replace(/\s*\(\d+\)\s*$/, '') : '';
+  const k = Math.max(rest.lastIndexOf('-'), rest.lastIndexOf('—'));
+  const sub = k >= 0 ? rest.slice(k + 1).trim() : '';
+  return { title, sub };
+}
+function card(title, sub, url) {
+  return '<div class="card"><h2>' + esc(title) + '</h2><p class="meta">AI 創作' + (sub ? ' · ' + esc(sub) : '') + '</p>'
+    + '<audio controls preload="none" src="' + esc(url) + '">你的瀏覽器不支持音頻播放。</audio></div>';
+}
+async function exists(url) {
+  try {
+    const r = await fetch(url, { method: 'HEAD' });
+    const t = (r.headers.get('content-type') || '').toLowerCase();
+    return r.ok && (t.includes('audio') || t.includes('octet-stream'));
+  } catch (e) { return false; }
+}
+async function folderFiles() {
+  try {
+    const c = sessionStorage.getItem('songs_cache');
+    if (c) { const o = JSON.parse(c); if (Date.now() - o.t < 600000) return o.v; }
+  } catch (e) {}
+  const r = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + DIR);
+  if (!r.ok) throw new Error('api ' + r.status);
+  const v = (await r.json()).filter(x => x.type === 'file' && /\.(mp3|m4a|wav|ogg)$/i.test(x.name)).map(x => x.name);
+  try { sessionStorage.setItem('songs_cache', JSON.stringify({ t: Date.now(), v })); } catch (e) {}
+  return v;
+}
+(async () => {
+  const out = [];
+  let failed = false;
+  try {
+    const files = await folderFiles();
+    files.sort((a, b) => a.localeCompare(b, 'zh'));
+    files.forEach(f => { const p = parse(f); out.push(card(p.title, p.sub, '/' + DIR + '/' + encodeURIComponent(f))); });
+  } catch (e) { failed = true; }
+  for (const [t, f] of EXTRA) { if (await exists('/' + f)) out.push(card(t, '海綿音樂（SeedMusic）', '/' + f)); }
+  document.getElementById('list').innerHTML = out.join('')
+    || '<p class="meta">' + (failed ? '歌曲列表暫時載入失敗，請稍後再試。' : '還沒有歌曲。') + '</p>';
+})();
+</script>
+</body>
+</html>
