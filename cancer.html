@@ -1,3 +1,12 @@
+是否啟用 Gmail 的桌面通知功能？
+   確定  謝謝，不用了
+會話群組
+儲存空間配額：15 GB，目前使用量：5%
+條款 · 隱私權 · 計劃政策
+上次帳戶活動時間：8 分鐘前
+詳細資料
+cancer.html
+100%
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -127,6 +136,22 @@ const RES={
  ka:{wait:"მიმდინარეობს ძიება მონაცემთა ბაზაში...",empty:"ჯერ შეიყვანეთ კიბოს სახელი.",none:"ვერ მოიძებნა. სცადეთ სხვა დაწერილობა ან ინგლისური სახელი.",n:"ნიმუშები",top:"ყველაზე ხშირად მუტირებული გენები:",g:"გენი",p:"პაციენტების წილი მუტაციით",d:"რას აკეთებს ეს გენი",gen:"გენი, რომელიც მონაწილეობს უჯრედის ზრდაში, გაყოფასა ან DNA-ს აღდგენაში. დეტალებისთვის გამოიყენეთ პროფესიული წყაროები.",how:"როგორ გავიგოთ: კიბო ჩნება, როცა DNA-ს ცვლილებები აფუჭებს უჯრედის მუხრუჭებს (სიმსივნის სუპრესორული გენები) ან ამაჩერებს აქსელერატორს (ონკოგენები) და უჯრედები უკონტროლოდ იზრდება. ცვლილებების კომბინაცია თითოეულ პაციენტს განსხვავებული აქვს. გენეტიკური ტესტის პასუხი წაიღეთ თქვენს ექიმთან."}
 };
 
+
+// 覆盖通用说明：不再声称未知基因“参与细胞生长”，并增加“大基因”和“外显子局限”两条说明
+const EXTRA={
+ zh:{gen:"暂时没有这个基因的简介。突变常见不等于它是病因，请以专业资料和医生意见为准。",big:"这是一个非常大的基因，突变多半是随机出现的“背景变化”，通常不被认为是这种癌症的病因。",limit:"说明：这张表来自外显子测序，只统计基因“编码区”的突变。位于非编码区的变异（例如 TERT 启动子突变）不在其中，所以这份名单不全。"},
+ en:{gen:"No plain-language note for this gene yet. A frequent mutation is not necessarily the cause; please rely on professional sources and your doctor.",big:"A very large gene. Changes in it often occur by chance as background mutations and are usually not considered a cause of this cancer.",limit:"Note: this table comes from exome sequencing and counts only mutations in gene coding regions. Changes in non-coding regions, such as TERT promoter mutations, are not included, so the list is incomplete."},
+ es:{gen:"Aún no hay una descripción sencilla de este gen. Una mutación frecuente no implica que sea la causa; consulte fuentes profesionales y a su médico.",big:"Un gen muy grande. Sus cambios suelen aparecer por azar como mutaciones de fondo y normalmente no se consideran una causa de este cáncer.",limit:"Nota: esta tabla procede de secuenciación del exoma y solo cuenta mutaciones en las regiones codificantes. Los cambios en regiones no codificantes, como las mutaciones del promotor de TERT, no están incluidos, por lo que la lista es incompleta."},
+ vi:{gen:"Chưa có mô tả đơn giản cho gen này. Đột biến thường gặp không có nghĩa là nguyên nhân; hãy dựa vào nguồn chuyên môn và bác sĩ.",big:"Một gen rất lớn. Các thay đổi ở gen này thường xảy ra ngẫu nhiên như đột biến nền và thường không được coi là nguyên nhân của ung thư này.",limit:"Lưu ý: bảng này lấy từ giải trình tự exome, chỉ tính đột biến ở vùng mã hóa của gen. Các thay đổi ở vùng không mã hóa, như đột biến promoter TERT, không có trong bảng, nên danh sách chưa đầy đủ."},
+ th:{gen:"ยังไม่มีคำอธิบายแบบเข้าใจง่ายสำหรับยีนนี้ การกลายพันธุ์ที่พบบ่อยไม่ได้แปลว่าเป็นสาเหตุ โปรดอ้างอิงแหล่งข้อมูลผู้เชี่ยวชาญและแพทย์",big:"ยีนขนาดใหญ่มาก การเปลี่ยนแปลงของยีนนี้มักเกิดขึ้นโดยบังเอิญเป็นการกลายพันธุ์พื้นหลัง และมักไม่ถือว่าเป็นสาเหตุของมะเร็งชนิดนี้",limit:"หมายเหตุ: ตารางนี้ได้จากการถอดรหัสเอกโซม นับเฉพาะการกลายพันธุ์ในบริเวณที่ถอดรหัสของยีน การเปลี่ยนแปลงในบริเวณที่ไม่ถอดรหัส เช่น การกลายพันธุ์โปรโมเตอร์ TERT จึงไม่ถูกรวมอยู่ในนี้ รายการจึงไม่ครบถ้วน"},
+ ko:{gen:"이 유전자에 대한 쉬운 설명이 아직 없습니다. 변이가 흔하다고 해서 원인이라는 뜻은 아닙니다. 전문 자료와 담당 의사의 의견을 따르세요.",big:"매우 큰 유전자입니다. 이 유전자의 변이는 우연히 생기는 배경 변이인 경우가 많아 보통 이 암의 원인으로 보지 않습니다.",limit:"참고: 이 표는 엑솜 시퀀싱 자료로, 유전자의 코딩 영역 변이만 집계합니다. TERT 프로모터 변이처럼 비코딩 영역의 변화는 포함되지 않아 목록이 완전하지 않습니다."},
+ ja:{gen:"この遺伝子のやさしい説明はまだありません。変異が多いことが原因であるとは限りません。専門の資料と主治医の意見をご確認ください。",big:"非常に大きな遺伝子です。この遺伝子の変異は偶然生じる背景的な変化であることが多く、通常このがんの原因とは考えられていません。",limit:"注：この表はエクソーム解析に基づき、遺伝子のコード領域の変異だけを集計しています。TERTプロモーター変異のような非コード領域の変化は含まれないため、一覧は完全ではありません。"},
+ ka:{gen:"ამ გენისთვის მარტივი განმარტება ჯერ არ არის. ხშირი მუტაცია სულაც არ ნიშნავს, რომ ის მიზეზია; დაეყრდენით პროფესიულ წყაროებს და თქვენს ექიმს.",big:"ძალიან დიდი გენია. მასში ცვლილებები ხშირად შემთხვევით ჩნდება, როგორც ფონური მუტაციები, და ჩვეულებრივ არ განიხილება ამ კიბოს მიზეზად.",limit:"შენიშვნა: ეს ცხრილი ეფუძნება ეგზომის სექვენირებას და მხოლოდ გენების კოდირებად უბნებში მუტაციებს ითვლის. არაკოდირებადი უბნების ცვლილებები, მაგალითად TERT-ის პრომოტორის მუტაციები, აქ არ შედის, ამიტომ სია არასრულია."}
+};
+for(const k in EXTRA) Object.assign(RES[k],EXTRA[k]);
+// 基因很长、突变多为随机“背景变化”的常见基因
+const BIG=new Set(["TTN","MUC16","RYR2","PCLO","APOB","OBSCN","SYNE1","SYNE2","USH2A","CSMD1","CSMD2","CSMD3","LRP1B","FLG","DNAH5","DNAH9","DNAH10","DNAH11","HMCN1","ZFHX4","MUC4","MUC5B","MUC17","AHNAK2","DST","RYR1","RYR3","FAT3","FAT4","XIRP2","NEB","SPTA1","PKHD1","DMD","TG","MACF1","SACS","HERC2","ABCA13","COL6A3","FCGBP"]);
+
 const GI={
  en:{TP53:"Guardian of the genome: detects DNA damage and stops or removes damaged cells. When it fails, damaged cells keep growing. A tumor suppressor (brake).",TERT:"Core part of telomerase, which lets cells divide without limit. When abnormally switched on, cells do not age.",CTNNB1:"Beta-catenin, part of the Wnt growth-signal pathway. Mutations keep the growth signal switched on.",KRAS:"A switch for cell-growth signals. Mutations lock the switch in the ON position. An oncogene (accelerator).",EGFR:"A receptor on the cell surface that receives growth signals. Mutations keep the signal switched on.",VHL:"Oxygen-sensing switch. When it fails, the cell thinks it lacks oxygen and promotes blood vessel and tumor growth.",PBRM1:"A chromatin-remodeling gene that controls how DNA is packaged, affecting many other genes.",PTEN:"A tumor suppressor that brakes the PI3K growth pathway. When lost, growth signals become too strong.",PIK3CA:"Part of the cell growth and survival signaling pathway. Mutations promote cell growth.",BRAF:"A link in the growth-signal pathway. The common V600E mutation keeps it permanently active."},
  es:{TP53:"Guardián del genoma: detecta el daño en el ADN y detiene o elimina las células dañadas. Si falla, las células dañadas siguen creciendo. Es un gen supresor de tumores (freno).",TERT:"Parte central de la telomerasa, que permite a las células dividirse sin límite. Si se activa de forma anormal, las células no envejecen.",CTNNB1:"Beta-catenina, parte de la vía de señal de crecimiento Wnt. Las mutaciones dejan la señal de crecimiento siempre encendida.",KRAS:"Interruptor de las señales de crecimiento celular. Las mutaciones lo dejan fijo en encendido. Es un oncogén (acelerador).",EGFR:"Receptor en la superficie de la célula que recibe señales de crecimiento. Las mutaciones dejan la señal encendida.",VHL:"Interruptor que detecta el oxígeno. Si falla, la célula cree que le falta oxígeno y estimula el crecimiento de vasos sanguíneos y tumor.",PBRM1:"Gen que remodela la cromatina y controla cómo se empaqueta el ADN, afectando a muchos otros genes.",PTEN:"Gen supresor de tumores que frena la vía de crecimiento PI3K. Si se pierde, las señales de crecimiento se vuelven excesivas.",PIK3CA:"Parte de la vía de señales de crecimiento y supervivencia celular. Las mutaciones favorecen el crecimiento celular.",BRAF:"Eslabón de la vía de señales de crecimiento. La mutación frecuente V600E lo mantiene activo de forma permanente."},
@@ -147,9 +172,12 @@ function setLang(){
  document.getElementById("q").placeholder=t.ph;
  document.querySelector("button").textContent=t.btn;
  document.title=t.title;
+ if(LAST) search(true);   // 已经查过的话，结果区也跟着换语言
 }
 
 let studies=[];
+let LAST=null;      // 最近一次查询（切换语言时用来重新显示）
+const CACHE={};     // 已查过的突变统计，切换语言时不必再联网
 
 async function get(path,opt){
  const r=await fetch(API+path,opt);
@@ -164,8 +192,8 @@ async function loadStudies(){
 
 function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
 
-async function search(){
- const raw=document.getElementById("q").value.trim();
+async function search(keep){
+ const raw=(keep===true&&LAST)?LAST.raw:document.getElementById("q").value.trim();
  const out=document.getElementById("out");
  if(!raw){out.innerHTML=RES[LANG].empty;return}
  out.innerHTML=RES[LANG].wait;
@@ -186,12 +214,15 @@ async function search(){
    hits.slice(0,12).forEach(s=>{h+="<a class='cand' onclick=\"show('"+s.studyId+"')\">"+esc(s.name)+"（"+RES[LANG].n+" "+(s.allSampleCount||"?")+"）</a>"});
    out.innerHTML=h+"<div id='res'></div>";
   } else out.innerHTML="<div id='res'></div>";
-  show(hits[0].studyId);
+  const pick=(keep===true&&LAST&&hits.some(h=>h.studyId===LAST.studyId))?LAST.studyId:hits[0].studyId;
+  LAST={raw:raw,studyId:pick};
+  show(pick);
  }catch(e){out.innerHTML=esc(e.message)}
 }
 
 async function show(studyId){
  let box=document.getElementById("res");
+ if(LAST) LAST.studyId=studyId;
  box.innerHTML=RES[LANG].wait;
  try{
   const st=studies.find(s=>s.studyId===studyId);
@@ -203,22 +234,23 @@ async function show(studyId){
    {studyIds:[studyId]},
    {molecularProfileIds:[mp.molecularProfileId],sampleListId:studyId+"_sequenced"}
   ];
-  let list=null;
+  let list=CACHE[studyId]||null;
   for(const b of bodies){
+   if(list&&list.length) break;
    try{
     list=await get("/mutated-genes/fetch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});
-    if(list&&list.length) break;
    }catch(e){list=null}
   }
   if(!list||!list.length){box.innerHTML=RES[LANG].none;return}
+  CACHE[studyId]=list;
   const total=st.sequencedSampleCount||st.allSampleCount||1;
   list=list.map(g=>({sym:g.hugoGeneSymbol,n:g.numberOfAlteredCases,p:100*g.numberOfAlteredCases/(g.numberOfProfiledCases||total)}))
    .sort((a,b)=>b.n-a.n).slice(0,15);
   let h="<h2>"+esc(st.name)+"</h2><p>"+RES[LANG].n+": "+total+". "+RES[LANG].top+"</p><table><tr><th>"+RES[LANG].g+"</th><th>"+RES[LANG].p+"</th><th></th><th>"+RES[LANG].d+"</th></tr>";
   list.forEach(g=>{
-   h+="<tr><td><b>"+esc(g.sym)+"</b></td><td>"+g.p.toFixed(1)+"%</td><td style='width:25%'><div class='bar' style='width:"+Math.min(100,g.p)+"%'></div></td><td>"+esc((GI[LANG]&&GI[LANG][g.sym])||(LANG==="zh"&&GENE[g.sym])||RES[LANG].gen)+"</td></tr>";
+   h+="<tr><td><b>"+esc(g.sym)+"</b></td><td>"+g.p.toFixed(1)+"%</td><td style='width:25%'><div class='bar' style='width:"+Math.min(100,g.p)+"%'></div></td><td>"+esc((GI[LANG]&&GI[LANG][g.sym])||(LANG==="zh"&&GENE[g.sym])||(BIG.has(g.sym)?RES[LANG].big:RES[LANG].gen))+"</td></tr>";
   });
-  h+="</table><p>"+esc(RES[LANG].how)+"</p>";
+  h+="</table><p class='note'>"+esc(RES[LANG].limit)+"</p><p>"+esc(RES[LANG].how)+"</p>";
   box.innerHTML=h;
  }catch(e){box.innerHTML=esc(e.message)}
 }
