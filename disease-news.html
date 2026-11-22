@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -17,7 +18,7 @@
  .card h3{margin:0 0 4px}
  .card p{margin:0 0 10px;color:#555;font-size:14px}
  a.go{display:inline-block;background:#0d5c63;color:#fff;text-decoration:none;padding:8px 16px;border-radius:6px;margin-right:12px}
- a.bk{color:#0645ad;font-size:14px}
+ a.bk{color:#0645ad;font-size:14px;margin-right:12px}
  .note{color:#555;font-size:14px;margin-top:14px}
 </style>
 </head>
@@ -74,6 +75,24 @@ const D=[
  ["obesity","肥胖","obesity","obesidad","béo phì","โรคอ้วน","비만","肥満","სიმსუქნე"]
 ];
 
+// “翻译成我的语言”：通过 Google 翻译网页服务（translate.goog）打开对方网站的页面
+const TRL={zh:"zh-CN",en:"en",es:"es",vi:"vi",th:"th",ko:"ko",ja:"ja",ka:"ka"};
+const TR={
+ zh:{tr:"翻译成我的语言",trn:"机器翻译仅供参考，医学内容请以原文和医生意见为准。翻译页面对个别网站可能无法使用。"},
+ en:{tr:"Translate",trn:""},
+ es:{tr:"Traducir a mi idioma",trn:"La traducción automática es solo orientativa; en temas médicos prevalecen el original y su médico. La página traducida puede no funcionar en algunos sitios."},
+ vi:{tr:"Dịch sang ngôn ngữ của tôi",trn:"Bản dịch máy chỉ để tham khảo; với nội dung y khoa hãy dựa vào bản gốc và bác sĩ. Trang dịch có thể không dùng được ở một số trang web."},
+ th:{tr:"แปลเป็นภาษาของฉัน",trn:"การแปลด้วยเครื่องใช้อ้างอิงเท่านั้น เนื้อหาทางการแพทย์ให้ยึดต้นฉบับและแพทย์เป็นหลัก หน้าแปลอาจใช้ไม่ได้กับบางเว็บไซต์"},
+ ko:{tr:"내 언어로 번역",trn:"기계 번역은 참고용입니다. 의학 내용은 원문과 의사의 의견을 따르세요. 일부 사이트에서는 번역 페이지가 작동하지 않을 수 있습니다."},
+ ja:{tr:"自分の言語に翻訳",trn:"機械翻訳は参考用です。医学的な内容は原文と医師の意見を優先してください。一部のサイトでは翻訳ページが使えない場合があります。"},
+ ka:{tr:"ჩემს ენაზე თარგმნა",trn:"მანქანური თარგმანი მხოლოდ საცნობაროა; სამედიცინო შინაარსისთვის დაეყრდენით ორიგინალს და ექიმს. თარგმნილი გვერდი ზოგ საიტზე შეიძლება არ მუშაობდეს."}
+};
+function trUrl(url){
+ const u=new URL(url), c=TRL[LANG];
+ const host=u.hostname.replace(/-/g,"--").replace(/\./g,"-")+".translate.goog";
+ return "https://"+host+u.pathname+u.search+(u.search?"&":"?")+"_x_tr_sl=auto&_x_tr_tl="+c+"&_x_tr_hl="+c;
+}
+
 let LANG="zh", LAST=null;
 const $=id=>document.getElementById(id);
 function norm(s){return String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim()}
@@ -124,8 +143,11 @@ function go(keep){
  ];
  let h="<p class='note'>"+(d?esc(t.kw)+" <b>"+esc(term)+"</b>":esc(t.unknown))+"</p>";
  S.forEach(x=>{
-  h+="<div class='card'><h3>"+esc(x[0])+"</h3><p>"+esc(x[1])+"</p><a class='go' target='_blank' rel='noopener' href='"+esc(x[2])+"'>"+esc(t.open)+"</a><a class='bk' target='_blank' rel='noopener' href='"+esc(x[3])+"'>"+esc(t.backup)+"</a></div>";
+  h+="<div class='card'><h3>"+esc(x[0])+"</h3><p>"+esc(x[1])+"</p><a class='go' target='_blank' rel='noopener' href='"+esc(x[2])+"'>"+esc(t.open)+"</a>"
+   +(LANG!=="en"?"<a class='bk' target='_blank' rel='noopener' href='"+esc(trUrl(x[2]))+"'>"+esc(TR[LANG].tr)+"</a>":"")
+   +"<a class='bk' target='_blank' rel='noopener' href='"+esc(x[3])+"'>"+esc(t.backup)+"</a></div>";
  });
+ if(LANG!=="en") h+="<p class='note'>"+esc(TR[LANG].trn)+"</p>";
  $("out").innerHTML=h;
 }
 
