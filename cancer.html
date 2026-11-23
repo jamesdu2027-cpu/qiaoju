@@ -26,7 +26,7 @@
 <input id="q" placeholder="例如：肝癌 / liver / lung adenocarcinoma">
 <button onclick="search()">查询</button>
 <div id="out"></div>
-<p class="note">数据来源：cBioPortal 公开癌症基因组数据库（含 TCGA 等研究）。比例是研究样本中出现该基因突变的病人占比，不同研究、不同人群会有差异。每个病人的情况都不一样，这里只显示“常见”，不代表某个具体的人。</p>
+<p class="note" id="src">数据来源：cBioPortal 公开癌症基因组数据库（含 TCGA 等研究）。比例是研究样本中出现该基因突变的病人占比，不同研究、不同人群会有差异。每个病人的情况都不一样，这里只显示“常见”，不代表某个具体的人。</p>
 
 <script>
 const API="https://www.cbioportal.org/api";
@@ -144,6 +144,20 @@ for(const k in EXTRA) Object.assign(RES[k],EXTRA[k]);
 // 基因很长、突变多为随机“背景变化”的常见基因
 const BIG=new Set(["TTN","MUC16","RYR2","PCLO","APOB","OBSCN","SYNE1","SYNE2","USH2A","CSMD1","CSMD2","CSMD3","LRP1B","FLG","DNAH5","DNAH9","DNAH10","DNAH11","HMCN1","ZFHX4","MUC4","MUC5B","MUC17","AHNAK2","DST","RYR1","RYR3","FAT3","FAT4","XIRP2","NEB","SPTA1","PKHD1","DMD","TG","MACF1","SACS","HERC2","ABCA13","COL6A3","FCGBP"]);
 
+
+// 页面底部“数据来源”说明的多语言版本
+const SRC={
+ zh:"数据来源：cBioPortal 公开癌症基因组数据库（含 TCGA 等研究）。比例是研究样本中出现该基因突变的病人占比，不同研究、不同人群会有差异。每个病人的情况都不一样，这里只显示“常见”，不代表某个具体的人。",
+ en:"Data source: cBioPortal, a public cancer genomics database (including TCGA and other studies). Percentages are the share of patients in the study samples who carry a mutation in that gene; they differ between studies and populations. Every patient is different: this page shows what is common and says nothing about any individual person.",
+ es:"Fuente de datos: cBioPortal, base de datos pública de genómica del cáncer (incluye TCGA y otros estudios). Los porcentajes indican la proporción de pacientes de las muestras del estudio con mutación en ese gen; varían según el estudio y la población. Cada paciente es distinto: esta página muestra lo frecuente y no describe a ninguna persona en concreto.",
+ vi:"Nguồn dữ liệu: cBioPortal, cơ sở dữ liệu công khai về hệ gen ung thư (gồm TCGA và các nghiên cứu khác). Tỷ lệ là phần trăm bệnh nhân trong mẫu nghiên cứu có đột biến ở gen đó; con số khác nhau giữa các nghiên cứu và nhóm dân cư. Mỗi bệnh nhân đều khác nhau: trang này chỉ cho thấy điều thường gặp, không nói về một người cụ thể nào.",
+ th:"แหล่งข้อมูล: cBioPortal ฐานข้อมูลจีโนมมะเร็งสาธารณะ (รวม TCGA และงานวิจัยอื่น) ตัวเลขร้อยละคือสัดส่วนผู้ป่วยในกลุ่มตัวอย่างที่มีการกลายพันธุ์ของยีนนั้น ซึ่งแตกต่างกันตามงานวิจัยและกลุ่มประชากร ผู้ป่วยแต่ละคนไม่เหมือนกัน หน้านี้แสดงเฉพาะสิ่งที่พบบ่อย ไม่ได้หมายถึงบุคคลใดโดยเฉพาะ",
+ ko:"데이터 출처: cBioPortal 공개 암 유전체 데이터베이스(TCGA 등 연구 포함). 비율은 연구 표본에서 해당 유전자에 변이가 있는 환자의 비중이며 연구와 인구 집단에 따라 다릅니다. 환자마다 모두 다르므로 이 페이지는 '흔한 경우'만 보여 주며 특정 개인을 뜻하지 않습니다.",
+ ja:"データの出典：cBioPortal（TCGAなどの研究を含む公開がんゲノムデータベース）。割合は研究サンプルのうち、その遺伝子に変異がある患者の割合で、研究や集団によって異なります。患者さんは一人ひとり違います。このページが示すのは「よくある」傾向であり、特定の個人のことではありません。",
+ ka:"მონაცემთა წყარო: cBioPortal, კიბოს გენომიკის საჯარო მონაცემთა ბაზა (მათ შორის TCGA და სხვა კვლევები). პროცენტი არის კვლევის ნიმუშებში იმ პაციენტების წილი, რომლებსაც ამ გენში მუტაცია აქვთ; ის განსხვავდება კვლევებისა და პოპულაციების მიხედვით. ყველა პაციენტი განსხვავებულია: ეს გვერდი აჩვენებს მხოლოდ გავრცელებულს და არ ეხება კონკრეტულ ადამიანს."
+};
+for(const k in SRC) RES[k].src=SRC[k];
+
 const GI={
  en:{TP53:"Guardian of the genome: detects DNA damage and stops or removes damaged cells. When it fails, damaged cells keep growing. A tumor suppressor (brake).",TERT:"Core part of telomerase, which lets cells divide without limit. When abnormally switched on, cells do not age.",CTNNB1:"Beta-catenin, part of the Wnt growth-signal pathway. Mutations keep the growth signal switched on.",KRAS:"A switch for cell-growth signals. Mutations lock the switch in the ON position. An oncogene (accelerator).",EGFR:"A receptor on the cell surface that receives growth signals. Mutations keep the signal switched on.",VHL:"Oxygen-sensing switch. When it fails, the cell thinks it lacks oxygen and promotes blood vessel and tumor growth.",PBRM1:"A chromatin-remodeling gene that controls how DNA is packaged, affecting many other genes.",PTEN:"A tumor suppressor that brakes the PI3K growth pathway. When lost, growth signals become too strong.",PIK3CA:"Part of the cell growth and survival signaling pathway. Mutations promote cell growth.",BRAF:"A link in the growth-signal pathway. The common V600E mutation keeps it permanently active."},
  es:{TP53:"Guardián del genoma: detecta el daño en el ADN y detiene o elimina las células dañadas. Si falla, las células dañadas siguen creciendo. Es un gen supresor de tumores (freno).",TERT:"Parte central de la telomerasa, que permite a las células dividirse sin límite. Si se activa de forma anormal, las células no envejecen.",CTNNB1:"Beta-catenina, parte de la vía de señal de crecimiento Wnt. Las mutaciones dejan la señal de crecimiento siempre encendida.",KRAS:"Interruptor de las señales de crecimiento celular. Las mutaciones lo dejan fijo en encendido. Es un oncogén (acelerador).",EGFR:"Receptor en la superficie de la célula que recibe señales de crecimiento. Las mutaciones dejan la señal encendida.",VHL:"Interruptor que detecta el oxígeno. Si falla, la célula cree que le falta oxígeno y estimula el crecimiento de vasos sanguíneos y tumor.",PBRM1:"Gen que remodela la cromatina y controla cómo se empaqueta el ADN, afectando a muchos otros genes.",PTEN:"Gen supresor de tumores que frena la vía de crecimiento PI3K. Si se pierde, las señales de crecimiento se vuelven excesivas.",PIK3CA:"Parte de la vía de señales de crecimiento y supervivencia celular. Las mutaciones favorecen el crecimiento celular.",BRAF:"Eslabón de la vía de señales de crecimiento. La mutación frecuente V600E lo mantiene activo de forma permanente."},
@@ -164,7 +178,79 @@ function setLang(){
  document.getElementById("q").placeholder=t.ph;
  document.querySelector("button").textContent=t.btn;
  document.title=t.title;
+ document.getElementById("src").textContent=RES[LANG].src;
  if(LAST) search(true);   // 已经查过的话，结果区也跟着换语言
+}
+
+
+// ===== 新增：基因全名 + 具体的DNA碱基变化 =====
+const GN={TP53:"tumor protein p53",TTN:"titin",CTNNB1:"catenin beta 1",MUC16:"mucin 16",ALB:"albumin",APOB:"apolipoprotein B",RYR2:"ryanodine receptor 2",PCLO:"piccolo presynaptic cytomatrix protein",ARID1A:"AT-rich interaction domain 1A",AXIN1:"axin 1",KRAS:"KRAS proto-oncogene",NRAS:"NRAS proto-oncogene",BRAF:"B-Raf proto-oncogene",EGFR:"epidermal growth factor receptor",PIK3CA:"PI3K catalytic subunit alpha",PTEN:"phosphatase and tensin homolog",APC:"APC regulator of WNT signaling",BRCA1:"BRCA1 DNA repair associated",BRCA2:"BRCA2 DNA repair associated",VHL:"von Hippel-Lindau tumor suppressor",PBRM1:"polybromo 1",TERT:"telomerase reverse transcriptase",CDKN2A:"cyclin dependent kinase inhibitor 2A",NF1:"neurofibromin 1",RB1:"RB transcriptional corepressor 1",SMAD4:"SMAD family member 4",IDH1:"isocitrate dehydrogenase 1",ATM:"ATM serine/threonine kinase",ARID2:"AT-rich interaction domain 2",NFE2L2:"NFE2 like bZIP transcription factor 2",KEAP1:"kelch like ECH associated protein 1",LRP1B:"LDL receptor related protein 1B",CSMD3:"CUB and Sushi multiple domains 3",USH2A:"usherin",SYNE1:"spectrin repeat containing nuclear envelope protein 1",FLG:"filaggrin",OBSCN:"obscurin",HMCN1:"hemicentin 1",DNAH5:"dynein axonemal heavy chain 5",XIRP2:"xin actin binding repeat containing 2",ZFHX4:"zinc finger homeobox 4",KMT2D:"lysine methyltransferase 2D",KMT2C:"lysine methyltransferase 2C",ERBB2:"erb-b2 receptor tyrosine kinase 2",MYC:"MYC proto-oncogene",GATA3:"GATA binding protein 3",CDH1:"cadherin 1",FAT1:"FAT atypical cadherin 1",NOTCH1:"notch receptor 1",CDK12:"cyclin dependent kinase 12"};
+const BASE={
+ zh:{A:"腺嘌呤",G:"鸟嘌呤",C:"胞嘧啶",T:"胸腺嘧啶"},en:{A:"adenine",G:"guanine",C:"cytosine",T:"thymine"},
+ es:{A:"adenina",G:"guanina",C:"citosina",T:"timina"},vi:{A:"adenin",G:"guanin",C:"xitozin",T:"timin"},
+ th:{A:"อะดีนีน",G:"กัวนีน",C:"ไซโทซีน",T:"ไทมีน"},ko:{A:"아데닌",G:"구아닌",C:"사이토신",T:"티민"},
+ ja:{A:"アデニン",G:"グアニン",C:"シトシン",T:"チミン"},ka:{A:"ადენინი",G:"გუანინი",C:"ციტოზინი",T:"თიმინი"}};
+const NW={
+ zh:{h:"具体的 DNA 变化（最常见）",wait:"正在读取具体变化……",fail:"暂时读不到具体碱基数据。",ch:"最常见的碱基替换",x:"次",hot:"最常见的位置",indel:"另有插入/缺失",
+  intro:"怎么看这张表：左边的字母（如 TP53）是基因的“名字标签”，基因是 DNA 上一长段，里面有成百上千个碱基。DNA 只有 4 种碱基：A 腺嘌呤、G 鸟嘌呤、C 胞嘧啶、T 胸腺嘧啶。癌症里的“突变”就是某个位置的碱基被换掉，例如 C 变成 T。最右列显示这个基因里最常见的具体替换和位置（来自同一批病人的数据）。同一个基因在不同病人里可能变在不同位置，每个肿瘤通常有很多处变化，不是只错一个碱基。"},
+ en:{h:"Specific DNA change (most common)",wait:"Loading specific changes...",fail:"Base-level data is not available right now.",ch:"Most common base substitution",x:"times",hot:"Most frequent position",indel:"Also insertions/deletions",
+  intro:"How to read this table: the letters on the left (e.g. TP53) are just gene name tags. A gene is a long stretch of DNA containing hundreds or thousands of bases. DNA has only 4 bases: A adenine, G guanine, C cytosine, T thymine. A cancer 'mutation' is a base swapped at some position, e.g. C changed to T. The right column shows the most common specific substitution and position in that gene (from the same patients). The same gene can change at different positions in different patients, and a tumor usually has many changes, not just one base."},
+ es:{h:"Cambio concreto en el ADN (más frecuente)",wait:"Cargando cambios concretos...",fail:"Los datos a nivel de base no están disponibles ahora.",ch:"Sustitución de base más común",x:"veces",hot:"Posición más frecuente",indel:"Además inserciones/deleciones",
+  intro:"Cómo leer la tabla: las letras de la izquierda (p. ej. TP53) son solo el nombre del gen. Un gen es un tramo largo de ADN con cientos o miles de bases. El ADN tiene 4 bases: A adenina, G guanina, C citosina, T timina. Una «mutación» en el cáncer es una base cambiada en cierta posición, p. ej. C por T. La columna derecha muestra la sustitución y la posición más comunes en ese gen. Un tumor suele tener muchos cambios, no solo una base."},
+ vi:{h:"Thay đổi DNA cụ thể (phổ biến nhất)",wait:"Đang tải thay đổi cụ thể...",fail:"Hiện chưa có dữ liệu mức nucleotide.",ch:"Thay thế base phổ biến nhất",x:"lần",hot:"Vị trí thường gặp nhất",indel:"Ngoài ra có chèn/mất đoạn",
+  intro:"Cách đọc bảng: chữ cái bên trái (vd. TP53) chỉ là tên gen. Gen là một đoạn DNA dài chứa hàng trăm đến hàng nghìn base. DNA chỉ có 4 base: A adenin, G guanin, C xitozin, T timin. “Đột biến” ung thư là một base bị thay ở một vị trí, vd. C thành T. Cột phải cho thấy thay thế và vị trí phổ biến nhất trong gen đó. Một khối u thường có nhiều thay đổi, không chỉ một base."},
+ th:{h:"การเปลี่ยนแปลง DNA ที่เฉพาะเจาะจง (พบบ่อยสุด)",wait:"กำลังโหลด...",fail:"ยังไม่มีข้อมูลระดับเบส",ch:"การแทนที่เบสที่พบบ่อยสุด",x:"ครั้ง",hot:"ตำแหน่งที่พบบ่อยสุด",indel:"และมีการแทรก/ขาดหาย",
+  intro:"วิธีอ่านตาราง: ตัวอักษรด้านซ้าย (เช่น TP53) เป็นเพียงชื่อยีน ยีนคือส่วนของ DNA ที่ยาว มีเบสหลายร้อยถึงหลายพันตัว DNA มี 4 เบส: A อะดีนีน, G กัวนีน, C ไซโทซีน, T ไทมีน “การกลายพันธุ์” ในมะเร็งคือเบสถูกเปลี่ยนที่ตำแหน่งหนึ่ง เช่น C เป็น T คอลัมน์ขวาแสดงการแทนที่และตำแหน่งที่พบบ่อยที่สุดในยีนนั้น เนื้องอกมักมีการเปลี่ยนแปลงหลายจุด ไม่ใช่เบสเดียว"},
+ ko:{h:"구체적인 DNA 변화(가장 흔한)",wait:"구체적 변화를 불러오는 중…",fail:"염기 수준 데이터를 지금은 볼 수 없습니다.",ch:"가장 흔한 염기 치환",x:"회",hot:"가장 흔한 위치",indel:"그 외 삽입/결실",
+  intro:"표 읽는 법: 왼쪽 글자(예: TP53)는 유전자 이름표일 뿐입니다. 유전자는 수백~수천 개 염기가 있는 긴 DNA 구간입니다. DNA 염기는 A 아데닌, G 구아닌, C 사이토신, T 티민 네 가지입니다. 암의 '변이'는 어떤 위치의 염기가 바뀐 것으로, 예를 들어 C가 T로 바뀝니다. 오른쪽 열은 그 유전자에서 가장 흔한 치환과 위치입니다. 종양에는 보통 여러 변화가 있으며 염기 하나만 틀린 것이 아닙니다."},
+ ja:{h:"具体的なDNAの変化（最多）",wait:"具体的な変化を読み込み中…",fail:"塩基レベルのデータは現在取得できません。",ch:"最も多い塩基置換",x:"回",hot:"最も多い位置",indel:"他に挿入/欠失",
+  intro:"表の見方：左の文字（例 TP53）は遺伝子の名前ラベルです。遺伝子は数百〜数千の塩基を含む長いDNA領域です。DNAの塩基は4種類：A アデニン、G グアニン、C シトシン、T チミン。がんの「変異」とはある位置の塩基が置き換わること（例：CがTに）です。右の列はその遺伝子で最も多い置換と位置です。腫瘍には通常多くの変化があり、塩基1つだけではありません。"},
+ ka:{h:"კონკრეტული DNA ცვლილება (ყველაზე ხშირი)",wait:"იტვირთება...",fail:"ბაზების დონის მონაცემები ახლა მიუწვდომელია.",ch:"ყველაზე ხშირი ბაზის ჩანაცვლება",x:"ჯერ",hot:"ყველაზე ხშირი პოზიცია",indel:"ასევე ჩანართი/დელეცია",
+  intro:"როგორ წავიკითხოთ: მარცხნივ ასოები (მაგ. TP53) გენის სახელია. გენი DNA-ს გრძელი მონაკვეთია, რამდენიმე ასეული ან ათასი ბაზით. DNA-ში 4 ბაზაა: A ადენინი, G გუანინი, C ციტოზინი, T თიმინი. კიბოში „მუტაცია“ ნიშნავს ბაზის ჩანაცვლებას გარკვეულ პოზიციაზე, მაგ. C → T. მარჯვენა სვეტი აჩვენებს ამ გენში ყველაზე ხშირ ჩანაცვლებას და პოზიციას. სიმსივნეს ჩვეულებრივ ბევრი ცვლილება აქვს, არა მხოლოდ ერთი ბაზა."}
+};
+const MUT={};
+function bn(b){const m=BASE[LANG]||BASE.en;return b+(m[b]?"("+m[b]+")":"")}
+function summarize(muts){
+ const R={};
+ muts.forEach(m=>{
+  const sym=(m.gene&&m.gene.hugoGeneSymbol)||m.hugoGeneSymbol;if(!sym)return;
+  const r=R[sym]||(R[sym]={n:0,sub:{},pos:{},indel:0});r.n++;
+  const ref=m.referenceAllele,alt=m.variantAllele||m.tumorSeqAllele2;
+  if(ref&&alt&&ref.length===1&&alt.length===1&&/[ACGT]/.test(ref)&&/[ACGT]/.test(alt)){
+   r.sub[ref+">"+alt]=(r.sub[ref+">"+alt]||0)+1;
+   const k=(m.proteinChange||"")+"|chr"+m.chr+":"+m.startPosition+"|"+ref+">"+alt;
+   r.pos[k]=(r.pos[k]||0)+1;
+  }else r.indel++;
+ });
+ return R;
+}
+function top(o){let b=null,c=0;for(const k in o)if(o[k]>c){b=k;c=o[k]}return b?[b,c]:null}
+async function loadMut(studyId,mpId,genes){
+ if(MUT[studyId])return MUT[studyId];
+ const ids=genes.map(g=>g.entrez).filter(Boolean);
+ if(!ids.length)throw new Error("no entrez");
+ let muts=null;
+ try{
+  muts=await get("/molecular-profiles/"+mpId+"/mutations/fetch?projection=DETAILED",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sampleListId:studyId+"_sequenced",entrezGeneIds:ids})});
+ }catch(e){
+  muts=[];
+  const parts=await Promise.all(ids.map(id=>get("/molecular-profiles/"+mpId+"/mutations?sampleListId="+studyId+"_sequenced&entrezGeneId="+id+"&projection=DETAILED").catch(()=>[])));
+  parts.forEach(a=>muts.push(...a));
+ }
+ if(!muts||!muts.length)throw new Error("empty");
+ return MUT[studyId]=summarize(muts);
+}
+function fillMut(R){
+ const t=NW[LANG];
+ document.querySelectorAll("[data-mut]").forEach(td=>{
+  const r=R[td.dataset.mut];if(!r){td.textContent="—";return}
+  let h="";const s=top(r.sub);
+  if(s){const [a,b]=s[0].split(">");h+="<b>"+esc(bn(a)+" → "+bn(b))+"</b> ("+s[1]+" "+t.x+")";}
+  const ps=top(r.pos);
+  if(ps){const [pc,loc,ch]=ps[0].split("|");h+="<br><span class='note'>"+t.hot+": "+esc((pc?pc+" ":"")+loc+" ("+ch.replace(">","→")+") ×"+ps[1])+"</span>";}
+  if(r.indel)h+="<br><span class='note'>"+t.indel+": "+r.indel+"</span>";
+  td.innerHTML=h||"—";
+ });
 }
 
 let studies=[];
@@ -236,18 +322,19 @@ async function show(studyId){
   if(!list||!list.length){box.innerHTML=RES[LANG].none;return}
   CACHE[studyId]=list;
   const total=st.sequencedSampleCount||st.allSampleCount||1;
-  list=list.map(g=>({sym:g.hugoGeneSymbol,n:g.numberOfAlteredCases,p:100*g.numberOfAlteredCases/(g.numberOfProfiledCases||total)}))
+  list=list.map(g=>({sym:g.hugoGeneSymbol,entrez:g.entrezGeneId,n:g.numberOfAlteredCases,p:100*g.numberOfAlteredCases/(g.numberOfProfiledCases||total)}))
    .sort((a,b)=>b.n-a.n).slice(0,15);
-  let h="<h2>"+esc(st.name)+"</h2><p>"+RES[LANG].n+": "+total+". "+RES[LANG].top+"</p><table><tr><th>"+RES[LANG].g+"</th><th>"+RES[LANG].p+"</th><th></th><th>"+RES[LANG].d+"</th></tr>";
+  let h="<h2>"+esc(st.name)+"</h2><p class='note' style='background:#eef6ff;padding:8px;border-radius:6px'>"+esc(NW[LANG].intro)+"</p><p>"+RES[LANG].n+": "+total+". "+RES[LANG].top+"</p><table><tr><th>"+RES[LANG].g+"</th><th>"+RES[LANG].p+"</th><th></th><th>"+RES[LANG].d+"</th><th>"+esc(NW[LANG].h)+"</th></tr>";
   list.forEach(g=>{
-   h+="<tr><td><b>"+esc(g.sym)+"</b></td><td>"+g.p.toFixed(1)+"%</td><td style='width:25%'><div class='bar' style='width:"+Math.min(100,g.p)+"%'></div></td><td>"+esc((GI[LANG]&&GI[LANG][g.sym])||(LANG==="zh"&&GENE[g.sym])||(BIG.has(g.sym)?RES[LANG].big:RES[LANG].gen))+"</td></tr>";
+   h+="<tr><td><b>"+esc(g.sym)+"</b>"+(GN[g.sym]?"<br><span class='note'>"+esc(GN[g.sym])+"</span>":"")+"</td><td>"+g.p.toFixed(1)+"%</td><td style='width:25%'><div class='bar' style='width:"+Math.min(100,g.p)+"%'></div></td><td>"+esc((GI[LANG]&&GI[LANG][g.sym])||(LANG==="zh"&&GENE[g.sym])||(BIG.has(g.sym)?RES[LANG].big:RES[LANG].gen))+"</td><td data-mut='"+esc(g.sym)+"'>"+esc(NW[LANG].wait)+"</td></tr>";
   });
   h+="</table><p class='note'>"+esc(RES[LANG].limit)+"</p><p>"+esc(RES[LANG].how)+"</p>";
   box.innerHTML=h;
+  loadMut(studyId,mp.molecularProfileId,list).then(fillMut).catch(()=>{document.querySelectorAll("[data-mut]").forEach(td=>td.textContent=NW[LANG].fail)});
  }catch(e){box.innerHTML=esc(e.message)}
 }
 
 document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
 </script>
 </body>
-</html>
+</html> 
