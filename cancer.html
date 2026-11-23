@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -223,7 +224,7 @@ function summarize(muts){
  });
  return R;
 }
-function top(o){let b=null,c=0;for(const k in o)if(o[k]>c){b=k;c=o[k]}return b?[b,c]:null}
+function topOf(o){let b=null,c=0;for(const k in o)if(o[k]>c){b=k;c=o[k]}return b?[b,c]:null}
 async function loadMut(studyId,mpId,genes){
  if(MUT[studyId])return MUT[studyId];
  const ids=genes.map(g=>g.entrez).filter(Boolean);
@@ -243,9 +244,9 @@ function fillMut(R){
  const t=NW[LANG];
  document.querySelectorAll("[data-mut]").forEach(td=>{
   const r=R[td.dataset.mut];if(!r){td.textContent="—";return}
-  let h="";const s=top(r.sub);
+  let h="";const s=topOf(r.sub);
   if(s){const [a,b]=s[0].split(">");h+="<b>"+esc(bn(a)+" → "+bn(b))+"</b> ("+s[1]+" "+t.x+")";}
-  const ps=top(r.pos);
+  const ps=topOf(r.pos);
   if(ps){const [pc,loc,ch]=ps[0].split("|");h+="<br><span class='note'>"+t.hot+": "+esc((pc?pc+" ":"")+loc+" ("+ch.replace(">","→")+") ×"+ps[1])+"</span>";}
   if(r.indel)h+="<br><span class='note'>"+t.indel+": "+r.indel+"</span>";
   td.innerHTML=h||"—";
