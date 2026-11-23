@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -73,6 +74,57 @@ dialog{border:1px solid var(--line);border-radius:10px;background:var(--card);co
       t.replaceWith(f);
     });
   };
+})();
+</script>
+<script>
+/* 新增页面入口的多语言同步：读取页面右下角的语言下拉框，翻译三个菜单链接和两侧卡片 */
+(function(){
+var P={
+ "cancer.html":{
+  zh:["🧬 癌症分析","🧬 癌症分子分析器","輸入癌症名稱，查看這種癌症在 DNA 層面最常見的基因變異。支援八種語言，僅供科普參考。","進入"],
+  en:["🧬 Cancer Genes","🧬 Cancer Molecular Analyzer","Type a cancer name to see its most common gene mutations at the DNA level. 8 languages, for education only.","Enter"],
+  es:["🧬 Genes del cáncer","🧬 Analizador molecular del cáncer","Escriba un cáncer para ver sus mutaciones genéticas más comunes. 8 idiomas, solo educativo.","Entrar"],
+  vi:["🧬 Gen ung thư","🧬 Phân tích phân tử ung thư","Nhập tên ung thư để xem các đột biến gen phổ biến nhất ở mức DNA. 8 ngôn ngữ, chỉ để tham khảo.","Vào"],
+  th:["🧬 ยีนมะเร็ง","🧬 เครื่องวิเคราะห์โมเลกุลมะเร็ง","พิมพ์ชื่อมะเร็งเพื่อดูการกลายพันธุ์ของยีนที่พบบ่อยในระดับ DNA รองรับ 8 ภาษา เพื่อการศึกษาเท่านั้น","เข้าสู่"],
+  ko:["🧬 암 유전자","🧬 암 분자 분석기","암 이름을 입력하면 DNA 수준에서 가장 흔한 유전자 변이를 볼 수 있습니다. 8개 언어, 교육용입니다.","들어가기"],
+  ja:["🧬 がん遺伝子","🧬 がん分子アナライザー","がんの名前を入力すると、DNAレベルで最も多い遺伝子変異を表示します。8言語対応、教育目的のみ。","入る"],
+  ka:["🧬 კიბოს გენები","🧬 კიბოს მოლეკულური ანალიზატორი","შეიყვანეთ კიბოს სახელი და ნახეთ ყველაზე ხშირი გენური მუტაციები DNA დონეზე. 8 ენა, მხოლოდ საგანმანათლებლო.","შესვლა"]},
+ "disease-news.html":{
+  zh:["🔬 疾病新進展","🔬 疾病新進展","輸入病名，一鍵到 FDA、Science、Nature 搜尋最新進展。支援八種語言，僅供科普參考。","進入"],
+  en:["🔬 Disease News","🔬 Disease News","Type a disease name to search FDA, Science and Nature for the latest progress. 8 languages, for education only.","Enter"],
+  es:["🔬 Novedades médicas","🔬 Novedades médicas","Escriba una enfermedad y busque en FDA, Science y Nature lo más reciente. 8 idiomas, solo educativo.","Entrar"],
+  vi:["🔬 Tin bệnh học","🔬 Tin bệnh học mới","Nhập tên bệnh để tìm tiến bộ mới nhất trên FDA, Science, Nature. 8 ngôn ngữ, chỉ để tham khảo.","Vào"],
+  th:["🔬 ข่าวโรคใหม่","🔬 ความก้าวหน้าด้านโรค","พิมพ์ชื่อโรคเพื่อค้นหาความก้าวหน้าล่าสุดใน FDA, Science และ Nature รองรับ 8 ภาษา เพื่อการศึกษาเท่านั้น","เข้าสู่"],
+  ko:["🔬 질병 신소식","🔬 질병 신소식","질병 이름을 입력하면 FDA, Science, Nature에서 최신 소식을 검색합니다. 8개 언어, 교육용입니다.","들어가기"],
+  ja:["🔬 疾患の最新情報","🔬 疾患の最新情報","病名を入力すると、FDA・Science・Natureで最新情報を検索します。8言語対応、教育目的のみ。","入る"],
+  ka:["🔬 დაავადებების სიახლეები","🔬 დაავადებების სიახლეები","შეიყვანეთ დაავადების სახელი და მოძებნეთ უახლესი სიახლეები FDA-ში, Science-სა და Nature-ში. 8 ენა, მხოლოდ საგანმანათლებლო.","შესვლა"]},
+ "experts.html":{
+  zh:["🏥 疑難病導引","🏥 疑難病導引","輸入病名，查臨床試驗、指南與各領域代表性研究機構入口。八種語言，僅供科普參考，不排名醫生。","進入"],
+  en:["🏥 Hard Cases Guide","🏥 Hard-to-Treat Disease Guide","Type a disease to find clinical trials, guidelines and representative research centers. 8 languages, education only; no doctor rankings.","Enter"],
+  es:["🏥 Guía enfermedades difíciles","🏥 Guía de enfermedades difíciles","Escriba una enfermedad para ver ensayos clínicos, guías y centros de investigación representativos. 8 idiomas, sin ranking de médicos.","Entrar"],
+  vi:["🏥 Hướng dẫn bệnh khó","🏥 Hướng dẫn bệnh khó điều trị","Nhập tên bệnh để xem thử nghiệm lâm sàng, hướng dẫn và các trung tâm nghiên cứu tiêu biểu. 8 ngôn ngữ, không xếp hạng bác sĩ.","Vào"],
+  th:["🏥 คู่มือโรครักษายาก","🏥 คู่มือโรคที่รักษายาก","พิมพ์ชื่อโรคเพื่อดูการทดลองทางคลินิก แนวทาง และสถาบันวิจัยตัวอย่าง รองรับ 8 ภาษา ไม่จัดอันดับแพทย์","เข้าสู่"],
+  ko:["🏥 난치병 안내","🏥 난치병 안내","질병 이름을 입력하면 임상시험, 가이드라인, 대표 연구기관을 안내합니다. 8개 언어, 의사 순위는 없습니다.","들어가기"],
+  ja:["🏥 難病ガイド","🏥 難病ガイド","病名を入力すると、臨床試験・ガイドライン・代表的な研究機関を案内します。8言語対応、医師のランキングはありません。","入る"],
+  ka:["🏥 რთული დაავადებების გზამკვლევი","🏥 რთულად სამკურნალო დაავადებების გზამკვლევი","შეიყვანეთ დაავადება: კლინიკური კვლევები, გაიდლაინები და წარმომადგენლობითი ცენტრები. 8 ენა, ექიმების რეიტინგის გარეშე.","შესვლა"]}
+};
+function code(t){t=(t||"").toLowerCase();
+ if(/english/.test(t))return"en";if(/español|spanish/.test(t))return"es";if(/việt|vietnam/.test(t))return"vi";
+ if(/ไทย|thai/.test(t))return"th";if(/한국|korean/.test(t))return"ko";if(/日本|japan/.test(t))return"ja";
+ if(/ქართ|georgian/.test(t))return"ka";if(/中文|chinese|繁|简|漢|汉/.test(t))return"zh";return null}
+function cur(){var s=document.querySelectorAll("select");
+ for(var i=0;i<s.length;i++){var o=s[i].options&&s[i].options[s[i].selectedIndex];var c=o&&(code(o.text)||code(o.value));if(c)return c}
+ var h=(document.documentElement.lang||"").slice(0,2);return P["cancer.html"][h]?h:null}
+var last=null;
+function apply(){var L=cur();if(!L||L===last)return;last=L;
+ for(var href in P){var d=P[href][L]||P[href].zh;
+  document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){
+   if(a.classList.contains("btn"))a.textContent=d[3];
+   else if(a.parentNode&&a.parentNode.classList&&a.parentNode.classList.contains("side")){}
+   else a.textContent=d[0]});
+  document.querySelectorAll("aside.side").forEach(function(sd){var b=sd.querySelector('a.btn[href="'+href+'"]');
+   if(b){var h4=sd.querySelector("h4"),p=sd.querySelector("p");if(h4)h4.textContent=d[1];if(p)p.textContent=d[2]}})}}
+setInterval(apply,400);apply();
 })();
 </script>
 </body></html>
