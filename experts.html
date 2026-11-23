@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>疑难病专家与机构导引</title>
+<style>
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:14px;background:#f6f7f9;color:#222;line-height:1.55}
+#warn{background:#fff3cd;border:1px solid #e0c36a;border-radius:8px;padding:10px 12px;font-weight:600;margin-bottom:12px}
+select,input[type=text],button{font-size:16px;padding:9px 10px;border-radius:8px;border:1px solid #bbb}
+input[type=text]{width:100%;box-sizing:border-box;margin:8px 0}
+button{background:#1a6b5a;color:#fff;border:0;cursor:pointer}
+h1{font-size:22px;margin:10px 0 4px}
+.chip{display:inline-block;margin:3px 4px 3px 0;padding:4px 10px;border:1px solid #1a6b5a;color:#1a6b5a;border-radius:16px;cursor:pointer;font-size:14px;background:#fff}
+h3{margin:18px 0 6px;color:#1a6b5a;font-size:17px}
+.card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px 12px;margin:8px 0}
+.card b{display:block}.card span{color:#555;font-size:14px}
+.card a{display:inline-block;margin:6px 10px 0 0;color:#1a6b5a;font-weight:600;text-decoration:none}
+.card a.bk{font-weight:400;color:#666;font-size:14px}
+.note{color:#666;font-size:13px;margin-top:16px}
+</style></head><body>
+<div id="warn"></div>
+<select id="lang" onchange="setLang()">
+<option value="zh">中文</option><option value="en">English</option><option value="es">Español</option><option value="vi">Tiếng Việt</option><option value="th">ไทย</option><option value="ko">한국어</option><option value="ja">日本語</option><option value="ka">ქართული</option></select>
+<h1 id="ttl"></h1><p id="intro"></p>
+<input type="text" id="q" onkeydown="if(event.key==='Enter')go()">
+<button id="btn" onclick="go()"></button>
+<div style="margin-top:8px"><span id="topics"></span> <span id="chips"></span></div>
+<div id="out"></div><p class="note" id="note"></p>
+<script>
+const LANGS=["zh","en","es","vi","th","ko","ja","ka"];
+const T={
+zh:{title:"疑难病专家与机构导引",warn:"仅供科普参考，不构成诊断或治疗建议。本页只提供公开的查询入口，不推荐、不排名任何个人医生；“最佳治疗”因人而异，请与您的主治医生讨论。",intro:"输入疾病名称，获得：临床试验、指南与综述、罕见病数据库，以及在该领域有代表性的研究机构/医院的官网入口。",ph:"例如：渐冻症 / 神经纤维瘤病 / 肝癌 / ALS",btn:"查询",topics:"常见：",open:"打开",goog:"备用(Google)",g1:"① 最新研究与领域专家（按论文/试验查找）",g2:"② 指南与循证证据",g3:"③ 罕见病权威数据库",g4:"④ 该领域有代表性的机构（举例，非排名）",g5:"⑤ 医院综合参考",unknown:"未在内置词表中找到，已按原词直接搜索，并列出综合性/罕见病机构。",empty:"请输入疾病名称",
+ct:"ClinicalTrials.gov：正在招募的临床试验（常含主要研究者与机构）",rv:"PubMed 近年综述：看领域内被反复引用的作者",ex:"Expertscape：按论文量显示领域活跃学者",gl:"PubMed 临床指南",co:"Cochrane 系统评价",ni:"英国 NICE 指南",ga:"NIH GARD 罕见病信息",or:"Orphanet 欧洲罕见病库",no:"NORD 罕见病组织",us:"U.S. News 最佳医院榜",nci:"美国 NCI 认证癌症中心名录",
+note:"重要：机构列表只是示例，不是排名，也不是推荐；网址模式未能逐一验证，打不开请用“备用(Google)”。是否适合就诊、费用、路程和个人病情请与医生商量。"},
+en:{title:"Experts & Centers Guide for Hard-to-Treat Diseases",warn:"For education only; not diagnosis or treatment advice. This page gives public search entry points only. It does not recommend or rank individual doctors. The 'best treatment' differs for each person — discuss with your own doctor.",intro:"Type a disease to get: clinical trials, guidelines and reviews, rare-disease databases, and websites of institutions known in that field.",ph:"e.g. ALS / neurofibromatosis / liver cancer",btn:"Search",topics:"Common:",open:"Open",goog:"Backup (Google)",g1:"1. Latest research & field experts (via papers/trials)",g2:"2. Guidelines & evidence",g3:"3. Rare-disease authority databases",g4:"4. Representative institutions in this field (examples, not a ranking)",g5:"5. General hospital references",unknown:"Not in the built-in list; searched as typed, with general / rare-disease centers shown.",empty:"Please enter a disease name",
+ct:"ClinicalTrials.gov: recruiting trials (list investigators and sites)",rv:"PubMed recent reviews: see repeatedly cited authors",ex:"Expertscape: active scholars by publication volume",gl:"PubMed clinical guidelines",co:"Cochrane systematic reviews",ni:"UK NICE guidance",ga:"NIH GARD rare disease information",or:"Orphanet European rare disease database",no:"NORD rare disease organization",us:"U.S. News Best Hospitals",nci:"NCI-designated cancer centers",
+note:"Important: institution lists are examples, not rankings or endorsements. URL patterns are not all verified; use 'Backup (Google)' if a link fails. Suitability, cost, travel and your own case should be decided with your doctor."},
+es:{title:"Guía de expertos y centros para enfermedades difíciles",warn:"Solo con fines educativos; no es diagnóstico ni consejo de tratamiento. Esta página ofrece accesos públicos de búsqueda; no recomienda ni clasifica a médicos. El «mejor tratamiento» depende de cada persona: consulte a su médico.",intro:"Escriba una enfermedad para ver: ensayos clínicos, guías y revisiones, bases de enfermedades raras y sitios de instituciones conocidas en ese campo.",ph:"p. ej.: ELA / neurofibromatosis / cáncer de hígado",btn:"Buscar",topics:"Comunes:",open:"Abrir",goog:"Alternativa (Google)",g1:"1. Investigación reciente y expertos (por artículos/ensayos)",g2:"2. Guías y evidencia",g3:"3. Bases de datos de enfermedades raras",g4:"4. Instituciones representativas (ejemplos, no un ranking)",g5:"5. Referencias hospitalarias generales",unknown:"No está en la lista interna; se buscó el texto escrito y se muestran centros generales y de enfermedades raras.",empty:"Escriba el nombre de una enfermedad",
+ct:"ClinicalTrials.gov: ensayos en reclutamiento",rv:"PubMed revisiones recientes: autores muy citados",ex:"Expertscape: académicos activos por publicaciones",gl:"Guías clínicas en PubMed",co:"Revisiones sistemáticas Cochrane",ni:"Guías NICE (Reino Unido)",ga:"NIH GARD: enfermedades raras",or:"Orphanet: base europea de enfermedades raras",no:"NORD: organización de enfermedades raras",us:"U.S. News Mejores Hospitales",nci:"Centros oncológicos designados por el NCI",
+note:"Importante: las listas son ejemplos, no rankings ni recomendaciones. No se verificaron todas las URL; use «Alternativa (Google)» si falla un enlace. Decida con su médico."},
+vi:{title:"Hướng dẫn chuyên gia và trung tâm cho bệnh khó điều trị",warn:"Chỉ nhằm mục đích giáo dục; không phải chẩn đoán hay lời khuyên điều trị. Trang này chỉ cung cấp lối tìm kiếm công khai, không giới thiệu hay xếp hạng bác sĩ cá nhân. “Điều trị tốt nhất” tùy từng người — hãy trao đổi với bác sĩ của bạn.",intro:"Nhập tên bệnh để xem: thử nghiệm lâm sàng, hướng dẫn và tổng quan, cơ sở dữ liệu bệnh hiếm, và website các cơ sở tiêu biểu.",ph:"Ví dụ: ALS / u xơ thần kinh / ung thư gan",btn:"Tìm",topics:"Phổ biến:",open:"Mở",goog:"Dự phòng (Google)",g1:"1. Nghiên cứu mới & chuyên gia (qua bài báo/thử nghiệm)",g2:"2. Hướng dẫn & bằng chứng",g3:"3. Cơ sở dữ liệu bệnh hiếm",g4:"4. Cơ sở tiêu biểu (ví dụ, không phải xếp hạng)",g5:"5. Tham khảo bệnh viện chung",unknown:"Không có trong danh sách; đã tìm theo từ khóa, kèm các trung tâm tổng hợp/bệnh hiếm.",empty:"Vui lòng nhập tên bệnh",
+ct:"ClinicalTrials.gov: thử nghiệm đang tuyển",rv:"PubMed tổng quan gần đây: tác giả được trích dẫn nhiều",ex:"Expertscape: học giả hoạt động theo số bài",gl:"Hướng dẫn lâm sàng PubMed",co:"Tổng quan hệ thống Cochrane",ni:"Hướng dẫn NICE (Anh)",ga:"NIH GARD: bệnh hiếm",or:"Orphanet: CSDL bệnh hiếm châu Âu",no:"NORD: tổ chức bệnh hiếm",us:"U.S. News Bệnh viện tốt nhất",nci:"Trung tâm ung thư do NCI công nhận",
+note:"Quan trọng: danh sách chỉ là ví dụ, không phải xếp hạng hay khuyến nghị. Chưa kiểm chứng hết URL; nếu lỗi hãy dùng “Dự phòng (Google)”. Hãy quyết định cùng bác sĩ."},
+th:{title:"คู่มือผู้เชี่ยวชาญและสถาบันสำหรับโรคที่รักษายาก",warn:"เพื่อการศึกษาเท่านั้น ไม่ใช่การวินิจฉัยหรือคำแนะนำการรักษา หน้านี้ให้ช่องทางค้นหาสาธารณะ ไม่แนะนำหรือจัดอันดับแพทย์รายบุคคล “การรักษาที่ดีที่สุด” แตกต่างกันในแต่ละคน โปรดปรึกษาแพทย์ของคุณ",intro:"พิมพ์ชื่อโรคเพื่อดู: การทดลองทางคลินิก แนวทางและบทความทบทวน ฐานข้อมูลโรคหายาก และเว็บไซต์สถาบันที่มีชื่อเสียงในสาขานั้น",ph:"เช่น ALS / เนื้องอกเส้นประสาท / มะเร็งตับ",btn:"ค้นหา",topics:"ที่พบบ่อย:",open:"เปิด",goog:"สำรอง (Google)",g1:"1. งานวิจัยล่าสุดและผู้เชี่ยวชาญ (จากบทความ/การทดลอง)",g2:"2. แนวทางและหลักฐาน",g3:"3. ฐานข้อมูลโรคหายาก",g4:"4. สถาบันตัวอย่างในสาขานี้ (ไม่ใช่การจัดอันดับ)",g5:"5. แหล่งอ้างอิงโรงพยาบาลทั่วไป",unknown:"ไม่พบในรายการ จึงค้นหาตามคำที่พิมพ์ พร้อมแสดงศูนย์ทั่วไป/โรคหายาก",empty:"กรุณาพิมพ์ชื่อโรค",
+ct:"ClinicalTrials.gov: การทดลองที่เปิดรับ",rv:"PubMed บทความทบทวนล่าสุด: ผู้เขียนที่ถูกอ้างอิงบ่อย",ex:"Expertscape: นักวิชาการตามจำนวนผลงาน",gl:"แนวทางเวชปฏิบัติใน PubMed",co:"Cochrane การทบทวนอย่างเป็นระบบ",ni:"แนวทาง NICE (อังกฤษ)",ga:"NIH GARD: โรคหายาก",or:"Orphanet: ฐานข้อมูลโรคหายากยุโรป",no:"NORD: องค์กรโรคหายาก",us:"U.S. News โรงพยาบาลที่ดีที่สุด",nci:"ศูนย์มะเร็งที่ NCI รับรอง",
+note:"สำคัญ: รายชื่อเป็นเพียงตัวอย่าง ไม่ใช่การจัดอันดับหรือการแนะนำ URL บางส่วนยังไม่ได้ตรวจสอบ หากเปิดไม่ได้ให้ใช้ “สำรอง (Google)” โปรดตัดสินใจร่วมกับแพทย์"},
+ko:{title:"난치병 전문가·기관 안내",warn:"교육 목적일 뿐 진단이나 치료 조언이 아닙니다. 이 페이지는 공개 검색 경로만 제공하며 개별 의사를 추천하거나 순위를 매기지 않습니다. '최선의 치료'는 사람마다 다르니 담당 의사와 상의하세요.",intro:"질병명을 입력하면 임상시험, 가이드라인·리뷰, 희귀질환 데이터베이스, 해당 분야의 대표 기관 사이트를 안내합니다.",ph:"예: 루게릭병 / 신경섬유종증 / 간암 / ALS",btn:"검색",topics:"자주 찾는:",open:"열기",goog:"대체(Google)",g1:"1. 최신 연구와 분야 전문가(논문/시험 기반)",g2:"2. 가이드라인과 근거",g3:"3. 희귀질환 공신력 있는 데이터베이스",g4:"4. 해당 분야 대표 기관(예시, 순위 아님)",g5:"5. 일반 병원 참고",unknown:"내장 목록에 없어 입력어로 검색했으며 종합/희귀질환 기관을 표시합니다.",empty:"질병명을 입력하세요",
+ct:"ClinicalTrials.gov: 모집 중인 임상시험",rv:"PubMed 최근 리뷰: 자주 인용되는 저자",ex:"Expertscape: 논문 수 기준 활발한 학자",gl:"PubMed 임상 가이드라인",co:"Cochrane 체계적 문헌고찰",ni:"영국 NICE 가이드",ga:"NIH GARD 희귀질환",or:"Orphanet 유럽 희귀질환 DB",no:"NORD 희귀질환 단체",us:"U.S. News 최고 병원",nci:"NCI 지정 암센터",
+note:"중요: 기관 목록은 예시이며 순위나 추천이 아닙니다. 모든 URL을 검증하지 못했으니 링크가 안 열리면 '대체(Google)'를 쓰세요. 의사와 함께 결정하세요."},
+ja:{title:"難病の専門家・施設ガイド",warn:"教育目的のみで、診断や治療の助言ではありません。公開された検索入口のみを提供し、個別の医師を推薦・順位付けしません。「最良の治療」は人により異なります。主治医と相談してください。",intro:"病名を入力すると、臨床試験、ガイドラインと総説、希少疾患データベース、その分野の代表的な施設サイトを案内します。",ph:"例：ALS / 神経線維腫症 / 肝がん",btn:"検索",topics:"よく使う：",open:"開く",goog:"代替(Google)",g1:"1. 最新研究と分野の専門家（論文・試験から）",g2:"2. ガイドラインとエビデンス",g3:"3. 希少疾患の公的データベース",g4:"4. この分野の代表的施設（例示・順位ではありません）",g5:"5. 一般的な病院の参考",unknown:"内蔵リストにないため入力語で検索し、総合・希少疾患の施設を表示します。",empty:"病名を入力してください",
+ct:"ClinicalTrials.gov：募集中の臨床試験",rv:"PubMed 最近の総説：よく引用される著者",ex:"Expertscape：論文数による活発な研究者",gl:"PubMed 臨床ガイドライン",co:"Cochrane システマティックレビュー",ni:"英国 NICE ガイダンス",ga:"NIH GARD 希少疾患情報",or:"Orphanet 欧州希少疾患DB",no:"NORD 希少疾患団体",us:"U.S. News 最高の病院",nci:"NCI指定がんセンター",
+note:"重要：施設リストは例であり、順位や推薦ではありません。URLは全て検証できていません。開けない場合は「代替(Google)」を使ってください。主治医と相談して決めてください。"},
+ka:{title:"რთულად სამკურნალო დაავადებების ექსპერტებისა და ცენტრების გზამკვლევი",warn:"მხოლოდ საგანმანათლებლო მიზნით; არ არის დიაგნოზი ან მკურნალობის რჩევა. გვერდი გთავაზობთ საჯარო ძიების წერტილებს და არ გვირჩევთ და არ აჯილდოებთ რეიტინგით ცალკეულ ექიმებს. „საუკეთესო მკურნალობა“ თითოეულისთვის განსხვავებულია — იმსჯელეთ თქვენს ექიმთან.",intro:"შეიყვანეთ დაავადების სახელი: კლინიკური კვლევები, გაიდლაინები და მიმოხილვები, იშვიათი დაავადებების ბაზები და ამ სფეროში ცნობილი დაწესებულებების საიტები.",ph:"მაგ.: ALS / ნეიროფიბრომატოზი / ღვიძლის კიბო",btn:"ძებნა",topics:"გავრცელებული:",open:"გახსნა",goog:"სარეზერვო (Google)",g1:"1. უახლესი კვლევები და ექსპერტები (ნაშრომებით/კვლევებით)",g2:"2. გაიდლაინები და მტკიცებულებები",g3:"3. იშვიათი დაავადებების ბაზები",g4:"4. წარმომადგენლობითი დაწესებულებები (მაგალითები, არა რეიტინგი)",g5:"5. ზოგადი საავადმყოფოების წყაროები",unknown:"ჩაშენებულ სიაში ვერ მოიძებნა; მოიძებნა შეყვანილი სიტყვით და ნაჩვენებია ზოგადი/იშვიათი დაავადებების ცენტრები.",empty:"შეიყვანეთ დაავადების სახელი",
+ct:"ClinicalTrials.gov: მიმდინარე კვლევები",rv:"PubMed ბოლოდროინდელი მიმოხილვები: ხშირად ციტირებული ავტორები",ex:"Expertscape: აქტიური მკვლევრები ნაშრომების მიხედვით",gl:"PubMed კლინიკური გაიდლაინები",co:"Cochrane სისტემური მიმოხილვები",ni:"NICE გაიდლაინები (დიდი ბრიტანეთი)",ga:"NIH GARD იშვიათი დაავადებები",or:"Orphanet ევროპული ბაზა",no:"NORD იშვიათი დაავადებების ორგანიზაცია",us:"U.S. News საუკეთესო საავადმყოფოები",nci:"NCI-ს მიერ აღიარებული კიბოს ცენტრები",
+note:"მნიშვნელოვანია: სიები მხოლოდ მაგალითებია, არა რეიტინგი ან რეკომენდაცია. ყველა URL შემოწმებული არ არის; თუ ბმული არ იხსნება, გამოიყენეთ „სარეზერვო (Google)“. გადაწყვეტილება მიიღეთ ექიმთან ერთად."}
+};
+// [english query, zh,en,es,vi,th,ko,ja,ka, ...aliases] ; fields tags
+const D=[
+["cancer","癌症","cancer","cáncer","ung thư","มะเร็ง","암","がん","კიბო"],
+["liver cancer","肝癌","liver cancer","cáncer de hígado","ung thư gan","มะเร็งตับ","간암","肝がん","ღვიძლის კიბო","hepatocellular carcinoma"],
+["lung cancer","肺癌","lung cancer","cáncer de pulmón","ung thư phổi","มะเร็งปอด","폐암","肺がん","ფილტვის კიბო"],
+["breast cancer","乳腺癌","breast cancer","cáncer de mama","ung thư vú","มะเร็งเต้านม","유방암","乳がん","ძუძუს კიბო","乳癌"],
+["pancreatic cancer","胰腺癌","pancreatic cancer","cáncer de páncreas","ung thư tuỵ","มะเร็งตับอ่อน","췌장암","膵臓がん","პანკრეასის კიბო","胰臟癌"],
+["glioblastoma","胶质母细胞瘤","glioblastoma","glioblastoma","u nguyên bào thần kinh đệm","โกลบลาสโตมา","교모세포종","膠芽腫","გლიობლასტომა","GBM"],
+["amyotrophic lateral sclerosis","渐冻症","als","esclerosis lateral amiotrófica","xơ cứng teo cơ một bên","โรคเอแอลเอส","루게릭병","筋萎縮性側索硬化症","ამიოტროფული ლატერალური სკლეროზი","肌萎缩侧索硬化","ELA"],
+["multiple sclerosis","多发性硬化","multiple sclerosis","esclerosis múltiple","đa xơ cứng","เส้นโลหิตแข็ง","다발성 경화증","多発性硬化症","გაფანტული სკლეროზი","MS"],
+["Alzheimer's disease","阿尔茨海默病","alzheimer","alzheimer","alzheimer","อัลไซเมอร์","알츠하이머","アルツハイマー","ალცჰაიმერი","老年痴呆"],
+["Parkinson's disease","帕金森病","parkinson","parkinson","parkinson","พาร์กินสัน","파킨슨병","パーキンソン病","პარკინსონი"],
+["neurofibromatosis","神经纤维瘤病","neurofibromatosis","neurofibromatosis","u xơ thần kinh","เนื้องอกเส้นประสาท","신경섬유종증","神経線維腫症","ნეიროფიბრომატოზი"],
+["cystic fibrosis","囊性纤维化","cystic fibrosis","fibrosis quística","xơ nang","ซิสติกไฟโบรซิส","낭포성 섬유증","嚢胞性線維症","კისტოზური ფიბროზი"],
+["Duchenne muscular dystrophy","杜氏肌营养不良","duchenne","distrofia muscular de duchenne","loạn dưỡng cơ duchenne","ดูเชนน์","뒤셴 근이영양증","デュシェンヌ型筋ジストロフィー","დიუშენის დისტროფია","DMD"],
+["lupus","红斑狼疮","lupus","lupus","lupus ban đỏ","ลูปัส","루푸스","全身性エリテマトーデス","ლუპუსი","SLE"],
+["rheumatoid arthritis","类风湿关节炎","rheumatoid arthritis","artritis reumatoide","viêm khớp dạng thấp","รูมาตอยด์","류마티스 관절염","関節リウマチ","რევმატოიდული ართრიტი"],
+["osteoarthritis","骨关节炎","osteoarthritis","artrosis","thoái hóa khớp","ข้อเข่าเสื่อม","골관절염","変形性関節症","ოსტეოართრიტი"],
+["osteosarcoma","骨肉瘤","osteosarcoma","osteosarcoma","sarcoma xương","มะเร็งกระดูก","골육종","骨肉腫","ოსტეოსარკომა"],
+["osteoporosis","骨质疏松","osteoporosis","osteoporosis","loãng xương","กระดูกพรุน","골다공증","骨粗鬆症","ოსტეოპოროზი"],
+["Crohn's disease","克罗恩病","crohn","enfermedad de crohn","bệnh crohn","โรคโครห์น","크론병","クローン病","კრონის დაავადება"],
+["diabetes","糖尿病","diabetes","diabetes","tiểu đường","เบาหวาน","당뇨병","糖尿病","დიაბეტი"],
+["heart failure","心力衰竭","heart failure","insuficiencia cardíaca","suy tim","หัวใจล้มเหลว","심부전","心不全","გულის უკმარისობა","心衰"],
+["pulmonary hypertension","肺动脉高压","pulmonary hypertension","hipertensión pulmonar","tăng áp phổi","ความดันปอดสูง","폐동맥 고혈압","肺高血圧症","ფილტვის ჰიპერტენზია"],
+["HIV","艾滋病","hiv","vih","hiv","เอชไอวี","에이즈","エイズ","აივ","AIDS","SIDA"],
+["tuberculosis","结核病","tuberculosis","tuberculosis","lao","วัณโรค","결핵","結核","ტუბერკულოზი","TB"],
+["hepatitis B","乙肝","hepatitis b","hepatitis b","viêm gan b","ไวรัสตับอักเสบบี","b형 간염","B型肝炎","B ჰეპატიტი","乙型肝炎"],
+["epilepsy","癫痫","epilepsy","epilepsia","động kinh","ลมชัก","뇌전증","てんかん","ეპილეფსია"],
+["autism","自闭症","autism","autismo","tự kỷ","ออทิสติก","자폐증","自閉症","აუტიზმი"],
+["leukemia","白血病","leukemia","leucemia","bạch cầu","มะเร็งเม็ดเลือดขาว","백혈병","白血病","ლეიკემია"],
+["sickle cell disease","镰状细胞病","sickle cell","anemia falciforme","hồng cầu hình liềm","ซิกเคิลเซลล์","낫형 적혈구병","鎌状赤血球症","ნამგლისებრუჯრედოვანი ანემია"],
+["spinal muscular atrophy","脊髓性肌萎缩","spinal muscular atrophy","atrofia muscular espinal","teo cơ tủy sống","กล้ามเนื้ออ่อนแรงไขสันหลัง","척수성 근위축증","脊髄性筋萎縮症","ზურგის ტვინის ატროფია","SMA"],
+["fibromyalgia","纤维肌痛","fibromyalgia","fibromialgia","đau cơ xơ hóa","ไฟโบรมยัลเจีย","섬유근육통","線維筋痛症","ფიბრომიალგია"],
+["kidney disease","肾病","kidney disease","enfermedad renal","bệnh thận","โรคไต","신장병","腎臓病","თირკმლის დაავადება","慢性肾病"]
+];
+const FIELDS={"cancer":["cancer"],"liver cancer":["cancer"],"lung cancer":["cancer"],"breast cancer":["cancer"],"pancreatic cancer":["cancer"],"glioblastoma":["cancer","neuro"],"leukemia":["cancer","peds"],"osteosarcoma":["cancer","ortho","peds"],
+"amyotrophic lateral sclerosis":["neuro","rare"],"multiple sclerosis":["neuro"],"Alzheimer's disease":["neuro"],"Parkinson's disease":["neuro"],"epilepsy":["neuro"],"autism":["neuro","peds"],"neurofibromatosis":["rare","neuro","peds"],"cystic fibrosis":["rare","peds"],"Duchenne muscular dystrophy":["rare","neuro","peds"],"spinal muscular atrophy":["rare","neuro","peds"],"sickle cell disease":["rare","peds"],
+"lupus":["rare","ortho"],"rheumatoid arthritis":["ortho"],"osteoarthritis":["ortho"],"osteoporosis":["ortho","metab"],"fibromyalgia":["ortho"],"Crohn's disease":["metab"],"diabetes":["metab"],"kidney disease":["metab"],
+"heart failure":["cardio"],"pulmonary hypertension":["cardio","rare"],"HIV":["infect"],"tuberculosis":["infect"],"hepatitis B":["infect"]};
+// [name, country, url, fields]
+const ORG=[
+["MD Anderson Cancer Center (US)","https://www.mdanderson.org",["cancer"]],
+["Memorial Sloan Kettering (US)","https://www.mskcc.org",["cancer"]],
+["Dana-Farber Cancer Institute (US)","https://www.dana-farber.org",["cancer"]],
+["St. Jude Children's Research Hospital (US)","https://www.stjude.org",["cancer","peds","rare"]],
+["Gustave Roussy (France)","https://www.gustaveroussy.fr",["cancer"]],
+["National Cancer Center Japan","https://www.ncc.go.jp",["cancer"]],
+["Mayo Clinic (US)","https://www.mayoclinic.org",["general","rare","neuro","cardio","metab","cancer"]],
+["Cleveland Clinic (US)","https://my.clevelandclinic.org",["general","cardio","neuro","metab","ortho"]],
+["Johns Hopkins Medicine (US)","https://www.hopkinsmedicine.org",["general","neuro","cancer","rare","infect"]],
+["Hospital for Special Surgery (US)","https://www.hss.edu",["ortho"]],
+["Rizzoli Orthopaedic Institute (Italy)","https://www.ior.it",["ortho","cancer"]],
+["UCL Queen Square Institute of Neurology (UK)","https://www.ucl.ac.uk/ion",["neuro","rare"]],
+["Karolinska Institutet / Hospital (Sweden)","https://ki.se",["general","neuro","cancer"]],
+["Charité Berlin (Germany)","https://www.charite.de",["general","neuro","rare","cardio"]],
+["Joslin Diabetes Center (US)","https://joslin.org",["metab"]],
+["Institut Pasteur (France)","https://www.pasteur.fr",["infect"]],
+["NIAID (US NIH)","https://www.niaid.nih.gov",["infect"]],
+["Undiagnosed Diseases Network (US)","https://undiagnosed.hms.harvard.edu",["rare","general"]],
+["Great Ormond Street Hospital (UK)","https://www.gosh.nhs.uk",["peds","rare"]],
+["Peking Union Medical College Hospital (China)","https://www.pumch.cn",["general","rare"]],
+["Asan Medical Center (Korea)","https://www.amc.seoul.kr",["general","cancer","cardio"]],
+["Siriraj Hospital, Mahidol (Thailand)","https://www.si.mahidol.ac.th",["general"]],
+["Hospital Clínic Barcelona (Spain)","https://www.clinicbarcelona.org",["general","rare","cancer"]]
+];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function norm(s){return String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim()}
+function find(raw){const s=norm(raw);let best=null,len=0;
+ for(const d of D){for(const name of d){const n=norm(name);
+  const ascii=/^[\x00-\x7f]+$/.test(n);
+  const ok=n.length<4&&ascii?s===n:(s===n||(n.length>=2&&s.includes(n)));
+  if(ok&&n.length>len){best=d;len=n.length}}}return best}
+let LANG="zh",LAST=null;
+function setLang(){LANG=$("lang").value;document.documentElement.lang=LANG;const t=T[LANG];
+ $("warn").textContent=t.warn;$("ttl").textContent=t.title;$("intro").textContent=t.intro;
+ $("q").placeholder=t.ph;$("btn").textContent=t.btn;$("topics").textContent=t.topics;
+ $("note").textContent=t.note;
+ const idx=LANGS.indexOf(LANG)+1;
+ $("chips").innerHTML=[0,6,9,10,5,1,2,14,17,18].map(i=>"<span class='chip' data-i='"+i+"'>"+esc(D[i][idx])+"</span>").join("");
+ [...$("chips").children].forEach(c=>c.onclick=()=>{$("q").value=D[+c.dataset.i][idx];go()});
+ if(LAST!==null)go(true)}
+function card(title,desc,links,t){return "<div class='card'><b>"+esc(title)+"</b>"+(desc?"<span>"+esc(desc)+"</span><br>":"")+
+ links.map((l,i)=>"<a class='"+(i?"bk":"")+"' target='_blank' rel='noopener' href='"+esc(l[1])+"'>"+esc(l[0]||(i?t.goog:t.open))+"</a>").join("")+"</div>"}
+function go(keep){const t=T[LANG];const raw=keep?LAST:$("q").value.trim();
+ if(!raw){$("out").innerHTML="<p>"+esc(t.empty)+"</p>";return}
+ LAST=raw;const d=find(raw),term=d?d[0]:raw,e=encodeURIComponent;
+ const g=q=>"https://www.google.com/search?q="+e(q);
+ const site=(s)=>g(term+" site:"+s);
+ const fields=d?(FIELDS[d[0]]||["general"]):["general","rare"];
+ let h="";if(!d)h+="<p class='note'>"+esc(t.unknown)+"</p>";
+ h+="<h3>"+esc(t.g1)+"</h3>";
+ h+=card("ClinicalTrials.gov",t.ct,[["","https://clinicaltrials.gov/search?cond="+e(term)],["",site("clinicaltrials.gov")]],t);
+ h+=card("PubMed Reviews",t.rv,[["","https://pubmed.ncbi.nlm.nih.gov/?term="+e(term)+"&filter=pubt.review&sort=date"]],t);
+ h+=card("Expertscape",t.ex,[["",site("expertscape.com")]],t);
+ h+="<h3>"+esc(t.g2)+"</h3>";
+ h+=card("PubMed Guidelines",t.gl,[["","https://pubmed.ncbi.nlm.nih.gov/?term="+e(term)+"&filter=pubt.guideline&sort=date"]],t);
+ h+=card("Cochrane",t.co,[["",site("cochranelibrary.com")]],t);
+ h+=card("NICE",t.ni,[["","https://www.nice.org.uk/search?q="+e(term)],["",site("nice.org.uk")]],t);
+ h+="<h3>"+esc(t.g3)+"</h3>";
+ h+=card("NIH GARD",t.ga,[["",site("rarediseases.info.nih.gov")]],t);
+ h+=card("Orphanet",t.or,[["",site("orpha.net")]],t);
+ h+=card("NORD",t.no,[["",site("rarediseases.org")]],t);
+ const orgs=ORG.filter(o=>o[2].some(f=>fields.includes(f)||f==="general"&&!d));
+ h+="<h3>"+esc(t.g4)+"</h3>";
+ orgs.forEach(o=>{h+=card(o[0],"",[["",o[1]],["",g(o[0].replace(/ \(.*\)$/,"")+" "+term)]],t)});
+ h+="<h3>"+esc(t.g5)+"</h3>";
+ h+=card("U.S. News Best Hospitals",t.us,[["","https://health.usnews.com/best-hospitals"],["",site("health.usnews.com")]],t);
+ if(fields.includes("cancer"))h+=card("NCI Cancer Centers",t.nci,[["","https://www.cancer.gov/research/infrastructure/cancer-centers/find"],["",site("cancer.gov")]],t);
+ $("out").innerHTML=h}
+setLang();
+</script></body></html>
