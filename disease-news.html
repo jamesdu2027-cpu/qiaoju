@@ -78,14 +78,14 @@ const D=[
 // “翻译成我的语言”：通过 Google 翻译网页服务（translate.goog）打开对方网站的页面
 const TRL={zh:"zh-CN",en:"en",es:"es",vi:"vi",th:"th",ko:"ko",ja:"ja",ka:"ka"};
 const TR={
- zh:{tr:"翻译成我的语言",trn:"机器翻译仅供参考，医学内容请以原文和医生意见为准。翻译页面对个别网站可能无法使用。"},
+ zh:{tr:"翻译成我的语言",trn:"提示：外文网页可用浏览器自带的翻译功能（Edge 地址栏右侧的翻译图标；Chrome 可右键选“翻译成中文”）。机器翻译仅供参考，医学内容请以原文和医生意见为准。"},
  en:{tr:"Translate",trn:""},
- es:{tr:"Traducir a mi idioma",trn:"La traducción automática es solo orientativa; en temas médicos prevalecen el original y su médico. La página traducida puede no funcionar en algunos sitios."},
- vi:{tr:"Dịch sang ngôn ngữ của tôi",trn:"Bản dịch máy chỉ để tham khảo; với nội dung y khoa hãy dựa vào bản gốc và bác sĩ. Trang dịch có thể không dùng được ở một số trang web."},
- th:{tr:"แปลเป็นภาษาของฉัน",trn:"การแปลด้วยเครื่องใช้อ้างอิงเท่านั้น เนื้อหาทางการแพทย์ให้ยึดต้นฉบับและแพทย์เป็นหลัก หน้าแปลอาจใช้ไม่ได้กับบางเว็บไซต์"},
- ko:{tr:"내 언어로 번역",trn:"기계 번역은 참고용입니다. 의학 내용은 원문과 의사의 의견을 따르세요. 일부 사이트에서는 번역 페이지가 작동하지 않을 수 있습니다."},
- ja:{tr:"自分の言語に翻訳",trn:"機械翻訳は参考用です。医学的な内容は原文と医師の意見を優先してください。一部のサイトでは翻訳ページが使えない場合があります。"},
- ka:{tr:"ჩემს ენაზე თარგმნა",trn:"მანქანური თარგმანი მხოლოდ საცნობაროა; სამედიცინო შინაარსისთვის დაეყრდენით ორიგინალს და ექიმს. თარგმნილი გვერდი ზოგ საიტზე შეიძლება არ მუშაობდეს."}
+ es:{tr:"Traducir a mi idioma",trn:"Consejo: use la función de traducción del navegador (icono de traducir en Edge; clic derecho «Traducir a…» en Chrome). La traducción automática es solo orientativa; en temas médicos prevalecen el original y su médico."},
+ vi:{tr:"Dịch sang ngôn ngữ của tôi",trn:"Mẹo: dùng chức năng dịch của trình duyệt (biểu tượng dịch trên Edge; chuột phải “Dịch sang…” trên Chrome). Bản dịch máy chỉ để tham khảo; với nội dung y khoa hãy dựa vào bản gốc và bác sĩ."},
+ th:{tr:"แปลเป็นภาษาของฉัน",trn:"เคล็ดลับ: ใช้ฟังก์ชันแปลของเบราว์เซอร์ (ไอคอนแปลใน Edge หรือคลิกขวา “แปลเป็น…” ใน Chrome) การแปลด้วยเครื่องใช้อ้างอิงเท่านั้น เนื้อหาทางการแพทย์ให้ยึดต้นฉบับและแพทย์"},
+ ko:{tr:"내 언어로 번역",trn:"팁: 브라우저의 번역 기능을 쓰세요(Edge의 번역 아이콘, Chrome은 우클릭 '…로 번역'). 기계 번역은 참고용이며 의학 내용은 원문과 의사의 의견을 따르세요."},
+ ja:{tr:"自分の言語に翻訳",trn:"ヒント：ブラウザの翻訳機能をお使いください（Edgeの翻訳アイコン、Chromeは右クリックで「…に翻訳」）。機械翻訳は参考用です。医学的な内容は原文と医師の意見を優先してください。"},
+ ka:{tr:"ჩემს ენაზე თარგმნა",trn:"რჩევა: გამოიყენეთ ბრაუზერის თარგმნის ფუნქცია (Edge-ში თარგმნის ხატულა, Chrome-ში მარჯვენა ღილაკი „თარგმნა…“). მანქანური თარგმანი მხოლოდ საცნობაროა; სამედიცინო შინაარსისთვის დაეყრდენით ორიგინალს და ექიმს."}
 };
 function trUrl(url){
  const u=new URL(url), c=TRL[LANG];
@@ -144,7 +144,6 @@ function go(keep){
  let h="<p class='note'>"+(d?esc(t.kw)+" <b>"+esc(term)+"</b>":esc(t.unknown))+"</p>";
  S.forEach(x=>{
   h+="<div class='card'><h3>"+esc(x[0])+"</h3><p>"+esc(x[1])+"</p><a class='go' target='_blank' rel='noopener' href='"+esc(x[2])+"'>"+esc(t.open)+"</a>"
-   +(LANG!=="en"?"<a class='bk' target='_blank' rel='noopener' href='"+esc(trUrl(x[2]))+"'>"+esc(TR[LANG].tr)+"</a>":"")
    +"<a class='bk' target='_blank' rel='noopener' href='"+esc(x[3])+"'>"+esc(t.backup)+"</a></div>";
  });
  if(LANG!=="en") h+="<p class='note'>"+esc(TR[LANG].trn)+"</p>";
