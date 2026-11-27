@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>灵魂伴侣画像</title>
@@ -22,6 +23,9 @@ button{background:#9c3d54;color:#fff;border:0;cursor:pointer}button.sec{backgrou
 
 <h3 id="s1"></h3>
 <div class="row"><input type="file" id="file" accept="image/*" onchange="onFile()"></div>
+<div class="row"><button class="sec" id="camBtn" onclick="openCam()"></button></div>
+<div id="camBox" style="display:none"><video id="vid" autoplay playsinline muted style="width:280px;max-width:100%;border-radius:8px;background:#000"></video>
+<div class="row"><button id="snapBtn" onclick="snap()"></button><button class="sec" id="closeBtn" onclick="closeCam()"></button></div></div>
 <div class="row"><img id="prev" class="ph" style="display:none;width:110px;height:140px;object-fit:cover;border-radius:8px"><span id="det" class="note"></span></div>
 
 <h3 id="s2"></h3>
@@ -121,6 +125,24 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let LANG="zh",F={face:1,eyes:1,mouth:1},IMG=null,SKIN=null,LASTRES=false;
 
+
+const CAM={
+zh:["用摄像头拍照","拍照","关闭","无法打开摄像头：请在浏览器地址栏允许使用摄像头，或改用“选择文件”。"],
+en:["Take a photo with the camera","Snap","Close","Cannot open the camera: allow camera access in the address bar, or use 'Choose File'."],
+es:["Tomar foto con la cámara","Capturar","Cerrar","No se puede abrir la cámara: permita el acceso en la barra de direcciones o use «Elegir archivo»."],
+vi:["Chụp ảnh bằng camera","Chụp","Đóng","Không mở được camera: hãy cho phép camera trên thanh địa chỉ hoặc dùng “Chọn tệp”."],
+th:["ถ่ายรูปด้วยกล้อง","ถ่าย","ปิด","เปิดกล้องไม่ได้: อนุญาตการใช้กล้องที่แถบที่อยู่ หรือใช้ “เลือกไฟล์”"],
+ko:["카메라로 사진 찍기","촬영","닫기","카메라를 열 수 없습니다. 주소창에서 카메라를 허용하거나 '파일 선택'을 사용하세요."],
+ja:["カメラで撮影","撮影","閉じる","カメラを開けません。アドレスバーでカメラを許可するか、「ファイルを選択」を使ってください。"],
+ka:["გადაიღეთ კამერით","გადაღება","დახურვა","კამერას ვერ ვხსნი: მისამართის ზოლში დართეთ კამერის ნებართვა ან გამოიყენეთ „ფაილის არჩევა“."]};
+let STREAM=null;
+async function openCam(){
+ try{STREAM=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});$("vid").srcObject=STREAM;$("camBox").style.display="block"}
+ catch(e){$("det").textContent=CAM[LANG][3]}}
+function closeCam(){if(STREAM){STREAM.getTracks().forEach(t=>t.stop());STREAM=null}$("camBox").style.display="none"}
+function snap(){const v=$("vid");if(!v.videoWidth)return;const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
+ c.toBlob(b=>{const url=URL.createObjectURL(b);const im=new Image();im.onload=()=>{IMG=im;$("prev").src=url;$("prev").style.display="block";$("det").textContent="";closeCam()};im.src=url},"image/jpeg",0.92)}
+
 function setLang(){
  LANG=$("lang").value;document.documentElement.lang=LANG;const t=L[LANG];
  $("warn").textContent=t.warn;$("ttl").textContent=t.title;document.title=t.title;$("intro").textContent=t.intro;
@@ -130,7 +152,7 @@ function setLang(){
  $("s4").textContent=t.s4;$("faceL").textContent=t.faceL;$("eyeL").textContent=t.eyeL;$("mouthL").textContent=t.mouthL;
  const fill=(id,arr,v)=>{const s=$(id);s.innerHTML=arr.map((x,i)=>"<option value='"+i+"'>"+esc(x)+"</option>").join("");s.value=v};
  fill("face",t.shapes,F.face);fill("eyes",t.eyeO,F.eyes);fill("mouth",t.mouthO,F.mouth);
- $("go").textContent=t.go;$("note").textContent=t.note;
+ $("go").textContent=t.go;$("camBtn").textContent=CAM[LANG][0];$("snapBtn").textContent=CAM[LANG][1];$("closeBtn").textContent=CAM[LANG][2];$("note").textContent=t.note;
  const sel=[...document.querySelectorAll("#traits input:checked")].map(i=>+i.value);
  $("traits").innerHTML=t.traits.map((x,i)=>"<label><input type='checkbox' value='"+i+"'"+(sel.includes(i)?" checked":"")+" onchange='limit(this)'><span>"+esc(x)+"</span></label>").join("");
  updateS3();if(LASTRES)make(true)}
