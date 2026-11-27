@@ -35,6 +35,9 @@ button{background:#9c3d54;color:#fff;border:0;cursor:pointer}button.sec{backgrou
 <h3 id="s3"></h3>
 <div class="chips" id="traits"></div><div class="note" id="hint"></div>
 
+<h3 id="s3b"></h3>
+<div class="row"><span id="ageL"></span><select id="age"></select><span id="myAgeL"></span><input type="number" id="myAge" min="18" max="100" style="width:80px;font-size:16px;padding:8px;border-radius:8px;border:1px solid #bbb"></div>
+
 <h3 id="s4"></h3>
 <div class="row"><span id="faceL"></span><select id="face"></select>
 <span id="eyeL"></span><select id="eyes"></select>
@@ -50,7 +53,7 @@ const LANGS=["zh","en","es","vi","th","ko","ja","ka"];
 const L={
 zh:{title:"灵魂伴侣画像",warn:"仅供娱乐和自我了解，不是科学预测，也不是婚恋建议。照片只在你的浏览器里处理，不会上传。",intro:"上传一张正面照片，选择你想找的伴侣性别，再选你希望伴侣像父亲或母亲的哪些特点，程序会画出一个“灵魂伴侣”形象，并写出性格特点。",
 s1:"1. 选一张正面、清晰的照片",s2:"2. 性别",me:"我是",mate:"想找的伴侣是",male:"男",female:"女",s3:"3. 希望伴侣有哪些像你{P}的特点（最多选3个）",father:"父亲",mother:"母亲",hint:"依据：有观察认为，人们常被类似异性或同性父母的特点吸引。这里取与伴侣性别相同的那位父亲或母亲。",
-s4:"4. 脸部特征（照片检测不准时可手动改）",faceL:"脸型",eyeL:"眼距",mouthL:"嘴",shapes:["圆脸","鹅蛋脸","长脸","方脸"],eyeO:["眼距偏近","眼距适中","眼距偏宽"],mouthO:["嘴偏小","嘴适中","嘴偏宽"],
+s4:"5. 脸部特征（照片检测不准时可手动改）",faceL:"脸型",eyeL:"眼距",mouthL:"嘴",shapes:["圆脸","鹅蛋脸","长脸","方脸"],eyeO:["眼距偏近","眼距适中","眼距偏宽"],mouthO:["嘴偏小","嘴适中","嘴偏宽"],
 go:"生成灵魂伴侣",busy:"正在分析……（第一次需要下载人脸模型，请稍等）",noface:"没有自动检测到人脸（可能模型没加载成功），已使用你手动选择的特征。",ok:"已检测到人脸并填好特征，可再手动调整。",
 resFeat:"你的面部特征",resMate:"你的灵魂伴侣画像",resChar:"性格特点",resWhy:"为什么这样推测",save:"保存图片",
 look:"外貌倾向：与你相似——{a}，{b}，{c}。",charT:"希望有你{P}的这些特点：{t}。",charN:"（未选择性格特点）",
@@ -59,7 +62,7 @@ note:"提示：脸型、眼距、嘴形的判断用的是简单的比例阈值�
 traits:["沉稳","幽默","勤劳","温柔","坚强","博学","有艺术气质","慷慨"]},
 en:{title:"Soulmate Portrait",warn:"For fun and self-reflection only; not a scientific prediction or relationship advice. Your photo is processed in your browser and is never uploaded.",intro:"Upload a front-facing photo, choose the partner's gender, then pick the traits you'd like your partner to share with your father or mother. The program draws a 'soulmate' portrait and describes the character.",
 s1:"1. Choose a clear, front-facing photo",s2:"2. Gender",me:"I am",mate:"Looking for a",male:"male",female:"female",s3:"3. Traits you'd like your partner to share with your {P} (up to 3)",father:"father",mother:"mother",hint:"Basis: some observations suggest people are drawn to partners resembling a parent. Here we use the parent of the same gender as the partner.",
-s4:"4. Facial features (adjust manually if detection is off)",faceL:"Face",eyeL:"Eyes",mouthL:"Mouth",shapes:["Round","Oval","Long","Square"],eyeO:["Close-set","Average","Wide-set"],mouthO:["Small","Average","Wide"],
+s4:"5. Facial features (adjust manually if detection is off)",faceL:"Face",eyeL:"Eyes",mouthL:"Mouth",shapes:["Round","Oval","Long","Square"],eyeO:["Close-set","Average","Wide-set"],mouthO:["Small","Average","Wide"],
 go:"Generate soulmate",busy:"Analyzing... (first time it downloads a face model, please wait)",noface:"No face was detected automatically (the model may not have loaded); using the features you selected.",ok:"Face detected; features filled in. You may adjust them.",
 resFeat:"Your facial features",resMate:"Your soulmate portrait",resChar:"Character",resWhy:"Why this guess",save:"Save image",
 look:"Look: similar to you — {a}, {b}, {c}.",charT:"Traits shared with your {P}: {t}.",charN:"(No traits selected)",
@@ -68,7 +71,7 @@ note:"Note: face shape, eye spacing and mouth are judged with simple ratio thres
 traits:["Calm","Humorous","Hardworking","Gentle","Strong","Learned","Artistic","Generous"]},
 es:{title:"Retrato del alma gemela",warn:"Solo para entretenimiento y reflexión; no es una predicción científica ni un consejo de pareja. Su foto se procesa en su navegador y no se sube.",intro:"Suba una foto de frente, elija el género de la pareja y los rasgos que desea que se parezcan a su padre o madre. El programa dibuja un retrato de «alma gemela» y describe su carácter.",
 s1:"1. Elija una foto nítida de frente",s2:"2. Género",me:"Soy",mate:"Busco",male:"hombre",female:"mujer",s3:"3. Rasgos que desea que su pareja comparta con su {P} (máx. 3)",father:"padre",mother:"madre",hint:"Base: algunas observaciones sugieren que nos atraen parejas parecidas a un progenitor. Se usa el progenitor del mismo género que la pareja.",
-s4:"4. Rasgos faciales (ajuste a mano si falla la detección)",faceL:"Cara",eyeL:"Ojos",mouthL:"Boca",shapes:["Redonda","Ovalada","Alargada","Cuadrada"],eyeO:["Juntos","Normal","Separados"],mouthO:["Pequeña","Normal","Ancha"],
+s4:"5. Rasgos faciales (ajuste a mano si falla la detección)",faceL:"Cara",eyeL:"Ojos",mouthL:"Boca",shapes:["Redonda","Ovalada","Alargada","Cuadrada"],eyeO:["Juntos","Normal","Separados"],mouthO:["Pequeña","Normal","Ancha"],
 go:"Generar alma gemela",busy:"Analizando... (la primera vez se descarga un modelo facial)",noface:"No se detectó rostro automáticamente; se usan los rasgos elegidos a mano.",ok:"Rostro detectado; rasgos rellenados. Puede ajustarlos.",
 resFeat:"Sus rasgos faciales",resMate:"Retrato de su alma gemela",resChar:"Carácter",resWhy:"Por qué esta suposición",save:"Guardar imagen",
 look:"Aspecto: parecido al suyo — {a}, {b}, {c}.",charT:"Rasgos compartidos con su {P}: {t}.",charN:"(Sin rasgos elegidos)",
@@ -77,7 +80,7 @@ note:"Nota: forma de cara, separación de ojos y boca se estiman con umbrales se
 traits:["Sereno","Gracioso","Trabajador","Tierno","Fuerte","Culto","Artístico","Generoso"]},
 vi:{title:"Chân dung tri kỷ",warn:"Chỉ để giải trí và tự khám phá; không phải dự đoán khoa học hay lời khuyên tình cảm. Ảnh chỉ được xử lý trong trình duyệt, không tải lên.",intro:"Tải ảnh chính diện, chọn giới tính người bạn đời và những nét bạn muốn giống cha hoặc mẹ. Chương trình vẽ chân dung “tri kỷ” và mô tả tính cách.",
 s1:"1. Chọn ảnh chính diện, rõ nét",s2:"2. Giới tính",me:"Tôi là",mate:"Tìm",male:"nam",female:"nữ",s3:"3. Nét bạn muốn người ấy giống {P} của bạn (tối đa 3)",father:"cha",mother:"mẹ",hint:"Cơ sở: có quan sát cho rằng người ta hay bị thu hút bởi người giống cha mẹ. Ở đây lấy cha hoặc mẹ cùng giới với người bạn đời.",
-s4:"4. Đặc điểm khuôn mặt (chỉnh tay nếu nhận diện chưa đúng)",faceL:"Mặt",eyeL:"Mắt",mouthL:"Miệng",shapes:["Tròn","Trái xoan","Dài","Vuông"],eyeO:["Gần nhau","Vừa","Xa nhau"],mouthO:["Nhỏ","Vừa","Rộng"],
+s4:"5. Đặc điểm khuôn mặt (chỉnh tay nếu nhận diện chưa đúng)",faceL:"Mặt",eyeL:"Mắt",mouthL:"Miệng",shapes:["Tròn","Trái xoan","Dài","Vuông"],eyeO:["Gần nhau","Vừa","Xa nhau"],mouthO:["Nhỏ","Vừa","Rộng"],
 go:"Tạo tri kỷ",busy:"Đang phân tích... (lần đầu cần tải mô hình khuôn mặt)",noface:"Không tự nhận diện được khuôn mặt; dùng đặc điểm bạn chọn.",ok:"Đã nhận diện khuôn mặt; bạn có thể chỉnh lại.",
 resFeat:"Đặc điểm khuôn mặt của bạn",resMate:"Chân dung tri kỷ",resChar:"Tính cách",resWhy:"Vì sao suy đoán như vậy",save:"Lưu ảnh",
 look:"Ngoại hình: giống bạn — {a}, {b}, {c}.",charT:"Nét giống {P} của bạn: {t}.",charN:"(Chưa chọn nét tính cách)",
@@ -86,7 +89,7 @@ note:"Lưu ý: hình mặt, khoảng cách mắt, miệng được ước lượ
 traits:["Điềm đạm","Hài hước","Chăm chỉ","Dịu dàng","Mạnh mẽ","Uyên bác","Nghệ sĩ","Rộng lượng"]},
 th:{title:"ภาพคู่แท้",warn:"เพื่อความบันเทิงและการรู้จักตัวเองเท่านั้น ไม่ใช่การทำนายทางวิทยาศาสตร์หรือคำแนะนำเรื่องความรัก รูปถูกประมวลผลในเบราว์เซอร์ ไม่ถูกอัปโหลด",intro:"อัปโหลดรูปหน้าตรง เลือกเพศของคู่ และลักษณะที่อยากให้คล้ายพ่อหรือแม่ โปรแกรมจะวาดภาพ “คู่แท้” และอธิบายนิสัย",
 s1:"1. เลือกรูปหน้าตรงที่ชัดเจน",s2:"2. เพศ",me:"ฉันเป็น",mate:"มองหา",male:"ชาย",female:"หญิง",s3:"3. ลักษณะที่อยากให้คู่คล้าย{P}ของคุณ (เลือกได้ไม่เกิน 3)",father:"พ่อ",mother:"แม่",hint:"ที่มา: มีข้อสังเกตว่าคนมักถูกดึงดูดโดยคนที่คล้ายพ่อแม่ ที่นี่ใช้พ่อหรือแม่ที่เป็นเพศเดียวกับคู่",
-s4:"4. ลักษณะใบหน้า (ปรับเองได้ถ้าตรวจจับไม่แม่น)",faceL:"ใบหน้า",eyeL:"ตา",mouthL:"ปาก",shapes:["กลม","รูปไข่","ยาว","เหลี่ยม"],eyeO:["ตาชิด","ปานกลาง","ตาห่าง"],mouthO:["เล็ก","ปานกลาง","กว้าง"],
+s4:"5. ลักษณะใบหน้า (ปรับเองได้ถ้าตรวจจับไม่แม่น)",faceL:"ใบหน้า",eyeL:"ตา",mouthL:"ปาก",shapes:["กลม","รูปไข่","ยาว","เหลี่ยม"],eyeO:["ตาชิด","ปานกลาง","ตาห่าง"],mouthO:["เล็ก","ปานกลาง","กว้าง"],
 go:"สร้างภาพคู่แท้",busy:"กำลังวิเคราะห์... (ครั้งแรกต้องดาวน์โหลดโมเดลใบหน้า)",noface:"ตรวจไม่พบใบหน้าอัตโนมัติ ใช้ลักษณะที่คุณเลือกเอง",ok:"ตรวจพบใบหน้าแล้ว ปรับเพิ่มเติมได้",
 resFeat:"ลักษณะใบหน้าของคุณ",resMate:"ภาพคู่แท้ของคุณ",resChar:"นิสัย",resWhy:"ทำไมจึงคาดเดาเช่นนี้",save:"บันทึกภาพ",
 look:"รูปลักษณ์: คล้ายคุณ — {a}, {b}, {c}",charT:"ลักษณะที่คล้าย{P}ของคุณ: {t}",charN:"(ไม่ได้เลือกลักษณะนิสัย)",
@@ -95,7 +98,7 @@ note:"หมายเหตุ: รูปหน้า ระยะตา แล�
 traits:["สุขุม","อารมณ์ขัน","ขยัน","อ่อนโยน","เข้มแข็ง","รอบรู้","มีศิลปะ","ใจกว้าง"]},
 ko:{title:"소울메이트 초상",warn:"재미와 자기 이해를 위한 것으로, 과학적 예측이나 연애 조언이 아닙니다. 사진은 브라우저에서만 처리되며 업로드되지 않습니다.",intro:"정면 사진을 올리고, 상대의 성별과 부모님 중 닮았으면 하는 특성을 고르면 '소울메이트' 초상과 성격을 보여 드립니다.",
 s1:"1. 선명한 정면 사진 선택",s2:"2. 성별",me:"나는",mate:"찾는 상대",male:"남성",female:"여성",s3:"3. 상대가 나의 {P}를 닮았으면 하는 점(최대 3개)",father:"아버지",mother:"어머니",hint:"근거: 사람들이 부모와 닮은 상대에게 끌린다는 관찰이 있습니다. 여기서는 상대와 같은 성별의 부모를 기준으로 합니다.",
-s4:"4. 얼굴 특징(감지가 틀리면 직접 수정)",faceL:"얼굴형",eyeL:"눈 간격",mouthL:"입",shapes:["둥근형","계란형","긴형","각진형"],eyeO:["가까움","보통","넓음"],mouthO:["작음","보통","큼"],
+s4:"5. 얼굴 특징(감지가 틀리면 직접 수정)",faceL:"얼굴형",eyeL:"눈 간격",mouthL:"입",shapes:["둥근형","계란형","긴형","각진형"],eyeO:["가까움","보통","넓음"],mouthO:["작음","보통","큼"],
 go:"소울메이트 만들기",busy:"분석 중... (처음에는 얼굴 모델을 내려받습니다)",noface:"얼굴이 자동으로 감지되지 않아 직접 고른 특징을 사용합니다.",ok:"얼굴을 감지해 특징을 채웠습니다. 수정할 수 있습니다.",
 resFeat:"나의 얼굴 특징",resMate:"소울메이트 초상",resChar:"성격",resWhy:"이렇게 추정한 이유",save:"이미지 저장",
 look:"외모: 나와 비슷함 — {a}, {b}, {c}.",charT:"나의 {P}를 닮은 점: {t}.",charN:"(선택한 성격 없음)",
@@ -104,7 +107,7 @@ note:"참고: 얼굴형·눈 간격·입은 단순한 비율 기준으로 판단
 traits:["차분함","유머","부지런함","다정함","강인함","박식함","예술적","너그러움"]},
 ja:{title:"ソウルメイトの肖像",warn:"娯楽と自己理解のためのもので、科学的予測や恋愛アドバイスではありません。写真はブラウザ内で処理され、アップロードされません。",intro:"正面の写真をアップロードし、相手の性別と、父または母に似ていてほしい特徴を選ぶと、「ソウルメイト」の肖像と性格を表示します。",
 s1:"1. はっきり写った正面の写真を選ぶ",s2:"2. 性別",me:"私は",mate:"探す相手",male:"男性",female:"女性",s3:"3. 相手に{P}に似ていてほしい点（最大3つ）",father:"父",mother:"母",hint:"根拠：人は親に似た相手に惹かれるという観察があります。ここでは相手と同じ性別の親を基準にします。",
-s4:"4. 顔の特徴（検出が合わない場合は手動で修正）",faceL:"顔型",eyeL:"目の間隔",mouthL:"口",shapes:["丸顔","卵型","面長","四角い顔"],eyeO:["近め","普通","離れ気味"],mouthO:["小さめ","普通","大きめ"],
+s4:"5. 顔の特徴（検出が合わない場合は手動で修正）",faceL:"顔型",eyeL:"目の間隔",mouthL:"口",shapes:["丸顔","卵型","面長","四角い顔"],eyeO:["近め","普通","離れ気味"],mouthO:["小さめ","普通","大きめ"],
 go:"ソウルメイトを作る",busy:"分析中…（初回は顔モデルをダウンロードします）",noface:"顔を自動検出できなかったため、手動で選んだ特徴を使います。",ok:"顔を検出して特徴を入力しました。修正できます。",
 resFeat:"あなたの顔の特徴",resMate:"ソウルメイトの肖像",resChar:"性格",resWhy:"そう推測した理由",save:"画像を保存",
 look:"外見：あなたに似た — {a}、{b}、{c}。",charT:"あなたの{P}に似た点：{t}。",charN:"（性格は未選択）",
@@ -113,7 +116,7 @@ note:"注：顔型・目の間隔・口は単純な比率のしきい値で判�
 traits:["落ち着き","ユーモア","勤勉","優しさ","強さ","博識","芸術的","寛大"]},
 ka:{title:"სულიერი მეწყვილის პორტრეტი",warn:"მხოლოდ გასართობად და თვითშემეცნებისთვის; არ არის მეცნიერული პროგნოზი ან ურთიერთობის რჩევა. ფოტო მუშავდება თქვენს ბრაუზერში და არ იტვირთება.",intro:"ატვირთეთ პირისპირ ფოტო, აირჩიეთ პარტნიორის სქესი და თვისებები, რაც გინდათ მამას ან დედას ჰგავდეს. პროგრამა დახატავს „სულიერი მეწყვილის“ პორტრეტს და აღწერს ხასიათს.",
 s1:"1. აირჩიეთ მკაფიო პირისპირ ფოტო",s2:"2. სქესი",me:"მე ვარ",mate:"ვეძებ",male:"მამაკაცი",female:"ქალი",s3:"3. თვისებები, რომლებიც გსურთ პარტნიორს თქვენი {P} ჰგავდეს (მაქს. 3)",father:"მამას",mother:"დედას",hint:"საფუძველი: არსებობს დაკვირვებები, რომ ადამიანებს იზიდავს მშობლის მსგავსი პარტნიორი. აქ აღებულია პარტნიორის სქესის მშობელი.",
-s4:"4. სახის ნიშნები (შეასწორეთ ხელით, თუ ამოცნობა არ ემთხვევა)",faceL:"სახე",eyeL:"თვალები",mouthL:"პირი",shapes:["მრგვალი","ოვალური","წაგრძელებული","კვადრატული"],eyeO:["ახლოს","საშუალო","შორს"],mouthO:["პატარა","საშუალო","განიერი"],
+s4:"5. სახის ნიშნები (შეასწორეთ ხელით, თუ ამოცნობა არ ემთხვევა)",faceL:"სახე",eyeL:"თვალები",mouthL:"პირი",shapes:["მრგვალი","ოვალური","წაგრძელებული","კვადრატული"],eyeO:["ახლოს","საშუალო","შორს"],mouthO:["პატარა","საშუალო","განიერი"],
 go:"შექმენი",busy:"მიმდინარეობს ანალიზი... (პირველად იტვირთება სახის მოდელი)",noface:"სახე ავტომატურად ვერ ამოიცნო; გამოიყენება თქვენი არჩეული ნიშნები.",ok:"სახე ამოცნობილია; ნიშნები შევსებულია. შეგიძლიათ შეცვალოთ.",
 resFeat:"თქვენი სახის ნიშნები",resMate:"სულიერი მეწყვილის პორტრეტი",resChar:"ხასიათი",resWhy:"რატომ ასე ვვარაუდობთ",save:"სურათის შენახვა",
 look:"გარეგნობა: თქვენნაირი — {a}, {b}, {c}.",charT:"თვისებები, რომლებიც თქვენი {P} ჰგავს: {t}.",charN:"(თვისებები არ არის არჩეული)",
@@ -121,6 +124,26 @@ why:"კვლევები აჩვენებს, რომ წყვი�
 note:"შენიშვნა: სახის ფორმა, თვალების დაშორება და პირი ფასდება მარტივი თანაფარდობებით, ამიტომ დაყოფა მიახლოებითია. პორტრეტი სტილიზებული ნახატია.",
 traits:["დინჯი","იუმორით","შრომისმოყვარე","ნაზი","ძლიერი","განსწავლული","ხელოვანი","გულუხვი"]}
 };
+
+const AGE={
+zh:{h:"4. 伴侣年龄",l:"伴侣年龄",m:"我的年龄（选填）",o:["与我同龄","比我小 5–10 岁","比我小 10–15 岁","比我小 15–20 岁"],rel:"年龄倾向：{o}",abs:"年龄倾向：约 {x}–{y} 岁",cand:"候选",type:"{t}型",tog:"相处特点",wat:"需要注意",again:"换一批",none:"（未选性格特点）"},
+en:{h:"4. Partner's age",l:"Partner's age",m:"My age (optional)",o:["Same age as me","5–10 years younger","10–15 years younger","15–20 years younger"],rel:"Age tendency: {o}",abs:"Age tendency: about {x}–{y}",cand:"Candidate",type:"{t} type",tog:"Living together",wat:"Watch out for",again:"Another batch",none:"(no traits selected)"},
+es:{h:"4. Edad de la pareja",l:"Edad de la pareja",m:"Mi edad (opcional)",o:["Mi misma edad","5–10 años menor","10–15 años menor","15–20 años menor"],rel:"Edad: {o}",abs:"Edad: unos {x}–{y} años",cand:"Candidato",type:"tipo {t}",tog:"Convivencia",wat:"A tener en cuenta",again:"Otro lote",none:"(sin rasgos elegidos)"},
+vi:{h:"4. Tuổi của người ấy",l:"Tuổi người ấy",m:"Tuổi của tôi (tuỳ chọn)",o:["Bằng tuổi tôi","Nhỏ hơn 5–10 tuổi","Nhỏ hơn 10–15 tuổi","Nhỏ hơn 15–20 tuổi"],rel:"Độ tuổi: {o}",abs:"Độ tuổi: khoảng {x}–{y}",cand:"Ứng viên",type:"kiểu {t}",tog:"Khi sống cùng",wat:"Cần lưu ý",again:"Lượt khác",none:"(chưa chọn nét tính cách)"},
+th:{h:"4. อายุของคู่",l:"อายุของคู่",m:"อายุของฉัน (ไม่บังคับ)",o:["อายุเท่าฉัน","อ่อนกว่า 5–10 ปี","อ่อนกว่า 10–15 ปี","อ่อนกว่า 15–20 ปี"],rel:"แนวโน้มอายุ: {o}",abs:"แนวโน้มอายุ: ประมาณ {x}–{y} ปี",cand:"ตัวเลือก",type:"แบบ{t}",tog:"เมื่ออยู่ด้วยกัน",wat:"ข้อควรระวัง",again:"ชุดใหม่",none:"(ไม่ได้เลือกนิสัย)"},
+ko:{h:"4. 상대의 나이",l:"상대 나이",m:"내 나이(선택)",o:["나와 동갑","5–10세 연하","10–15세 연하","15–20세 연하"],rel:"나이 경향: {o}",abs:"나이 경향: 약 {x}–{y}세",cand:"후보",type:"{t}형",tog:"함께 살면",wat:"주의할 점",again:"다른 후보",none:"(선택한 성격 없음)"},
+ja:{h:"4. 相手の年齢",l:"相手の年齢",m:"私の年齢（任意）",o:["同い年","5〜10歳年下","10〜15歳年下","15〜20歳年下"],rel:"年齢の傾向：{o}",abs:"年齢の傾向：約{x}〜{y}歳",cand:"候補",type:"{t}タイプ",tog:"一緒に暮らすと",wat:"注意したい点",again:"別の候補",none:"（性格は未選択）"},
+ka:{h:"4. პარტნიორის ასაკი",l:"პარტნიორის ასაკი",m:"ჩემი ასაკი (არჩევითი)",o:["ჩემი ტოლი","5–10 წლით ახალგაზრდა","10–15 წლით ახალგაზრდა","15–20 წლით ახალგაზრდა"],rel:"ასაკი: {o}",abs:"ასაკი: დაახლოებით {x}–{y}",cand:"კანდიდატი",type:"{t} ტიპი",tog:"ერთად ცხოვრებისას",wat:"გასათვალისწინებელი",again:"სხვა ვარიანტები",none:"(თვისებები არ არის არჩეული)"}};
+// 8 个性格特点各自的 [相处特点, 需要注意]
+const TD={
+zh:[["遇事不慌，让你有安全感，吵架也能冷静收场","有时显得慢热、不爱表达，需要你多主动沟通"],["日常有笑声，能把小摩擦化成玩笑","玩笑开过头会让人觉得不被认真对待，重要的事要认真谈"],["做事踏实，家里生活有条理","容易忙到没时间陪伴，要约好固定的相处时间"],["体贴细心，说话轻声，让人放松","可能不敢直说不满，要鼓励彼此坦率"],["遇到困难能扛事，让人可靠","有时固执、不爱示弱，要学会互相依靠"],["聊天有内容，能一起学新东西","可能爱讲道理，倾听感受比争对错更重要"],["生活有情趣，能一起看展、听音乐、拍照","情绪起伏可能较大，要给彼此空间"],["乐于分享付出，对朋友家人都大方","花钱可能不够节制，大额开销要提前商量"]],
+en:[["Stays calm in a crisis, gives you security, and can settle arguments quietly","May seem slow to open up; you may need to start the conversations"],["Brings laughter and turns small frictions into jokes","Jokes can dodge serious topics; talk seriously about important things"],["Reliable and orderly; home life runs smoothly","May be too busy for time together; schedule it"],["Caring and soft-spoken; easy to relax with","May hide complaints; encourage frankness"],["Carries burdens and is dependable","Can be stubborn and reluctant to ask for help; learn to lean on each other"],["Great conversation; you learn things together","May lecture; listening to feelings matters more than being right"],["A life with taste: exhibitions, music, photography","Moods may swing; give each other space"],["Generous with time and money, to friends and family","May overspend; discuss big expenses first"]],
+es:[["Mantiene la calma y da seguridad; sabe cerrar discusiones con serenidad","Puede abrirse despacio; quizá deba empezar usted la conversación"],["Trae risas y convierte roces en bromas","Las bromas pueden esquivar temas serios; hablen en serio de lo importante"],["Fiable y ordenado; el hogar funciona bien","Puede faltar tiempo en pareja; reserven momentos fijos"],["Atento y de trato suave; da tranquilidad","Puede callar quejas; fomenten la franqueza"],["Aguanta las dificultades y es de fiar","A veces terco y reacio a pedir ayuda; aprendan a apoyarse"],["Buenas conversaciones; aprenden cosas juntos","Puede sermonear; escuchar importa más que tener razón"],["Vida con sensibilidad: exposiciones, música, fotografía","Los ánimos pueden variar; den espacio"],["Generoso con tiempo y dinero","Puede gastar de más; hablen de gastos grandes antes"]],
+vi:[["Bình tĩnh khi gặp chuyện, tạo cảm giác an toàn, cãi nhau cũng biết dừng","Có thể chậm mở lòng; có khi bạn cần chủ động nói chuyện"],["Mang lại tiếng cười, biến va chạm nhỏ thành chuyện đùa","Đùa có thể né chuyện nghiêm túc; việc quan trọng cần nói thẳng"],["Chắc chắn, nhà cửa ngăn nắp","Có thể bận đến thiếu thời gian bên nhau; hãy hẹn giờ cố định"],["Chu đáo, nhẹ nhàng, dễ chịu","Có thể ngại nói điều không hài lòng; khuyến khích thẳng thắn"],["Gánh vác được khó khăn, đáng tin","Đôi khi bướng, ngại nhờ giúp; học cách dựa vào nhau"],["Nói chuyện sâu sắc, cùng học điều mới","Có thể hay giảng giải; lắng nghe cảm xúc quan trọng hơn đúng sai"],["Cuộc sống có gu: triển lãm, âm nhạc, chụp ảnh","Cảm xúc có thể thất thường; cho nhau không gian"],["Hào phóng với bạn bè, gia đình","Có thể tiêu hơi nhiều; bàn trước các khoản lớn"]],
+th:[["ใจเย็นเมื่อเจอปัญหา ให้ความรู้สึกปลอดภัย","อาจเปิดใจช้า คุณอาจต้องเริ่มคุยก่อน"],["สร้างเสียงหัวเราะ เปลี่ยนเรื่องกระทบกระทั่งเป็นเรื่องตลก","มุกอาจเลี่ยงเรื่องจริงจัง เรื่องสำคัญควรคุยกันตรงๆ"],["มั่นคง บ้านเป็นระเบียบ","อาจยุ่งจนไม่มีเวลาให้กัน ควรนัดเวลาที่แน่นอน"],["ใส่ใจ พูดเบา ทำให้ผ่อนคลาย","อาจไม่กล้าบอกข้อไม่พอใจ ควรสนับสนุนให้พูดตรงๆ"],["รับมือความยากลำบากได้ พึ่งพาได้","บางครั้งดื้อและไม่ขอความช่วยเหลือ ควรเรียนรู้ที่จะพึ่งกัน"],["คุยสนุก ได้เรียนรู้ด้วยกัน","อาจชอบสอน การรับฟังความรู้สึกสำคัญกว่าการเอาชนะ"],["ชีวิตมีรสนิยม ดูนิทรรศการ ฟังเพลง ถ่ายรูปด้วยกัน","อารมณ์อาจแปรปรวน ควรให้พื้นที่กัน"],["ใจกว้าง ให้ทั้งเวลาและเงินกับเพื่อนและครอบครัว","อาจใช้เงินเกินตัว ควรปรึกษากันก่อนค่าใช้จ่ายก้อนใหญ่"]],
+ko:[["위기에도 침착해 안정감을 주고 다툼도 차분히 마무리","마음을 천천히 여는 편이라 먼저 대화를 시작해야 할 수 있음"],["웃음이 많고 작은 마찰을 농담으로 풀어 줌","농담으로 진지한 이야기를 피할 수 있어 중요한 일은 진지하게 대화"],["성실하고 집안이 질서 있게 돌아감","바빠서 함께할 시간이 부족할 수 있어 정해 두세요"],["세심하고 말씨가 부드러워 편안함","불만을 숨길 수 있어 솔직함을 격려하세요"],["어려움을 견디는 믿음직한 사람","고집이 세고 도움을 청하지 않을 수 있어 서로 기대는 법을 배우세요"],["대화가 풍부하고 함께 배울 수 있음","가르치려 들 수 있어 옳고 그름보다 감정을 듣는 것이 중요"],["전시, 음악, 사진을 함께 즐기는 감성적인 생활","기분 기복이 있을 수 있어 서로 여유를 주세요"],["친구와 가족에게 시간과 돈을 아낌없이 씀","지출이 과할 수 있어 큰 지출은 미리 상의"]],
+ja:[["動じず安心感があり、口論も穏やかに収められる","打ち解けるのがゆっくりで、あなたから話しかける必要も"],["笑いが絶えず、小さな摩擦を冗談に変える","冗談で真面目な話を避けがち。大事なことはきちんと話す"],["着実で家の中が整う","忙しくて一緒の時間が減りがち。時間を決めておく"],["気配りがあり穏やかで、くつろげる","不満を言えないことも。率直さを促す"],["困難に耐えられる頼れる人","頑固で助けを求めないことも。支え合うことを学ぶ"],["会話が豊かで一緒に学べる","説教気味になりがち。正しさより気持ちを聞く"],["展覧会・音楽・写真など趣のある暮らし","気分の波があるかも。お互いに余白を"],["友人や家族に時間もお金も惜しまない","お金を使いすぎることも。大きな出費は事前に相談"]],
+ka:[["გაჭირვებაში მშვიდია, უსაფრთხოებას გაძლევთ და კამათსაც წყნარად ასრულებს","შეიძლება ნელა იხსნებოდეს; საუბარს შეიძლება თქვენ დაიწყოთ"],["სიცილს მოაქვს და წვრილმან უთანხმოებას ხუმრობად აქცევს","ხუმრობით შეიძლება სერიოზულს გაექცეს; მნიშვნელოვანზე სერიოზულად ისაუბრეთ"],["საიმედოა, სახლში წესრიგია","შეიძლება დაკავებული იყოს; დაგეგმეთ ერთად გატარებული დრო"],["ყურადღებიანია, ნაზად საუბრობს და მოსვენებას გაძლევთ","შეიძლება უკმაყოფილება დამალოს; წაახალისეთ გულახდილობა"],["სირთულეებს უძლებს და საიმედოა","ზოგჯერ ჯიუტია და დახმარებას არ ითხოვს; ისწავლეთ ერთმანეთზე დაყრდნობა"],["საუბარი საინტერესოა, ერთად სწავლობთ","შეიძლება მოძღვრავდეს; გრძნობების მოსმენა სიმართლეზე მნიშვნელოვანია"],["გემოვნებიანი ცხოვრება: გამოფენები, მუსიკა, ფოტო","განწყობა შეიძლება იცვლებოდეს; მიეცით ერთმანეთს სივრცე"],["გულუხვია დროსა და ფულში მეგობრებთან და ოჯახთან","შეიძლება მეტი დახარჯოს; დიდი ხარჯები წინასწარ განიხილეთ"]]};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let LANG="zh",F={face:1,eyes:1,mouth:1},IMG=null,SKIN=null,LASTRES=false;
@@ -152,7 +175,8 @@ function setLang(){
  $("s4").textContent=t.s4;$("faceL").textContent=t.faceL;$("eyeL").textContent=t.eyeL;$("mouthL").textContent=t.mouthL;
  const fill=(id,arr,v)=>{const s=$(id);s.innerHTML=arr.map((x,i)=>"<option value='"+i+"'>"+esc(x)+"</option>").join("");s.value=v};
  fill("face",t.shapes,F.face);fill("eyes",t.eyeO,F.eyes);fill("mouth",t.mouthO,F.mouth);
- $("go").textContent=t.go;$("camBtn").textContent=CAM[LANG][0];$("snapBtn").textContent=CAM[LANG][1];$("closeBtn").textContent=CAM[LANG][2];$("note").textContent=t.note;
+ $("go").textContent=t.go;const A=AGE[LANG];$("s3b").textContent=A.h;$("ageL").textContent=A.l;$("myAgeL").textContent=A.m;
+ {const cur=$("age").value||"2";$("age").innerHTML=A.o.map((x,i)=>"<option value='"+i+"'>"+esc(x)+"</option>").join("");$("age").value=cur}$("camBtn").textContent=CAM[LANG][0];$("snapBtn").textContent=CAM[LANG][1];$("closeBtn").textContent=CAM[LANG][2];$("note").textContent=t.note;
  const sel=[...document.querySelectorAll("#traits input:checked")].map(i=>+i.value);
  $("traits").innerHTML=t.traits.map((x,i)=>"<label><input type='checkbox' value='"+i+"'"+(sel.includes(i)?" checked":"")+" onchange='limit(this)'><span>"+esc(x)+"</span></label>").join("");
  updateS3();if(LASTRES)make(true)}
@@ -200,50 +224,90 @@ async function detect(){
  return true}
 
 // ---- 画像 ----
-function avatarSVG(face,eyes,mouth,gender,skin,seed){
- const base=[241,201,165],mix=skin?skin.map((v,k)=>Math.round(v*0.35+base[k]*0.65)):base;const sk="rgb("+mix.join(",")+")";
- const hairs=["#2b1d14","#4a2f1b","#1a1a1a","#6b4423"],hair=hairs[seed%hairs.length];
- const w=[96,92,84,100][face]||92,h=[104,112,128,106][face]||112;
- const ex=[20,26,33][eyes]||26,mw=[10,16,23][mouth]||16;
- const rx=face===3?18:w;const ry=face===3?18:h;
- const faceEl=face===3?'<rect x="'+(120-w)+'" y="'+(130-h)+'" width="'+(w*2)+'" height="'+(h*2)+'" rx="34" fill="'+sk+'"/>':'<ellipse cx="120" cy="140" rx="'+w+'" ry="'+h+'" fill="'+sk+'"/>';
- const female=gender==="f";
- const back=female?'<path d="M18 150 C18 20 222 20 222 150 L222 270 L190 270 L190 160 L50 160 L50 270 L18 270 Z" fill="'+hair+'"/>':"";
- const top=140-h-6,y0=female?122:106,dep=female?38:28,x1=120-w-7,x2=120+w+7;
- const front='<path d="M'+x1+' '+y0+' C'+x1+' '+(top-34)+' '+x2+' '+(top-34)+' '+x2+' '+y0+' Q120 '+(y0-dep)+' '+x1+' '+y0+' Z" fill="'+hair+'"/>';
- const eyeY=135;
- const eye=(cx)=>'<ellipse cx="'+cx+'" cy="'+eyeY+'" rx="8" ry="'+(female?9:7)+'" fill="#fff"/><circle cx="'+cx+'" cy="'+eyeY+'" r="4.5" fill="#2b1d14"/><circle cx="'+(cx+1.5)+'" cy="'+(eyeY-1.5)+'" r="1.4" fill="#fff"/>';
+const HC=["#2b1d14","#4a2f1b","#1a1a1a","#6b4423","#8a5a2b","#5a3a4a"];
+const CF=["#c76a82","#6a9fc7","#8a6ac7","#6ac79a","#e0a458","#c7746a"],CM=["#4d6fa3","#5a8a6a","#8a5a4d","#6b6b8a","#3d3d3d","#a35d4d"];
+function avatarSVG(face,eyes,mouth,gender,skin,hs,hc,cl,glasses,smile){
+ const base=[241,201,165],mix=skin?skin.map((v,k)=>Math.round(v*0.35+base[k]*0.65)):base,sk="rgb("+mix.join(",")+")";
+ const hair=HC[hc%HC.length],female=gender==="f";
+ const w=([96,92,84,100][face]||92)-4,h=([104,112,128,106][face]||112)-2;
+ const ex=[20,26,33][eyes]||26,mw=[11,17,23][mouth]||17,top=140-h-6;
+ const x1=120-w-7,x2=120+w+7;
+ const faceEl=face===3?'<rect x="'+(120-w)+'" y="'+(140-h)+'" width="'+(w*2)+'" height="'+(h*2)+'" rx="34" fill="'+sk+'"/>':'<ellipse cx="120" cy="140" rx="'+w+'" ry="'+h+'" fill="'+sk+'"/>';
+ const dome=(y0,dep,ctl)=>'<path d="M'+x1+' '+y0+' C'+x1+' '+(top-34)+' '+x2+' '+(top-34)+' '+x2+' '+y0+' Q'+(ctl||120)+' '+(y0-dep)+' '+x1+' '+y0+' Z" fill="'+hair+'"/>';
+ const circ=(x,y,r)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+hair+'"/>';
+ let back="",front="";
+ if(female){
+  const long='<path d="M'+(x1-6)+' 150 C'+(x1-6)+' 20 '+(x2+6)+' 20 '+(x2+6)+' 150 L'+(x2+6)+' 272 L'+(x2-26)+' 272 L'+(x2-26)+' 160 L'+(x1+26)+' 160 L'+(x1+26)+' 272 L'+(x1-6)+' 272 Z" fill="'+hair+'"/>';
+  if(hs===0){back=long;front=dome(122,38)}
+  else if(hs===1){back='<path d="M'+(x1-6)+' 130 Q'+(x1-14)+' 218 '+(x1+22)+' 206 L'+(x2-22)+' 206 Q'+(x2+14)+' 218 '+(x2+6)+' 130 Z" fill="'+hair+'"/>';front=dome(120,34)}
+  else if(hs===2){const tx=Math.min(x2+26,234);back='<path d="M'+(x2-6)+' 100 Q'+tx+' 108 '+(tx-4)+' 205 Q'+(x2+6)+' 160 '+(x2-6)+' 140 Z" fill="'+hair+'"/>';front=dome(118,30)+'<circle cx="'+(x2-4)+'" cy="112" r="6" fill="#e0a458"/>'}
+  else if(hs===3){back=circ(x1,125,26)+circ(x2,125,26)+circ(x1+6,168,22)+circ(x2-6,168,22);front=circ(120-w/2,top+10,28)+circ(120,top,32)+circ(120+w/2,top+10,28)+dome(118,26)}
+  else if(hs===4){front=circ(120,Math.max(26,top-2),20)+dome(120,34)}
+  else {back=long;front=dome(124,10,168)}
+ }else{
+  if(hs===0)front=dome(104,22);
+  else if(hs===1)front=dome(106,10,160)+'<path d="M96 '+(top+6)+' Q100 70 112 94" stroke="'+(hair)+'" stroke-width="0" fill="none"/>';
+  else if(hs===2)front=circ(120-w/2,top+14,26)+circ(120,top+4,30)+circ(120+w/2,top+14,26)+dome(100,18);
+  else if(hs===3)front='<g opacity=".85">'+dome(92,8)+'</g>';
+  else if(hs===4){back='';front='<rect x="'+(x1+2)+'" y="100" width="18" height="78" rx="9" fill="'+hair+'"/><rect x="'+(x2-20)+'" y="100" width="18" height="78" rx="9" fill="'+hair+'"/>'+dome(110,26)}
+  else front=dome(88,4,120);
+ }
+ const eyeY=135,er=female?9:7.5;
+ const eye=cx=>'<ellipse cx="'+cx+'" cy="'+eyeY+'" rx="8.5" ry="'+er+'" fill="#fff"/><circle cx="'+cx+'" cy="'+eyeY+'" r="5" fill="#2b1d14"/><circle cx="'+(cx+1.8)+'" cy="'+(eyeY-1.8)+'" r="1.6" fill="#fff"/>';
+ const brow='<path d="M'+(120-ex-10)+' '+(eyeY-17)+' q10 -7 20 0 M'+(120+ex-10)+' '+(eyeY-17)+' q10 -7 20 0" stroke="'+hair+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
  const lash=female?'<path d="M'+(120-ex-10)+' '+(eyeY-6)+' q10 -9 20 0 M'+(120+ex-10)+' '+(eyeY-6)+' q10 -9 20 0" stroke="#2b1d14" stroke-width="2" fill="none"/>':"";
+ const gl=glasses?'<g stroke="#333" stroke-width="2.4" fill="none"><circle cx="'+(120-ex)+'" cy="'+eyeY+'" r="15"/><circle cx="'+(120+ex)+'" cy="'+eyeY+'" r="15"/><path d="M'+(120-ex+15)+' '+eyeY+' L'+(120+ex-15)+' '+eyeY+'"/></g>':"";
  const my=190+Math.max(0,(h-112)/4);
- return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 290" width="220" height="266"><rect width="240" height="290" rx="16" fill="#fdeef0"/>'+back
+ const earr=female&&hs!==3&&hs!==0?'<circle cx="'+(120-w)+'" cy="'+(my-18)+'" r="4" fill="#e0a458"/><circle cx="'+(120+w)+'" cy="'+(my-18)+'" r="4" fill="#e0a458"/>':"";
+ const cloth=(female?CF:CM)[cl%6];
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 290" width="200" height="242"><rect width="240" height="290" rx="16" fill="#fdeef0"/>'+back
   +'<rect x="104" y="'+(my-10)+'" width="32" height="70" rx="12" fill="'+sk+'"/>'
-  +'<path d="M50 290 Q120 215 190 290 Z" fill="'+(female?"#c76a82":"#4d6fa3")+'"/>'
-  +faceEl+front+eye(120-ex)+eye(120+ex)
-  +'<path d="M'+(120-ex-10)+' '+(eyeY-17)+' q10 -7 20 0" stroke="'+hair+'" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M'+(120+ex-10)+' '+(eyeY-17)+' q10 -7 20 0" stroke="'+hair+'" stroke-width="3" fill="none" stroke-linecap="round"/>'
-  +lash+'<path d="M120 148 q-5 14 0 18 q5 2 8 -2" stroke="#b98a68" stroke-width="2" fill="none" stroke-linecap="round"/>'
-  +'<path d="M'+(120-mw)+' '+my+' Q120 '+(my+14)+' '+(120+mw)+' '+my+'" stroke="#b5475f" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+  +'<path d="M50 290 Q120 215 190 290 Z" fill="'+cloth+'"/>'
+  +faceEl+earr+front+eye(120-ex)+eye(120+ex)+brow+lash+gl
+  +'<path d="M120 148 q-5 14 0 18 q5 2 8 -2" stroke="#b98a68" stroke-width="2" fill="none" stroke-linecap="round"/>'
+  +'<path d="M'+(120-mw)+' '+my+' Q120 '+(my+(smile||14))+' '+(120+mw)+' '+my+'" stroke="#b5475f" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
   +'<circle cx="'+(120-w*0.55)+'" cy="'+(my-12)+'" r="9" fill="#f6a5b0" opacity=".45"/><circle cx="'+(120+w*0.55)+'" cy="'+(my-12)+'" r="9" fill="#f6a5b0" opacity=".45"/></svg>'}
 
-async function make(keep){
- const t=L[LANG];
- if(!keep){$("out").innerHTML="<p>"+esc(t.busy)+"</p>";
+let BATCH=0;
+function ageText(){
+ const A=AGE[LANG],g=+$("age").value,my=parseInt($("myAge").value,10);
+ if(!isNaN(my)&&my>=18&&my<=100){const G=[[-2,2],[5,10],[10,15],[15,20]][g];
+  const lo=Math.max(25,my-G[1]),hi=Math.max(lo+(g===0?4:3),my-G[0]);return A.abs.replace("{x}",lo).replace("{y}",hi)}
+ return A.rel.replace("{o}",A.o[g])}
+
+async function make(keep,more){
+ const t=L[LANG],A=AGE[LANG];
+ if(more)BATCH++;else if(!keep){BATCH=0}
+ if(!keep&&!more){$("out").innerHTML="<p>"+esc(t.busy)+"</p>";
   let ok=false;try{ok=await detect()}catch(e){ok=false}
   $("det").textContent=IMG?(ok?t.ok:t.noface):""}
  const f=F,gender=$("mate").value,P=parentWord();
- const tr=[...document.querySelectorAll("#traits input:checked")].map(i=>t.traits[+i.value]);
- const a=t.shapes[f.face],b=t.eyeO[f.eyes],c=t.mouthO[f.mouth];
- const svg=avatarSVG(f.face,f.eyes,f.mouth,gender,SKIN,f.face*3+f.eyes+f.mouth);
+ const sel=[...document.querySelectorAll("#traits input:checked")].map(i=>+i.value);
+ const tr=sel.map(i=>t.traits[i]);
  const sep=(LANG==="zh"||LANG==="ja")?"、":", ";
+ const hist=[5,3,1,0,2,4];
+ let cards="";
+ for(let c=0;c<3;c++){
+  const k=BATCH*3+c,hs=(k+(gender==="f"?0:1))%6,hc=(k*5+c)%6,cl=(k*2+c)%6,glasses=(k%4===2),smile=[14,18,11][c];
+  const svg=avatarSVG(f.face,f.eyes,f.mouth,gender,SKIN,hs,hc,cl,glasses,smile);
+  let txt="";
+  if(sel.length){const m=sel[c%sel.length],m2=sel[(c+1)%sel.length];
+   const pr=TD[LANG][m],pr2=TD[LANG][m2];
+   txt="<p><b>"+esc(A.tog)+"：</b>"+esc(pr[0])+(sel.length>1?"；"+esc(pr2[0]):"")+"</p><p><b>"+esc(A.wat)+"：</b>"+esc(pr[1])+"</p>";
+   var ttl=A.cand+" "+(k+1)+" · "+A.type.replace("{t}",t.traits[m])}
+  else{txt="<p class='note'>"+esc(A.none)+"</p>";var ttl=A.cand+" "+(k+1)}
+  cards+="<div class='card' style='flex:1;min-width:210px;max-width:260px'><div class='note' style='font-weight:700'>"+esc(ttl)+"</div><div class='av'>"+svg+"</div><div style='margin:6px 0'><button class='sec' onclick='savePng("+c+")'>"+esc(t.save)+"</button></div>"+txt+"</div>"}
+ const a=t.shapes[f.face],b=t.eyeO[f.eyes],c2=t.mouthO[f.mouth];
  let h="<div class='card'><div class='res'>"+(IMG?"<div><div class='note'>"+esc(t.resFeat)+"</div><img class='ph' src='"+esc($("prev").src)+"'></div>":"")
- +"<div><div class='note'>"+esc(t.resMate)+"</div><div id='av'>"+svg+"</div><div style='margin-top:6px'><button class='sec' onclick='savePng()'>"+esc(t.save)+"</button></div></div>"
- +"<div style='flex:1;min-width:230px'><h3 style='margin-top:0'>"+esc(t.resChar)+"</h3><p>"+esc(t.look.replace("{a}",a).replace("{b}",b).replace("{c}",c))+"</p><p>"+esc(tr.length?t.charT.replace("{P}",P).replace("{t}",tr.join(sep)):t.charN)+"</p>"
- +"<h3>"+esc(t.resWhy)+"</h3><p class='note'>"+esc(t.why)+"</p></div></div></div>";
+ +"<div style='flex:1;min-width:230px'><h3 style='margin-top:0'>"+esc(t.resMate)+"</h3><p>"+esc(t.look.replace("{a}",a).replace("{b}",b).replace("{c}",c2))+"</p><p>"+esc(ageText())+"</p><p>"+esc(tr.length?t.charT.replace("{P}",P).replace("{t}",tr.join(sep)):t.charN)+"</p></div></div></div>"
+ +"<div class='res' style='margin-top:6px'>"+cards+"</div><div class='row'><button onclick='make(true,true)'>"+esc(A.again)+"</button></div>"
+ +"<h3>"+esc(t.resWhy)+"</h3><p class='note'>"+esc(t.why)+"</p>";
  $("out").innerHTML=h;LASTRES=true}
 
-function savePng(){const s=document.querySelector("#av svg");if(!s)return;
- const x=new XMLSerializer().serializeToString(s);const img=new Image();
+function savePng(n){const sv=document.querySelectorAll(".av svg")[n];if(!sv)return;
+ const x=new XMLSerializer().serializeToString(sv);const img=new Image();
  img.onload=()=>{const c=document.createElement("canvas");c.width=480;c.height=580;c.getContext("2d").drawImage(img,0,0,480,580);
-  c.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="soulmate.png";a.click()})};
+  c.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="soulmate"+(n+1)+".png";a.click()})};
  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(x)}
 setLang();
 </script></body></html>
