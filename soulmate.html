@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灵魂伴侣画像</title>
+<style>
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:14px;background:#f8f6f4;color:#222;line-height:1.55}
+#warn{background:#fff3cd;border:1px solid #e0c36a;border-radius:8px;padding:10px 12px;font-weight:600;margin-bottom:12px}
+h1{font-size:22px;margin:10px 0 4px}h3{margin:18px 0 6px;color:#9c3d54;font-size:17px}
+select,button,input[type=file]{font-size:16px;padding:8px 10px;border-radius:8px;border:1px solid #bbb;background:#fff;max-width:100%}
+button{background:#9c3d54;color:#fff;border:0;cursor:pointer}button.sec{background:#fff;color:#9c3d54;border:1px solid #9c3d54}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0}
+.chips label{display:inline-block;margin:3px 4px 3px 0;padding:5px 11px;border:1px solid #9c3d54;color:#9c3d54;border-radius:16px;cursor:pointer;font-size:14px;background:#fff}
+.chips input{display:none}.chips input:checked+span{font-weight:700}.chips label:has(input:checked){background:#9c3d54;color:#fff}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}
+.res{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.res img.ph{width:150px;height:190px;object-fit:cover;border-radius:10px;border:1px solid #ddd}
+.note{color:#666;font-size:13px}
+</style></head><body>
+<div id="warn"></div>
+<select id="lang" onchange="setLang()">
+<option value="zh">中文</option><option value="en">English</option><option value="es">Español</option><option value="vi">Tiếng Việt</option><option value="th">ไทย</option><option value="ko">한국어</option><option value="ja">日本語</option><option value="ka">ქართული</option></select>
+<h1 id="ttl"></h1><p id="intro"></p>
+
+<h3 id="s1"></h3>
+<div class="row"><input type="file" id="file" accept="image/*" onchange="onFile()"></div>
+<div class="row"><img id="prev" class="ph" style="display:none;width:110px;height:140px;object-fit:cover;border-radius:8px"><span id="det" class="note"></span></div>
+
+<h3 id="s2"></h3>
+<div class="row"><span id="meL"></span><select id="me"><option value="m"></option><option value="f"></option></select>
+<span id="mateL"></span><select id="mate"><option value="f"></option><option value="m"></option></select></div>
+
+<h3 id="s3"></h3>
+<div class="chips" id="traits"></div><div class="note" id="hint"></div>
+
+<h3 id="s4"></h3>
+<div class="row"><span id="faceL"></span><select id="face"></select>
+<span id="eyeL"></span><select id="eyes"></select>
+<span id="mouthL"></span><select id="mouth"></select></div>
+
+<div class="row" style="margin-top:14px"><button id="go" onclick="make()"></button></div>
+<div id="out"></div>
+<p class="note" id="note"></p>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
+<script>
+const LANGS=["zh","en","es","vi","th","ko","ja","ka"];
+const L={
+zh:{title:"灵魂伴侣画像",warn:"仅供娱乐和自我了解，不是科学预测，也不是婚恋建议。照片只在你的浏览器里处理，不会上传。",intro:"上传一张正面照片，选择你想找的伴侣性别，再选你希望伴侣像父亲或母亲的哪些特点，程序会画出一个“灵魂伴侣”形象，并写出性格特点。",
+s1:"1. 选一张正面、清晰的照片",s2:"2. 性别",me:"我是",mate:"想找的伴侣是",male:"男",female:"女",s3:"3. 希望伴侣有哪些像你{P}的特点（最多选3个）",father:"父亲",mother:"母亲",hint:"依据：有观察认为，人们常被类似异性或同性父母的特点吸引。这里取与伴侣性别相同的那位父亲或母亲。",
+s4:"4. 脸部特征（照片检测不准时可手动改）",faceL:"脸型",eyeL:"眼距",mouthL:"嘴",shapes:["圆脸","鹅蛋脸","长脸","方脸"],eyeO:["眼距偏近","眼距适中","眼距偏宽"],mouthO:["嘴偏小","嘴适中","嘴偏宽"],
+go:"生成灵魂伴侣",busy:"正在分析……（第一次需要下载人脸模型，请稍等）",noface:"没有自动检测到人脸（可能模型没加载成功），已使用你手动选择的特征。",ok:"已检测到人脸并填好特征，可再手动调整。",
+resFeat:"你的面部特征",resMate:"你的灵魂伴侣画像",resChar:"性格特点",resWhy:"为什么这样推测",save:"保存图片",
+look:"外貌倾向：与你相似——{a}，{b}，{c}。",charT:"希望有你{P}的这些特点：{t}。",charN:"（未选择性格特点）",
+why:"研究发现，人们的伴侣在外貌、年龄、背景上往往有一定相似性（“同类婚配”），长期生活后表情和习惯也会趋同，这就是常说的“夫妻相”。另有一些研究认为，人会受异性或同性父母特点的影响，但结果并不一致，影响也不大。这个画像只是把你的面部特征和你选择的性格倾向组合出来，仅供娱乐，不能预测真实的缘分。",
+note:"提示：脸型、眼距、嘴形的判断用的是简单的比例阈值，只是粗略分类。画像是风格化的卡通，不是真人。",
+traits:["沉稳","幽默","勤劳","温柔","坚强","博学","有艺术气质","慷慨"]},
+en:{title:"Soulmate Portrait",warn:"For fun and self-reflection only; not a scientific prediction or relationship advice. Your photo is processed in your browser and is never uploaded.",intro:"Upload a front-facing photo, choose the partner's gender, then pick the traits you'd like your partner to share with your father or mother. The program draws a 'soulmate' portrait and describes the character.",
+s1:"1. Choose a clear, front-facing photo",s2:"2. Gender",me:"I am",mate:"Looking for a",male:"male",female:"female",s3:"3. Traits you'd like your partner to share with your {P} (up to 3)",father:"father",mother:"mother",hint:"Basis: some observations suggest people are drawn to partners resembling a parent. Here we use the parent of the same gender as the partner.",
+s4:"4. Facial features (adjust manually if detection is off)",faceL:"Face",eyeL:"Eyes",mouthL:"Mouth",shapes:["Round","Oval","Long","Square"],eyeO:["Close-set","Average","Wide-set"],mouthO:["Small","Average","Wide"],
+go:"Generate soulmate",busy:"Analyzing... (first time it downloads a face model, please wait)",noface:"No face was detected automatically (the model may not have loaded); using the features you selected.",ok:"Face detected; features filled in. You may adjust them.",
+resFeat:"Your facial features",resMate:"Your soulmate portrait",resChar:"Character",resWhy:"Why this guess",save:"Save image",
+look:"Look: similar to you — {a}, {b}, {c}.",charT:"Traits shared with your {P}: {t}.",charN:"(No traits selected)",
+why:"Studies find partners tend to resemble each other in looks, age and background ('assortative mating'), and couples' expressions and habits converge over time, which is the so-called 'couple look'. Some research also suggests parents' traits may influence attraction, but results are mixed and the effect is small. This portrait simply combines your facial features with the traits you chose. It's for entertainment and cannot predict real relationships.",
+note:"Note: face shape, eye spacing and mouth are judged with simple ratio thresholds, so classification is rough. The portrait is a stylized cartoon, not a real person.",
+traits:["Calm","Humorous","Hardworking","Gentle","Strong","Learned","Artistic","Generous"]},
+es:{title:"Retrato del alma gemela",warn:"Solo para entretenimiento y reflexión; no es una predicción científica ni un consejo de pareja. Su foto se procesa en su navegador y no se sube.",intro:"Suba una foto de frente, elija el género de la pareja y los rasgos que desea que se parezcan a su padre o madre. El programa dibuja un retrato de «alma gemela» y describe su carácter.",
+s1:"1. Elija una foto nítida de frente",s2:"2. Género",me:"Soy",mate:"Busco",male:"hombre",female:"mujer",s3:"3. Rasgos que desea que su pareja comparta con su {P} (máx. 3)",father:"padre",mother:"madre",hint:"Base: algunas observaciones sugieren que nos atraen parejas parecidas a un progenitor. Se usa el progenitor del mismo género que la pareja.",
+s4:"4. Rasgos faciales (ajuste a mano si falla la detección)",faceL:"Cara",eyeL:"Ojos",mouthL:"Boca",shapes:["Redonda","Ovalada","Alargada","Cuadrada"],eyeO:["Juntos","Normal","Separados"],mouthO:["Pequeña","Normal","Ancha"],
+go:"Generar alma gemela",busy:"Analizando... (la primera vez se descarga un modelo facial)",noface:"No se detectó rostro automáticamente; se usan los rasgos elegidos a mano.",ok:"Rostro detectado; rasgos rellenados. Puede ajustarlos.",
+resFeat:"Sus rasgos faciales",resMate:"Retrato de su alma gemela",resChar:"Carácter",resWhy:"Por qué esta suposición",save:"Guardar imagen",
+look:"Aspecto: parecido al suyo — {a}, {b}, {c}.",charT:"Rasgos compartidos con su {P}: {t}.",charN:"(Sin rasgos elegidos)",
+why:"Los estudios muestran que las parejas tienden a parecerse en aspecto, edad y origen («emparejamiento selectivo»), y con los años sus gestos y hábitos convergen: es el «aire de pareja». Algunos estudios sugieren que los rasgos de los padres influyen en la atracción, pero los resultados son mixtos y el efecto es pequeño. Este retrato solo combina sus rasgos con lo elegido. Es entretenimiento y no predice relaciones reales.",
+note:"Nota: forma de cara, separación de ojos y boca se estiman con umbrales sencillos; la clasificación es aproximada. El retrato es un dibujo estilizado.",
+traits:["Sereno","Gracioso","Trabajador","Tierno","Fuerte","Culto","Artístico","Generoso"]},
+vi:{title:"Chân dung tri kỷ",warn:"Chỉ để giải trí và tự khám phá; không phải dự đoán khoa học hay lời khuyên tình cảm. Ảnh chỉ được xử lý trong trình duyệt, không tải lên.",intro:"Tải ảnh chính diện, chọn giới tính người bạn đời và những nét bạn muốn giống cha hoặc mẹ. Chương trình vẽ chân dung “tri kỷ” và mô tả tính cách.",
+s1:"1. Chọn ảnh chính diện, rõ nét",s2:"2. Giới tính",me:"Tôi là",mate:"Tìm",male:"nam",female:"nữ",s3:"3. Nét bạn muốn người ấy giống {P} của bạn (tối đa 3)",father:"cha",mother:"mẹ",hint:"Cơ sở: có quan sát cho rằng người ta hay bị thu hút bởi người giống cha mẹ. Ở đây lấy cha hoặc mẹ cùng giới với người bạn đời.",
+s4:"4. Đặc điểm khuôn mặt (chỉnh tay nếu nhận diện chưa đúng)",faceL:"Mặt",eyeL:"Mắt",mouthL:"Miệng",shapes:["Tròn","Trái xoan","Dài","Vuông"],eyeO:["Gần nhau","Vừa","Xa nhau"],mouthO:["Nhỏ","Vừa","Rộng"],
+go:"Tạo tri kỷ",busy:"Đang phân tích... (lần đầu cần tải mô hình khuôn mặt)",noface:"Không tự nhận diện được khuôn mặt; dùng đặc điểm bạn chọn.",ok:"Đã nhận diện khuôn mặt; bạn có thể chỉnh lại.",
+resFeat:"Đặc điểm khuôn mặt của bạn",resMate:"Chân dung tri kỷ",resChar:"Tính cách",resWhy:"Vì sao suy đoán như vậy",save:"Lưu ảnh",
+look:"Ngoại hình: giống bạn — {a}, {b}, {c}.",charT:"Nét giống {P} của bạn: {t}.",charN:"(Chưa chọn nét tính cách)",
+why:"Nghiên cứu cho thấy các cặp đôi thường giống nhau về ngoại hình, tuổi và hoàn cảnh (“kết đôi tương đồng”), và sống lâu cùng nhau thì nét mặt, thói quen cũng gần nhau — đó là “tướng vợ chồng”. Một số nghiên cứu cho rằng nét của cha mẹ ảnh hưởng đến sự hấp dẫn, nhưng kết quả không nhất quán và ảnh hưởng nhỏ. Chân dung này chỉ kết hợp đặc điểm của bạn với lựa chọn của bạn, chỉ để giải trí.",
+note:"Lưu ý: hình mặt, khoảng cách mắt, miệng được ước lượng bằng ngưỡng tỷ lệ đơn giản nên chỉ mang tính tương đối. Chân dung là hình hoạt hoạ.",
+traits:["Điềm đạm","Hài hước","Chăm chỉ","Dịu dàng","Mạnh mẽ","Uyên bác","Nghệ sĩ","Rộng lượng"]},
+th:{title:"ภาพคู่แท้",warn:"เพื่อความบันเทิงและการรู้จักตัวเองเท่านั้น ไม่ใช่การทำนายทางวิทยาศาสตร์หรือคำแนะนำเรื่องความรัก รูปถูกประมวลผลในเบราว์เซอร์ ไม่ถูกอัปโหลด",intro:"อัปโหลดรูปหน้าตรง เลือกเพศของคู่ และลักษณะที่อยากให้คล้ายพ่อหรือแม่ โปรแกรมจะวาดภาพ “คู่แท้” และอธิบายนิสัย",
+s1:"1. เลือกรูปหน้าตรงที่ชัดเจน",s2:"2. เพศ",me:"ฉันเป็น",mate:"มองหา",male:"ชาย",female:"หญิง",s3:"3. ลักษณะที่อยากให้คู่คล้าย{P}ของคุณ (เลือกได้ไม่เกิน 3)",father:"พ่อ",mother:"แม่",hint:"ที่มา: มีข้อสังเกตว่าคนมักถูกดึงดูดโดยคนที่คล้ายพ่อแม่ ที่นี่ใช้พ่อหรือแม่ที่เป็นเพศเดียวกับคู่",
+s4:"4. ลักษณะใบหน้า (ปรับเองได้ถ้าตรวจจับไม่แม่น)",faceL:"ใบหน้า",eyeL:"ตา",mouthL:"ปาก",shapes:["กลม","รูปไข่","ยาว","เหลี่ยม"],eyeO:["ตาชิด","ปานกลาง","ตาห่าง"],mouthO:["เล็ก","ปานกลาง","กว้าง"],
+go:"สร้างภาพคู่แท้",busy:"กำลังวิเคราะห์... (ครั้งแรกต้องดาวน์โหลดโมเดลใบหน้า)",noface:"ตรวจไม่พบใบหน้าอัตโนมัติ ใช้ลักษณะที่คุณเลือกเอง",ok:"ตรวจพบใบหน้าแล้ว ปรับเพิ่มเติมได้",
+resFeat:"ลักษณะใบหน้าของคุณ",resMate:"ภาพคู่แท้ของคุณ",resChar:"นิสัย",resWhy:"ทำไมจึงคาดเดาเช่นนี้",save:"บันทึกภาพ",
+look:"รูปลักษณ์: คล้ายคุณ — {a}, {b}, {c}",charT:"ลักษณะที่คล้าย{P}ของคุณ: {t}",charN:"(ไม่ได้เลือกลักษณะนิสัย)",
+why:"งานวิจัยพบว่าคู่ครองมักคล้ายกันในรูปลักษณ์ อายุ และพื้นเพ และเมื่ออยู่ด้วยกันนาน สีหน้าและนิสัยก็คล้ายกัน ซึ่งเป็นที่มาของ “หน้าเหมือนสามีภรรยา” บางงานวิจัยชี้ว่าลักษณะของพ่อแม่อาจมีผลต่อความดึงดูด แต่ผลไม่สอดคล้องและมีขนาดเล็ก ภาพนี้เป็นเพียงการรวมลักษณะใบหน้าของคุณกับสิ่งที่คุณเลือก เพื่อความบันเทิงเท่านั้น",
+note:"หมายเหตุ: รูปหน้า ระยะตา และปากประเมินด้วยเกณฑ์อัตราส่วนง่ายๆ จึงเป็นการจัดกลุ่มคร่าวๆ ภาพเป็นการ์ตูน ไม่ใช่คนจริง",
+traits:["สุขุม","อารมณ์ขัน","ขยัน","อ่อนโยน","เข้มแข็ง","รอบรู้","มีศิลปะ","ใจกว้าง"]},
+ko:{title:"소울메이트 초상",warn:"재미와 자기 이해를 위한 것으로, 과학적 예측이나 연애 조언이 아닙니다. 사진은 브라우저에서만 처리되며 업로드되지 않습니다.",intro:"정면 사진을 올리고, 상대의 성별과 부모님 중 닮았으면 하는 특성을 고르면 '소울메이트' 초상과 성격을 보여 드립니다.",
+s1:"1. 선명한 정면 사진 선택",s2:"2. 성별",me:"나는",mate:"찾는 상대",male:"남성",female:"여성",s3:"3. 상대가 나의 {P}를 닮았으면 하는 점(최대 3개)",father:"아버지",mother:"어머니",hint:"근거: 사람들이 부모와 닮은 상대에게 끌린다는 관찰이 있습니다. 여기서는 상대와 같은 성별의 부모를 기준으로 합니다.",
+s4:"4. 얼굴 특징(감지가 틀리면 직접 수정)",faceL:"얼굴형",eyeL:"눈 간격",mouthL:"입",shapes:["둥근형","계란형","긴형","각진형"],eyeO:["가까움","보통","넓음"],mouthO:["작음","보통","큼"],
+go:"소울메이트 만들기",busy:"분석 중... (처음에는 얼굴 모델을 내려받습니다)",noface:"얼굴이 자동으로 감지되지 않아 직접 고른 특징을 사용합니다.",ok:"얼굴을 감지해 특징을 채웠습니다. 수정할 수 있습니다.",
+resFeat:"나의 얼굴 특징",resMate:"소울메이트 초상",resChar:"성격",resWhy:"이렇게 추정한 이유",save:"이미지 저장",
+look:"외모: 나와 비슷함 — {a}, {b}, {c}.",charT:"나의 {P}를 닮은 점: {t}.",charN:"(선택한 성격 없음)",
+why:"연구에 따르면 부부는 외모, 나이, 배경이 비슷한 경향('유유상종 결혼')이 있고, 오래 함께 살면 표정과 습관도 닮아 갑니다. 이것이 흔히 말하는 '부부상'입니다. 부모의 특성이 끌림에 영향을 준다는 연구도 있으나 결과가 엇갈리고 효과도 작습니다. 이 초상은 내 얼굴 특징과 고른 성격을 조합한 것일 뿐이며 오락용입니다.",
+note:"참고: 얼굴형·눈 간격·입은 단순한 비율 기준으로 판단하므로 대략적인 분류입니다. 초상은 만화 스타일이며 실제 인물이 아닙니다.",
+traits:["차분함","유머","부지런함","다정함","강인함","박식함","예술적","너그러움"]},
+ja:{title:"ソウルメイトの肖像",warn:"娯楽と自己理解のためのもので、科学的予測や恋愛アドバイスではありません。写真はブラウザ内で処理され、アップロードされません。",intro:"正面の写真をアップロードし、相手の性別と、父または母に似ていてほしい特徴を選ぶと、「ソウルメイト」の肖像と性格を表示します。",
+s1:"1. はっきり写った正面の写真を選ぶ",s2:"2. 性別",me:"私は",mate:"探す相手",male:"男性",female:"女性",s3:"3. 相手に{P}に似ていてほしい点（最大3つ）",father:"父",mother:"母",hint:"根拠：人は親に似た相手に惹かれるという観察があります。ここでは相手と同じ性別の親を基準にします。",
+s4:"4. 顔の特徴（検出が合わない場合は手動で修正）",faceL:"顔型",eyeL:"目の間隔",mouthL:"口",shapes:["丸顔","卵型","面長","四角い顔"],eyeO:["近め","普通","離れ気味"],mouthO:["小さめ","普通","大きめ"],
+go:"ソウルメイトを作る",busy:"分析中…（初回は顔モデルをダウンロードします）",noface:"顔を自動検出できなかったため、手動で選んだ特徴を使います。",ok:"顔を検出して特徴を入力しました。修正できます。",
+resFeat:"あなたの顔の特徴",resMate:"ソウルメイトの肖像",resChar:"性格",resWhy:"そう推測した理由",save:"画像を保存",
+look:"外見：あなたに似た — {a}、{b}、{c}。",charT:"あなたの{P}に似た点：{t}。",charN:"（性格は未選択）",
+why:"研究では、パートナーは外見・年齢・背景が似る傾向（同類婚）があり、長く暮らすと表情や習慣も似てきます。これがいわゆる「夫婦の顔」です。親の特徴が好みに影響するという研究もありますが、結果は一貫せず効果も小さいです。この肖像はあなたの顔の特徴と選んだ性格を組み合わせただけの娯楽で、実際の縁を予測するものではありません。",
+note:"注：顔型・目の間隔・口は単純な比率のしきい値で判定しており、大まかな分類です。肖像は様式化したイラストで、実在の人物ではありません。",
+traits:["落ち着き","ユーモア","勤勉","優しさ","強さ","博識","芸術的","寛大"]},
+ka:{title:"სულიერი მეწყვილის პორტრეტი",warn:"მხოლოდ გასართობად და თვითშემეცნებისთვის; არ არის მეცნიერული პროგნოზი ან ურთიერთობის რჩევა. ფოტო მუშავდება თქვენს ბრაუზერში და არ იტვირთება.",intro:"ატვირთეთ პირისპირ ფოტო, აირჩიეთ პარტნიორის სქესი და თვისებები, რაც გინდათ მამას ან დედას ჰგავდეს. პროგრამა დახატავს „სულიერი მეწყვილის“ პორტრეტს და აღწერს ხასიათს.",
+s1:"1. აირჩიეთ მკაფიო პირისპირ ფოტო",s2:"2. სქესი",me:"მე ვარ",mate:"ვეძებ",male:"მამაკაცი",female:"ქალი",s3:"3. თვისებები, რომლებიც გსურთ პარტნიორს თქვენი {P} ჰგავდეს (მაქს. 3)",father:"მამას",mother:"დედას",hint:"საფუძველი: არსებობს დაკვირვებები, რომ ადამიანებს იზიდავს მშობლის მსგავსი პარტნიორი. აქ აღებულია პარტნიორის სქესის მშობელი.",
+s4:"4. სახის ნიშნები (შეასწორეთ ხელით, თუ ამოცნობა არ ემთხვევა)",faceL:"სახე",eyeL:"თვალები",mouthL:"პირი",shapes:["მრგვალი","ოვალური","წაგრძელებული","კვადრატული"],eyeO:["ახლოს","საშუალო","შორს"],mouthO:["პატარა","საშუალო","განიერი"],
+go:"შექმენი",busy:"მიმდინარეობს ანალიზი... (პირველად იტვირთება სახის მოდელი)",noface:"სახე ავტომატურად ვერ ამოიცნო; გამოიყენება თქვენი არჩეული ნიშნები.",ok:"სახე ამოცნობილია; ნიშნები შევსებულია. შეგიძლიათ შეცვალოთ.",
+resFeat:"თქვენი სახის ნიშნები",resMate:"სულიერი მეწყვილის პორტრეტი",resChar:"ხასიათი",resWhy:"რატომ ასე ვვარაუდობთ",save:"სურათის შენახვა",
+look:"გარეგნობა: თქვენნაირი — {a}, {b}, {c}.",charT:"თვისებები, რომლებიც თქვენი {P} ჰგავს: {t}.",charN:"(თვისებები არ არის არჩეული)",
+why:"კვლევები აჩვენებს, რომ წყვილები ხშირად გარეგნობით, ასაკითა და წარმომავლობით ჰგვანან („მსგავსთა დაწყვილება“), ხოლო ერთად ცხოვრებისას გამომეტყველებაც და ჩვევებიც ემსგავსება — ეს არის „ცოლ-ქმრული მსგავსება“. ზოგი კვლევა მიიჩნევს, რომ მშობლის თვისებები მიზიდულობაზე მოქმედებს, მაგრამ შედეგები არათანმიმდევრულია და ეფექტი მცირეა. ეს პორტრეტი მხოლოდ აერთიანებს თქვენს სახის ნიშნებსა და არჩეულ თვისებებს; გასართობია.",
+note:"შენიშვნა: სახის ფორმა, თვალების დაშორება და პირი ფასდება მარტივი თანაფარდობებით, ამიტომ დაყოფა მიახლოებითია. პორტრეტი სტილიზებული ნახატია.",
+traits:["დინჯი","იუმორით","შრომისმოყვარე","ნაზი","ძლიერი","განსწავლული","ხელოვანი","გულუხვი"]}
+};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let LANG="zh",F={face:1,eyes:1,mouth:1},IMG=null,SKIN=null,LASTRES=false;
+
+function setLang(){
+ LANG=$("lang").value;document.documentElement.lang=LANG;const t=L[LANG];
+ $("warn").textContent=t.warn;$("ttl").textContent=t.title;document.title=t.title;$("intro").textContent=t.intro;
+ $("s1").textContent=t.s1;$("s2").textContent=t.s2;$("meL").textContent=t.me;$("mateL").textContent=t.mate;
+ [...$("me").options].forEach(o=>o.textContent=o.value==="m"?t.male:t.female);
+ [...$("mate").options].forEach(o=>o.textContent=o.value==="m"?t.male:t.female);
+ $("s4").textContent=t.s4;$("faceL").textContent=t.faceL;$("eyeL").textContent=t.eyeL;$("mouthL").textContent=t.mouthL;
+ const fill=(id,arr,v)=>{const s=$(id);s.innerHTML=arr.map((x,i)=>"<option value='"+i+"'>"+esc(x)+"</option>").join("");s.value=v};
+ fill("face",t.shapes,F.face);fill("eyes",t.eyeO,F.eyes);fill("mouth",t.mouthO,F.mouth);
+ $("go").textContent=t.go;$("note").textContent=t.note;
+ const sel=[...document.querySelectorAll("#traits input:checked")].map(i=>+i.value);
+ $("traits").innerHTML=t.traits.map((x,i)=>"<label><input type='checkbox' value='"+i+"'"+(sel.includes(i)?" checked":"")+" onchange='limit(this)'><span>"+esc(x)+"</span></label>").join("");
+ updateS3();if(LASTRES)make(true)}
+function parentWord(){return $("mate").value==="m"?L[LANG].father:L[LANG].mother}
+function updateS3(){const t=L[LANG];$("s3").textContent=t.s3.replace("{P}",parentWord());$("hint").textContent=t.hint}
+function limit(el){if(document.querySelectorAll("#traits input:checked").length>3)el.checked=false}
+$("mate").addEventListener("change",()=>{updateS3();});
+["face","eyes","mouth"].forEach(id=>$(id).addEventListener("change",()=>{F[id]=+$(id).value}));
+
+function onFile(){const f=$("file").files[0];if(!f)return;
+ const url=URL.createObjectURL(f);const im=new Image();
+ im.onload=()=>{IMG=im;$("prev").src=url;$("prev").style.display="block";$("det").textContent=""};im.src=url}
+
+// ---- 测量（输入68个点） ----
+const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function measure(p){
+ const faceW=d(p[0],p[16]);
+ let browY=Math.min(...p.slice(17,27).map(q=>q.y));
+ const faceH=(p[8].y-browY)*1.3;
+ const r=faceH/faceW,jaw=d(p[4],p[12])/faceW;
+ let face;
+ if(r<1.2)face=jaw>0.78?3:0;else if(r>1.38)face=2;else face=1;
+ const eyeW=(d(p[36],p[39])+d(p[42],p[45]))/2,gap=d(p[39],p[42])/eyeW;
+ const eyes=gap<0.9?0:gap>1.15?2:1;
+ const m=d(p[48],p[54])/faceW;const mouth=m<0.3?0:m>0.38?2:1;
+ return{face,eyes,mouth,r,gap,m}}
+
+async function detect(){
+ if(!IMG)return false;
+ if(typeof faceapi==="undefined")return false;
+ const M="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/";
+ await faceapi.nets.tinyFaceDetector.loadFromUri(M);
+ await faceapi.nets.faceLandmark68TinyNet.loadFromUri(M);
+ const r=await faceapi.detectSingleFace(IMG,new faceapi.TinyFaceDetectorOptions({inputSize:416})).withFaceLandmarks(true);
+ if(!r)return false;
+ const p=r.landmarks.positions,m=measure(p);
+ F.face=m.face;F.eyes=m.eyes;F.mouth=m.mouth;
+ // 肤色：取两颊中点附近的小块平均色
+ try{const c=document.createElement("canvas");c.width=IMG.naturalWidth;c.height=IMG.naturalHeight;const x=c.getContext("2d");x.drawImage(IMG,0,0);
+  const pts=[[p[3],p[31]],[p[13],p[35]]];let R=0,G=0,B=0,n=0;
+  pts.forEach(([a,b])=>{const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2,s=Math.max(3,d(p[0],p[16])*0.05);
+   const dt=x.getImageData(Math.max(0,cx-s),Math.max(0,cy-s),s*2,s*2).data;for(let i=0;i<dt.length;i+=4){R+=dt[i];G+=dt[i+1];B+=dt[i+2];n++}});
+  if(n)SKIN=[Math.round(R/n),Math.round(G/n),Math.round(B/n)]}catch(e){}
+ ["face","eyes","mouth"].forEach(k=>$(k).value=F[k]);
+ return true}
+
+// ---- 画像 ----
+function avatarSVG(face,eyes,mouth,gender,skin,seed){
+ const sk=skin?"rgb("+skin.join(",")+")":"#f1c9a5";
+ const hairs=["#2b1d14","#4a2f1b","#1a1a1a","#6b4423"],hair=hairs[seed%hairs.length];
+ const w=[96,92,84,100][face]||92,h=[104,112,128,106][face]||112;
+ const ex=[20,26,33][eyes]||26,mw=[10,16,23][mouth]||16;
+ const rx=face===3?18:w;const ry=face===3?18:h;
+ const faceEl=face===3?'<rect x="'+(120-w)+'" y="'+(130-h)+'" width="'+(w*2)+'" height="'+(h*2)+'" rx="34" fill="'+sk+'"/>':'<ellipse cx="120" cy="140" rx="'+w+'" ry="'+h+'" fill="'+sk+'"/>';
+ const female=gender==="f";
+ const back=female?'<path d="M18 150 C18 20 222 20 222 150 L222 270 L190 270 L190 160 L50 160 L50 270 L18 270 Z" fill="'+hair+'"/>':"";
+ const front=female?'<path d="M32 118 C40 36 200 36 208 118 C170 70 70 70 32 118 Z" fill="'+hair+'"/>'
+  :'<path d="M36 112 C30 30 210 30 204 112 C190 74 150 66 120 70 C90 66 50 74 36 112 Z" fill="'+hair+'"/>';
+ const eyeY=135;
+ const eye=(cx)=>'<ellipse cx="'+cx+'" cy="'+eyeY+'" rx="8" ry="'+(female?9:7)+'" fill="#fff"/><circle cx="'+cx+'" cy="'+eyeY+'" r="4.5" fill="#2b1d14"/><circle cx="'+(cx+1.5)+'" cy="'+(eyeY-1.5)+'" r="1.4" fill="#fff"/>';
+ const lash=female?'<path d="M'+(120-ex-10)+' '+(eyeY-6)+' q10 -9 20 0 M'+(120+ex-10)+' '+(eyeY-6)+' q10 -9 20 0" stroke="#2b1d14" stroke-width="2" fill="none"/>':"";
+ const my=190+Math.max(0,(h-112)/4);
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 290" width="220" height="266"><rect width="240" height="290" rx="16" fill="#fdeef0"/>'+back
+  +'<rect x="104" y="'+(my-10)+'" width="32" height="70" rx="12" fill="'+sk+'"/>'
+  +'<path d="M50 290 Q120 215 190 290 Z" fill="'+(female?"#c76a82":"#4d6fa3")+'"/>'
+  +faceEl+front+eye(120-ex)+eye(120+ex)
+  +'<path d="M'+(120-ex-10)+' '+(eyeY-17)+' q10 -7 20 0" stroke="'+hair+'" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M'+(120+ex-10)+' '+(eyeY-17)+' q10 -7 20 0" stroke="'+hair+'" stroke-width="3" fill="none" stroke-linecap="round"/>'
+  +lash+'<path d="M120 148 q-5 14 0 18 q5 2 8 -2" stroke="#b98a68" stroke-width="2" fill="none" stroke-linecap="round"/>'
+  +'<path d="M'+(120-mw)+' '+my+' Q120 '+(my+14)+' '+(120+mw)+' '+my+'" stroke="#b5475f" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+  +'<circle cx="'+(120-w*0.55)+'" cy="'+(my-12)+'" r="9" fill="#f6a5b0" opacity=".45"/><circle cx="'+(120+w*0.55)+'" cy="'+(my-12)+'" r="9" fill="#f6a5b0" opacity=".45"/></svg>'}
+
+async function make(keep){
+ const t=L[LANG];
+ if(!keep){$("out").innerHTML="<p>"+esc(t.busy)+"</p>";
+  let ok=false;try{ok=await detect()}catch(e){ok=false}
+  $("det").textContent=IMG?(ok?t.ok:t.noface):""}
+ const f=F,gender=$("mate").value,P=parentWord();
+ const tr=[...document.querySelectorAll("#traits input:checked")].map(i=>t.traits[+i.value]);
+ const a=t.shapes[f.face],b=t.eyeO[f.eyes],c=t.mouthO[f.mouth];
+ const svg=avatarSVG(f.face,f.eyes,f.mouth,gender,SKIN,f.face*3+f.eyes+f.mouth);
+ const sep=(LANG==="zh"||LANG==="ja")?"、":", ";
+ let h="<div class='card'><div class='res'>"+(IMG?"<div><div class='note'>"+esc(t.resFeat)+"</div><img class='ph' src='"+esc($("prev").src)+"'></div>":"")
+ +"<div><div class='note'>"+esc(t.resMate)+"</div><div id='av'>"+svg+"</div><div style='margin-top:6px'><button class='sec' onclick='savePng()'>"+esc(t.save)+"</button></div></div>"
+ +"<div style='flex:1;min-width:230px'><h3 style='margin-top:0'>"+esc(t.resChar)+"</h3><p>"+esc(t.look.replace("{a}",a).replace("{b}",b).replace("{c}",c))+"</p><p>"+esc(tr.length?t.charT.replace("{P}",P).replace("{t}",tr.join(sep)):t.charN)+"</p>"
+ +"<h3>"+esc(t.resWhy)+"</h3><p class='note'>"+esc(t.why)+"</p></div></div></div>";
+ $("out").innerHTML=h;LASTRES=true}
+
+function savePng(){const s=document.querySelector("#av svg");if(!s)return;
+ const x=new XMLSerializer().serializeToString(s);const img=new Image();
+ img.onload=()=>{const c=document.createElement("canvas");c.width=480;c.height=580;c.getContext("2d").drawImage(img,0,0,480,580);
+  c.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="soulmate.png";a.click()})};
+ img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(x)}
+setLang();
+</script></body></html>
